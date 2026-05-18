@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: tsig-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tsig
+      POSTGRES_USER: tsig
+      POSTGRES_PASSWORD: tsig
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsig -d tsig"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  geoserver:
+    image: kartoza/geoserver:2.25.2
+    container_name: tsig-geoserver
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: geoserver
+      INITIAL_MEMORY: 1G
+      MAXIMUM_MEMORY: 2G
+    ports:
+      - "8081:8080"
+    volumes:
+      - geoserver_data:/opt/geoserver/data_dir
+
+  backend:
+    build:
+      context: ./backend
+    container_name: tsig-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tsig
+      SPRING_DATASOURCE_USERNAME: tsig
+      SPRING_DATASOURCE_PASSWORD: tsig
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      GEOSERVER_URL: http://geoserver:8080/geoserver
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: tsig-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+  tomcat:
+    image: tomcat:10.1-jdk21-temurin
+    container_name: tsig-tomcat
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./tomcat/webapps:/usr/local/tomcat/webapps
+
+volumes:
+  postgres_data:
+  geoserver_data:
