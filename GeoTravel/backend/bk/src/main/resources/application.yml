@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: tsig-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tsig}
+    username: ${SPRING_DATASOURCE_USERNAME:tsig}
+    password: ${SPRING_DATASOURCE_PASSWORD:tsig}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+geoserver:
+  url: ${GEOSERVER_URL:http://localhost:8081/geoserver}
