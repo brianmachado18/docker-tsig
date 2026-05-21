@@ -1,4 +1,4 @@
-CREATE TABLE zona_turistica (
+CREATE TABLE IF NOT EXISTS zona_turistica (
     id_zona SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL,
     descripcion TEXT,
@@ -7,7 +7,7 @@ CREATE TABLE zona_turistica (
     geom GEOMETRY(POLYGON, 32721) NOT NULL
 );
 
-CREATE TABLE atraccion_turistica (
+CREATE TABLE IF NOT EXISTS atraccion_turistica (
     id_atraccion SERIAL PRIMARY KEY,
     id_zona INT REFERENCES zona_turistica(id_zona),
     nombre TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE atraccion_turistica (
     geom GEOMETRY(POINT, 32721) NOT NULL
 );
 
-CREATE TABLE recorrido (
+CREATE TABLE IF NOT EXISTS recorrido (
     id_recorrido SERIAL PRIMARY KEY,
     id_zona INT REFERENCES zona_turistica(id_zona),
     nombre TEXT NOT NULL,
@@ -30,14 +30,14 @@ CREATE TABLE recorrido (
     mes_fin_temporada INT CHECK (mes_fin_temporada BETWEEN 1 AND 12)
 );
 
-CREATE TABLE recorrido_atraccion (
+CREATE TABLE IF NOT EXISTS recorrido_atraccion (
     id_recorrido INT REFERENCES recorrido(id_recorrido) ON DELETE CASCADE,
     id_atraccion INT REFERENCES atraccion_turistica(id_atraccion),
     orden INT NOT NULL,
     PRIMARY KEY (id_recorrido, id_atraccion)
 );
 
-CREATE TABLE historial_estado_recorrido (
+CREATE TABLE IF NOT EXISTS historial_estado_recorrido (
     id_historial SERIAL PRIMARY KEY,
     id_recorrido INT REFERENCES recorrido(id_recorrido) ON DELETE CASCADE,
     estado_anterior TEXT,
