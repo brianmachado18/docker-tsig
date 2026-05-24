@@ -5,12 +5,12 @@ spring:
   application:
     name: tsig-backend
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tsig}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/tsig}
     username: ${SPRING_DATASOURCE_USERNAME:tsig}
     password: ${SPRING_DATASOURCE_PASSWORD:tsig}
   jpa:
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     open-in-view: false
 
 management:
