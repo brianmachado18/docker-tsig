@@ -1,9 +1,6 @@
 package com.example.geotravel.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +14,9 @@ public class Historico {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idHistorico;
 
-    private String estadoAnterior;
-    private String estadoNuevo;
+    @ManyToOne
+    @JoinColumn(name = "idRecorrido")
+    private Recorrido recorrido;
+
     private String fechaCambio;
 }

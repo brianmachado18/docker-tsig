@@ -1,10 +1,10 @@
 package com.example.geotravel.model;
 
+import com.example.geotravel.dto.DTZona;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Polygon;
 
 @Entity
@@ -23,4 +23,16 @@ public class Zona {
 
     @Column(columnDefinition = "geography(Polygon,4326)")
     private Polygon geomWkt;
+
+    public DTZona objToDto(){
+        DTZona dtZona = new DTZona();
+        dtZona.setIdZona(this.getIdZona());
+        dtZona.setDescripcion(this.getDescripcion());
+        dtZona.setNombre(this.getNombre());
+        dtZona.setObservaciones(this.getObservaciones());
+        dtZona.setNivelAtractivo(this.getNivelAtractivo());
+        dtZona.setGeomWkt(this.getGeomWkt().toString());
+        return dtZona;
+    }
+
 }

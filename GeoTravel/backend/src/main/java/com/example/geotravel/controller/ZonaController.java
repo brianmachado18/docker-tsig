@@ -1,6 +1,6 @@
 package com.example.geotravel.controller;
 
-import com.example.geotravel.model.Zona;
+import com.example.geotravel.dto.DTZona;
 import com.example.geotravel.service.ZonaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/zona")
@@ -18,9 +17,9 @@ public class ZonaController {
     private ZonaService zonaService;
 
     @PostMapping("/alta")
-    public ResponseEntity<String> altaZona(@RequestBody Zona zona){
+    public ResponseEntity<String> altaZona(@RequestBody DTZona dtZona){
         try{
-            zonaService.alta(zona);
+            zonaService.alta(dtZona);
             return ResponseEntity.ok().body("Alta completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -28,9 +27,9 @@ public class ZonaController {
     }
 
     @PutMapping("/actualizar")
-    public ResponseEntity<String> actualizarZona(@RequestBody Zona zona){
+    public ResponseEntity<String> actualizarZona(@RequestBody DTZona dtZona){
         try{
-            zonaService.actualizar(zona);
+            zonaService.actualizar(dtZona);
             return ResponseEntity.ok().body("Actualizacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -38,9 +37,9 @@ public class ZonaController {
     }
 
     @DeleteMapping("/eliminar")
-    public ResponseEntity<String> eliminarZona(@RequestBody Zona zona){
+    public ResponseEntity<String> eliminarZona(@RequestParam Long idZona){
         try{
-            zonaService.eliminar(zona);
+            zonaService.eliminar(idZona);
             return ResponseEntity.ok().body("Eliminacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -48,7 +47,7 @@ public class ZonaController {
     }
 
     @GetMapping("/buscar/todos")
-    public ResponseEntity<List<Zona>> obtenerTodos(){
+    public ResponseEntity<List<DTZona>> obtenerTodos(){
         try{
             return ResponseEntity.ok().body(zonaService.obtenerTodos());
         } catch (Exception e){
@@ -57,18 +56,18 @@ public class ZonaController {
     }
 
     @GetMapping("/buscar/id")
-    public ResponseEntity<Zona> obtenerPorId(@RequestBody Map<String, Long> body){
+    public ResponseEntity<DTZona> obtenerPorId(@RequestParam Long id){
         try{
-            return ResponseEntity.ok().body(zonaService.obtenerPorId(body.get("id")));
+            return ResponseEntity.ok().body(zonaService.obtenerPorId(id));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @GetMapping("/buscar/nombre")
-    public ResponseEntity<Zona> obtenerPorNombre(@RequestBody Map<String, String> body){
+    public ResponseEntity<DTZona> obtenerPorNombre(@RequestParam String nombre){
         try{
-            return ResponseEntity.ok().body(zonaService.obtenerPorNombre(body.get("nombre")));
+            return ResponseEntity.ok().body(zonaService.obtenerPorNombre(nombre));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
         }

@@ -1,11 +1,12 @@
 package com.example.geotravel.service;
 
+import com.example.geotravel.dto.DTZona;
 import com.example.geotravel.model.Zona;
 import com.example.geotravel.repository.ZonaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,28 +15,32 @@ public class ZonaService {
     @Autowired
     private ZonaRepository zonaRepository;
 
-    public void alta(@RequestBody Zona zona){
-        zonaRepository.save(zona);
+    public void alta(DTZona dtZona){
+        zonaRepository.save(dtZona.dtoToObj());
     }
 
-    public void actualizar(@RequestBody Zona zona){
-        zonaRepository.save(zona);
+    public void actualizar(DTZona dtZona){
+        zonaRepository.save(dtZona.dtoToObj());
     }
 
-    public void eliminar(@RequestBody Zona zona){
-        zonaRepository.delete(zona);
+    public void eliminar(Long idZona){
+        zonaRepository.delete(zonaRepository.findByIdZona(idZona));
     }
 
-    public List<Zona> obtenerTodos(){
-        return zonaRepository.findAll();
+    public List<DTZona> obtenerTodos(){
+        List<DTZona> listDto = new ArrayList<>();
+        for (Zona z : zonaRepository.findAll()){
+            listDto.add(z.objToDto());
+        }
+        return listDto;
     }
 
-    public Zona obtenerPorId(Long id){
-        return zonaRepository.findByIdZona(id);
+    public DTZona obtenerPorId(Long id){
+        return zonaRepository.findByIdZona(id).objToDto();
     }
 
-    public Zona obtenerPorNombre(String nombre){
-        return zonaRepository.findByNombre(nombre);
+    public DTZona obtenerPorNombre(String nombre){
+        return zonaRepository.findByNombre(nombre).objToDto();
     }
 
 }

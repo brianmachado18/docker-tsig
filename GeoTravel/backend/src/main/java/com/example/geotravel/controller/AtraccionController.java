@@ -1,6 +1,6 @@
 package com.example.geotravel.controller;
 
-import com.example.geotravel.model.Atraccion;
+import com.example.geotravel.dto.DTAtraccion;
 import com.example.geotravel.service.AtraccionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +18,9 @@ public class AtraccionController {
     private AtraccionService atraccionService;
 
     @PostMapping("/alta")
-    public ResponseEntity<String> altaAtraccion(@RequestBody Atraccion atraccion){
+    public ResponseEntity<String> altaAtraccion(@RequestBody DTAtraccion dtAtraccion){
         try{
-            atraccionService.alta(atraccion);
+            atraccionService.alta(dtAtraccion);
             return ResponseEntity.ok().body("Alta completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -28,18 +28,18 @@ public class AtraccionController {
     }
 
     @PutMapping("/actualizar")
-    public ResponseEntity<String> actualizarAtraccion(@RequestBody Atraccion atraccion){
+    public ResponseEntity<String> actualizarAtraccion(@RequestBody DTAtraccion dtAtraccion){
         try{
-            atraccionService.actualizar(atraccion);
+            atraccionService.actualizar(dtAtraccion);
             return ResponseEntity.ok().body("Actualizacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @DeleteMapping ResponseEntity<String> eliminarAtraccion(@RequestBody Atraccion atraccion){
+    @DeleteMapping ResponseEntity<String> eliminarAtraccion(@RequestParam Long idAtraccion){
         try{
-            atraccionService.eliminar(atraccion);
+            atraccionService.eliminar(idAtraccion);
             return ResponseEntity.ok().body("Eliminacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -47,7 +47,7 @@ public class AtraccionController {
     }
 
     @GetMapping("/buscar/todos")
-    public ResponseEntity<List<Atraccion>> obtenerTodos(){
+    public ResponseEntity<List<DTAtraccion>> obtenerTodos(){
         try{
             return ResponseEntity.ok().body(atraccionService.obtenerTodos());
         } catch (Exception e){
@@ -56,7 +56,7 @@ public class AtraccionController {
     }
 
     @GetMapping("/buscar/id")
-    public ResponseEntity<Atraccion> obtenerPorId(@RequestBody Map<String, Long> body){
+    public ResponseEntity<DTAtraccion> obtenerPorId(@RequestBody Map<String, Long> body){
         try{
             return ResponseEntity.ok().body(atraccionService.obtenerPorId(body.get("id")));
         } catch (Exception e){
@@ -65,7 +65,7 @@ public class AtraccionController {
     }
 
     @GetMapping("/buscar/nombre")
-    public ResponseEntity<Atraccion> obtenerPorNombre(@RequestBody Map<String, String> body){
+    public ResponseEntity<DTAtraccion> obtenerPorNombre(@RequestBody Map<String, String> body){
         try{
             return ResponseEntity.ok().body(atraccionService.obtenerPorNombre(body.get("nombre")));
         } catch (Exception e){
