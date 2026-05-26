@@ -5,7 +5,7 @@ spring:
   application:
     name: tsig-backend
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/tsig}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/tsig}
     username: ${SPRING_DATASOURCE_USERNAME:tsig}
     password: ${SPRING_DATASOURCE_PASSWORD:tsig}
   jpa:

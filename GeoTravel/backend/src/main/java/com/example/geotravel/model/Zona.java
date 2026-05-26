@@ -14,7 +14,7 @@ import org.locationtech.jts.geom.Polygon;
 public class Zona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idZona;
+    private Long idZona;
 
     private String nombre;
     private String descripcion;
@@ -22,7 +22,5 @@ public class Zona {
     private String observaciones;
 
     @Column(columnDefinition = "geography(Polygon,4326)")
-    //@Type(type = "jts_geometry")
-    //@Type(type="org.hibernate.spatial.GeometryType")
     private Polygon geomWkt;
 }

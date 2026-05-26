@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class Historico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idHistorial;
+    private Long idHistorico;
 
     private String estadoAnterior;
     private String estadoNuevo;

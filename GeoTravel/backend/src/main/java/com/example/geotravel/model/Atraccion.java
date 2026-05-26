@@ -14,7 +14,7 @@ import org.locationtech.jts.geom.Point;
 public class Atraccion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idAtraccion;
 
     @ManyToOne
     @JoinColumn(name = "idZona")
@@ -26,7 +26,5 @@ public class Atraccion {
     private String fotoUrl;
 
     @Column(columnDefinition = "geography(Point,4326)")
-    //@Type(org.hibernate.spatial.JTSGeometryType.class)
-    //@Type(type="org.hibernate.spatial.GeometryType")
     private Point geomWkt;
 }

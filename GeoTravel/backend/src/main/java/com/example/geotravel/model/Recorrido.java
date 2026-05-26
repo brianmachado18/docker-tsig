@@ -14,7 +14,7 @@ import org.locationtech.jts.geom.LineString;
 public class Recorrido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idRecorrido;
+    private Long idRecorrido;
 
     private String nombre;
     private String descripcion;
@@ -26,7 +26,5 @@ public class Recorrido {
     private int mesFinTemporada;
 
     @Column(columnDefinition = "geography(LineString,4326)")
-    //@Type(type = "jts_geometry")
-    //@Type(type="org.hibernate.spatial.GeometryType")
     private LineString geomWkt;
 }
