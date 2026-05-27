@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface RecorridoRepository extends JpaRepository<Recorrido, Long> {
 
+    Boolean existsByIdRecorrido(Long id);
     Recorrido findByIdRecorrido(Long id);
     List<Recorrido> findAll();
 

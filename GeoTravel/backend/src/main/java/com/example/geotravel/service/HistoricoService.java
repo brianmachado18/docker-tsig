@@ -30,6 +30,10 @@ public class HistoricoService {
         historicoRepository.delete(historicoRepository.findByIdHistorico(idHistorico));
     }
 
+    public Boolean existe(Long idHistorico){
+        return historicoRepository.existsByIdHistorico(idHistorico);
+    }
+
     public List<DTHistorico> obtenerTodos(){
         List<DTHistorico> listDto = new ArrayList<>();
         for (Historico h : historicoRepository.findAll()){

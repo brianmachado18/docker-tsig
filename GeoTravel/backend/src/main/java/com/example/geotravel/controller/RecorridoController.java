@@ -29,8 +29,12 @@ public class RecorridoController {
     @PutMapping("/actualizar")
     public ResponseEntity<String> actualizarRecorrido(@RequestBody DTRecorrido dtRecorrido){
         try{
-            recorridoService.actualizar(dtRecorrido);
-            return ResponseEntity.ok().body("Actualizacion completada.");
+            if (recorridoService.existe(dtRecorrido.getIdRecorrido())){
+                recorridoService.actualizar(dtRecorrido);
+                return ResponseEntity.ok().body("Actualizacion completada.");
+            } else {
+                return ResponseEntity.ok().body("Recorrido no encontrado.");
+            }
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -39,8 +43,12 @@ public class RecorridoController {
     @DeleteMapping("/eliminar")
     public ResponseEntity<String> eliminarRecorrido(@RequestParam Long idRecorrido){
         try{
-            recorridoService.eliminar(idRecorrido);
-            return ResponseEntity.ok().body("Eliminacion completada.");
+            if (recorridoService.existe(idRecorrido)){
+                recorridoService.eliminar(idRecorrido);
+                return ResponseEntity.ok().body("Eliminacion completada.");
+            } else {
+                return ResponseEntity.ok().body("Recorrido no encontrado.");
+            }
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

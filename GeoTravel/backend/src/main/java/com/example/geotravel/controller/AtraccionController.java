@@ -29,8 +29,12 @@ public class AtraccionController {
     @PutMapping("/actualizar")
     public ResponseEntity<String> actualizarAtraccion(@RequestBody DTAtraccion dtAtraccion){
         try{
-            atraccionService.actualizar(dtAtraccion);
-            return ResponseEntity.ok().body("Actualizacion completada.");
+            if (atraccionService.existe(dtAtraccion.getIdAtraccion())) {
+                atraccionService.actualizar(dtAtraccion);
+                return ResponseEntity.ok().body("Actualizacion completada.");
+            } else {
+                return ResponseEntity.ok().body("Atraccion no encontrada.");
+            }
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -39,8 +43,12 @@ public class AtraccionController {
     @DeleteMapping("/eliminar")
     public ResponseEntity<String> eliminarAtraccion(@RequestParam Long idAtraccion){
         try{
-            atraccionService.eliminar(idAtraccion);
-            return ResponseEntity.ok().body("Eliminacion completada.");
+            if (atraccionService.existe(idAtraccion)) {
+                atraccionService.eliminar(idAtraccion);
+                return ResponseEntity.ok().body("Eliminacion completada.");
+            } else {
+                return ResponseEntity.ok().body("Atraccion no encontrada.");
+            }
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

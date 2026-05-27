@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface ZonaRepository extends JpaRepository<Zona, Long> {
 
+    Boolean existsByIdZona(Long id);
     Zona findByIdZona(Long id);
     List<Zona> findAll();
 

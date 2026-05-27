@@ -33,6 +33,10 @@ public class AtraccionService {
         atraccionRepository.delete(atraccionRepository.findByIdAtraccion(idAtraccion));
     }
 
+    public Boolean existe(Long idAtraccion){
+        return atraccionRepository.existsByIdAtraccion(idAtraccion);
+    }
+
     public List<DTAtraccion> obtenerTodos(){
         List<DTAtraccion> listDto = new ArrayList<>();
         for (Atraccion a : atraccionRepository.findAll()){

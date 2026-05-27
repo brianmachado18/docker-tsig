@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface AtraccionRepository extends JpaRepository<Atraccion, Long> {
 
+    Boolean existsByIdAtraccion(Long id);
     Atraccion findByIdAtraccion(Long id);
     List<Atraccion> findAll();
 

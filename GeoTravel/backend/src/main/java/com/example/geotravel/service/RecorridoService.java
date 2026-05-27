@@ -33,6 +33,10 @@ public class RecorridoService {
         recorridoRepository.delete(recorridoRepository.findByIdRecorrido(idRecorrido));
     }
 
+    public Boolean existe(Long idRecorrido){
+        return recorridoRepository.existsByIdRecorrido(idRecorrido);
+    }
+
     public List<DTRecorrido> obtenerTodos(){
         List<DTRecorrido> listDto = new ArrayList<>();
         for (Recorrido r : recorridoRepository.findAll()){
