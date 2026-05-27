@@ -1,6 +1,6 @@
 package com.example.geotravel.controller;
 
-import com.example.geotravel.model.Historico;
+import com.example.geotravel.dto.DTHistorico;
 import com.example.geotravel.service.HistoricoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/historico")
@@ -18,9 +17,9 @@ public class HistoricoController {
     private HistoricoService historicoService;
 
     @PostMapping("/alta")
-    public ResponseEntity<String> altaHistorico(@RequestBody Historico historico){
+    public ResponseEntity<String> altaHistorico(@RequestBody DTHistorico dtHistorico){
         try{
-            historicoService.alta(historico);
+            historicoService.alta(dtHistorico);
             return ResponseEntity.ok().body("Alta completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -28,9 +27,9 @@ public class HistoricoController {
     }
 
     @PutMapping("/actualizar")
-    public ResponseEntity<String> actualizarHistorico(@RequestBody Historico historico){
+    public ResponseEntity<String> actualizarHistorico(@RequestBody DTHistorico dtHistorico){
         try{
-            historicoService.actualizar(historico);
+            historicoService.actualizar(dtHistorico);
             return ResponseEntity.ok().body("Actualizacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -38,9 +37,9 @@ public class HistoricoController {
     }
 
     @DeleteMapping("/eliminar")
-    public ResponseEntity<String> eliminarHistorico(@RequestBody Historico historico){
+    public ResponseEntity<String> eliminarHistorico(@RequestParam Long idHistorico){
         try{
-            historicoService.eliminar(historico);
+            historicoService.eliminar(idHistorico);
             return ResponseEntity.ok().body("Eliminacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -48,7 +47,7 @@ public class HistoricoController {
     }
 
     @GetMapping("/buscar/todos")
-    public ResponseEntity<List<Historico>> obtenerTodos(){
+    public ResponseEntity<List<DTHistorico>> obtenerTodos(){
         try{
             return ResponseEntity.ok().body(historicoService.obtenerTodos());
         } catch (Exception e){
@@ -57,9 +56,9 @@ public class HistoricoController {
     }
 
     @GetMapping("/buscar/id")
-    public ResponseEntity<Historico> obtenerPorId(@RequestBody Map<String, Long> body){
+    public ResponseEntity<DTHistorico> obtenerPorId(@RequestParam Long id){
         try{
-            return ResponseEntity.ok().body(historicoService.obtenerPorId(body.get("id")));
+            return ResponseEntity.ok().body(historicoService.obtenerPorId(id));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
         }

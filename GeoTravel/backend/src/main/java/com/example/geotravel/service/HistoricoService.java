@@ -1,11 +1,12 @@
 package com.example.geotravel.service;
 
+import com.example.geotravel.dto.DTHistorico;
 import com.example.geotravel.model.Historico;
 import com.example.geotravel.repository.HistoricoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,24 +15,28 @@ public class HistoricoService {
     @Autowired
     private HistoricoRepository historicoRepository;
 
-    public void alta(@RequestBody Historico historico){
-        historicoRepository.save(historico);
+    public void alta(DTHistorico dtHistorico){
+        historicoRepository.save(dtHistorico.dtoToObj());
     }
 
-    public void actualizar(@RequestBody Historico historico){
-        historicoRepository.save(historico);
+    public void actualizar(DTHistorico dtHistorico){
+        historicoRepository.save(dtHistorico.dtoToObj());
     }
 
-    public void eliminar(@RequestBody Historico historico){
-        historicoRepository.delete(historico);
+    public void eliminar(Long idHistorico){
+        historicoRepository.delete(historicoRepository.findByIdHistorico(idHistorico));
     }
 
-    public List<Historico> obtenerTodos(){
-        return historicoRepository.findAll();
+    public List<DTHistorico> obtenerTodos(){
+        List<DTHistorico> listDto = new ArrayList<>();
+        for (Historico h : historicoRepository.findAll()){
+            listDto.add(h.objToDto());
+        }
+        return listDto;
     }
 
-    public Historico obtenerPorId(Long id){
-        return historicoRepository.findByIdHistorico(id);
+    public DTHistorico obtenerPorId(Long id){
+        return historicoRepository.findByIdHistorico(id).objToDto();
     }
 
 }

@@ -1,11 +1,12 @@
 package com.example.geotravel.service;
 
+import com.example.geotravel.dto.DTRecorrido;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.repository.RecorridoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,28 +15,32 @@ public class RecorridoService {
     @Autowired
     private RecorridoRepository recorridoRepository;
 
-    public void alta(@RequestBody Recorrido recorrido){
-        recorridoRepository.save(recorrido);
+    public void alta(DTRecorrido dtRecorrido){
+        recorridoRepository.save(dtRecorrido.dtoToObj());
     }
 
-    public void actualizar(@RequestBody Recorrido recorrido){
-        recorridoRepository.save(recorrido);
+    public void actualizar(DTRecorrido dtRecorrido){
+        recorridoRepository.save(dtRecorrido.dtoToObj());
     }
 
-    public void eliminar(@RequestBody Recorrido recorrido){
-        recorridoRepository.delete(recorrido);
+    public void eliminar(Long idRecorrido){
+        recorridoRepository.delete(recorridoRepository.findByIdRecorrido(idRecorrido));
     }
 
-    public List<Recorrido> obtenerTodos(){
-        return recorridoRepository.findAll();
+    public List<DTRecorrido> obtenerTodos(){
+        List<DTRecorrido> listDto = new ArrayList<>();
+        for (Recorrido r : recorridoRepository.findAll()){
+            listDto.add(r.objToDto());
+        }
+        return listDto;
     }
 
-    public Recorrido obtenerPorId(Long id){
-        return recorridoRepository.findByIdRecorrido(id);
+    public DTRecorrido obtenerPorId(Long id){
+        return recorridoRepository.findByIdRecorrido(id).objToDto();
     }
 
-    public Recorrido obtenerPorNombre(String nombre){
-        return recorridoRepository.findByNombre(nombre);
+    public DTRecorrido obtenerPorNombre(String nombre){
+        return recorridoRepository.findByNombre(nombre).objToDto();
     }
 
 }

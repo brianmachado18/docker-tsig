@@ -3,7 +3,6 @@ package com.example.geotravel.dto;
 import com.example.geotravel.model.Zona;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -28,7 +27,6 @@ public class DTZona {
         WKTReader reader = new WKTReader();
         try {
             zona.setGeomWkt((Polygon)reader.read(this.geomWkt));
-
         } catch(ParseException e) {
             System.err.println(e.getMessage());
             zona.setGeomWkt(null);
