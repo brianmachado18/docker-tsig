@@ -1,6 +1,5 @@
 package com.example.geotravel.model;
 
-import com.example.geotravel.dto.DTAtraccion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,16 +26,4 @@ public class Atraccion {
 
     @Column(columnDefinition = "geography(Point,4326)")
     private Point geomWkt;
-
-    public DTAtraccion objToDto(){
-        DTAtraccion dtAtraccion = new DTAtraccion();
-        dtAtraccion.setIdAtraccion(this.getIdAtraccion());
-        dtAtraccion.setIdZona(this.getZona().getIdZona());
-        dtAtraccion.setNombre(this.getNombre());
-        dtAtraccion.setDescripcion(this.getDescripcion());
-        dtAtraccion.setClasificacion(this.getClasificacion());
-        dtAtraccion.setFotoUrl(this.getFotoUrl());
-        dtAtraccion.setGeomWkt(this.getGeomWkt().toString());
-        return dtAtraccion;
-    }
 }

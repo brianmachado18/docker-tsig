@@ -1,6 +1,5 @@
 package com.example.geotravel.model;
 
-import com.example.geotravel.dto.DTRecorrido;
 import com.example.geotravel.enums.Estado;
 import com.example.geotravel.enums.TipoExperiencia;
 import jakarta.persistence.*;
@@ -35,19 +34,4 @@ public class Recorrido {
 
     @Column(columnDefinition = "geography(LineString,4326)")
     private LineString geomWkt;
-
-    public DTRecorrido objToDto(){
-        DTRecorrido dtRecorrido = new DTRecorrido();
-        dtRecorrido.setIdRecorrido(this.getIdRecorrido());
-        dtRecorrido.setNombre(this.getNombre());
-        dtRecorrido.setDescripcion(this.getDescripcion());
-        dtRecorrido.setDuracionEstimada(this.getDuracionEstimada());
-        dtRecorrido.setGuiaResponsable(this.getGuiaResponsable());
-        dtRecorrido.setFechaInicio(this.getFechaInicio());
-        dtRecorrido.setFechaFin(this.getFechaFin());
-        dtRecorrido.setTipoExperiencia(this.getTipoExperiencia());
-        dtRecorrido.setEstado(this.getEstado());
-        dtRecorrido.setGeomWkt(this.getGeomWkt().toString());
-        return dtRecorrido;
-    }
 }

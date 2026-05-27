@@ -15,12 +15,15 @@ public class HistoricoService {
     @Autowired
     private HistoricoRepository historicoRepository;
 
+    @Autowired
+    private RecorridoService recorridoService;
+
     public void alta(DTHistorico dtHistorico){
-        historicoRepository.save(dtHistorico.dtoToObj());
+        historicoRepository.save(dtoToObj(dtHistorico));
     }
 
     public void actualizar(DTHistorico dtHistorico){
-        historicoRepository.save(dtHistorico.dtoToObj());
+        historicoRepository.save(dtoToObj(dtHistorico));
     }
 
     public void eliminar(Long idHistorico){
@@ -30,13 +33,29 @@ public class HistoricoService {
     public List<DTHistorico> obtenerTodos(){
         List<DTHistorico> listDto = new ArrayList<>();
         for (Historico h : historicoRepository.findAll()){
-            listDto.add(h.objToDto());
+            listDto.add(objToDto(h));
         }
         return listDto;
     }
 
     public DTHistorico obtenerPorId(Long id){
-        return historicoRepository.findByIdHistorico(id).objToDto();
+        return objToDto(historicoRepository.findByIdHistorico(id));
+    }
+
+    public Historico dtoToObj(DTHistorico dtHistorico){
+        Historico historico = new Historico();
+        historico.setIdHistorico(dtHistorico.getIdHistorico());
+        historico.setRecorrido(recorridoService.obtenerObjPorId(dtHistorico.getIdRecorrido()));
+        historico.setFechaCambio(dtHistorico.getFechaCambio());
+        return historico;
+    }
+
+    public DTHistorico objToDto(Historico historico){
+        DTHistorico dtHistorico = new DTHistorico();
+        dtHistorico.setIdHistorico(historico.getIdHistorico());
+        dtHistorico.setIdRecorrido(historico.getRecorrido().getIdRecorrido());
+        dtHistorico.setFechaCambio(historico.getFechaCambio());
+        return dtHistorico;
     }
 
 }

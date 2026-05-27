@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/atraccion")
@@ -37,7 +36,8 @@ public class AtraccionController {
         }
     }
 
-    @DeleteMapping ResponseEntity<String> eliminarAtraccion(@RequestParam Long idAtraccion){
+    @DeleteMapping("/eliminar")
+    public ResponseEntity<String> eliminarAtraccion(@RequestParam Long idAtraccion){
         try{
             atraccionService.eliminar(idAtraccion);
             return ResponseEntity.ok().body("Eliminacion completada.");
@@ -56,18 +56,18 @@ public class AtraccionController {
     }
 
     @GetMapping("/buscar/id")
-    public ResponseEntity<DTAtraccion> obtenerPorId(@RequestBody Map<String, Long> body){
+    public ResponseEntity<DTAtraccion> obtenerPorId(@RequestParam Long id){
         try{
-            return ResponseEntity.ok().body(atraccionService.obtenerPorId(body.get("id")));
+            return ResponseEntity.ok().body(atraccionService.obtenerPorId(id));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @GetMapping("/buscar/nombre")
-    public ResponseEntity<DTAtraccion> obtenerPorNombre(@RequestBody Map<String, String> body){
+    public ResponseEntity<DTAtraccion> obtenerPorNombre(@RequestParam String nombre){
         try{
-            return ResponseEntity.ok().body(atraccionService.obtenerPorNombre(body.get("nombre")));
+            return ResponseEntity.ok().body(atraccionService.obtenerPorNombre(nombre));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
         }
