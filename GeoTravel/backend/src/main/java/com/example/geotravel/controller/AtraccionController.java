@@ -64,13 +64,4 @@ public class AtraccionController {
         }
     }
 
-    @GetMapping("/buscar/nombre")
-    public ResponseEntity<DTAtraccion> obtenerPorNombre(@RequestParam String nombre){
-        try{
-            return ResponseEntity.ok().body(atraccionService.obtenerPorNombre(nombre));
-        } catch (Exception e){
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
 }

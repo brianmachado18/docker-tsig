@@ -9,6 +9,5 @@ public interface RecorridoRepository extends JpaRepository<Recorrido, Long> {
 
     Recorrido findByIdRecorrido(Long id);
     List<Recorrido> findAll();
-    Recorrido findByNombre(String nombre);
 
 }

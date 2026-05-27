@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.LineString;
 
-import java.time.LocalDate;
-
 @Entity
 @Data
 @AllArgsConstructor
@@ -19,12 +17,14 @@ public class Recorrido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idRecorrido;
 
+    @ManyToOne
+    @JoinColumn(name = "idEstacion")
+    private Estacion estacion;
+
     private String nombre;
     private String descripcion;
     private int duracionEstimada;
     private String guiaResponsable;
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
 
     @Enumerated(EnumType.STRING)
     private TipoExperiencia tipoExperiencia;

@@ -9,6 +9,5 @@ public interface ZonaRepository extends JpaRepository<Zona, Long> {
 
     Zona findByIdZona(Long id);
     List<Zona> findAll();
-    Zona findByNombre(String nombre);
 
 }

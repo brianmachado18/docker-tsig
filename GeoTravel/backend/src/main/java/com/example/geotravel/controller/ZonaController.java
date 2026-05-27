@@ -64,13 +64,4 @@ public class ZonaController {
         }
     }
 
-    @GetMapping("/buscar/nombre")
-    public ResponseEntity<DTZona> obtenerPorNombre(@RequestParam String nombre){
-        try{
-            return ResponseEntity.ok().body(zonaService.obtenerPorNombre(nombre));
-        } catch (Exception e){
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
 }

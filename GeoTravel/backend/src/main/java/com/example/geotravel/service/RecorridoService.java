@@ -18,6 +18,9 @@ public class RecorridoService {
     @Autowired
     private RecorridoRepository recorridoRepository;
 
+    @Autowired
+    private EstacionService estacionService;
+
     public void alta(DTRecorrido dtRecorrido){
         recorridoRepository.save(dtoToObj(dtRecorrido));
     }
@@ -46,19 +49,14 @@ public class RecorridoService {
         return recorridoRepository.findByIdRecorrido(id);
     }
 
-    public DTRecorrido obtenerPorNombre(String nombre){
-        return objToDto(recorridoRepository.findByNombre(nombre));
-    }
-
     public Recorrido dtoToObj(DTRecorrido dtRecorrido){
         Recorrido recorrido = new Recorrido();
         recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
+        recorrido.setEstacion(estacionService.obtenerPorId(dtRecorrido.getIdEstacion()));
         recorrido.setNombre(dtRecorrido.getNombre());
         recorrido.setDescripcion(dtRecorrido.getDescripcion());
         recorrido.setDuracionEstimada(dtRecorrido.getDuracionEstimada());
         recorrido.setGuiaResponsable(dtRecorrido.getGuiaResponsable());
-        recorrido.setFechaInicio(dtRecorrido.getFechaInicio());
-        recorrido.setFechaFin(dtRecorrido.getFechaFin());
         recorrido.setTipoExperiencia(dtRecorrido.getTipoExperiencia());
         recorrido.setEstado(dtRecorrido.getEstado());
         WKTReader reader = new WKTReader();
@@ -74,12 +72,11 @@ public class RecorridoService {
     public DTRecorrido objToDto(Recorrido recorrido){
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
+        dtRecorrido.setIdEstacion(recorrido.getEstacion().getIdEstacion());
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
         dtRecorrido.setGuiaResponsable(recorrido.getGuiaResponsable());
-        dtRecorrido.setFechaInicio(recorrido.getFechaInicio());
-        dtRecorrido.setFechaFin(recorrido.getFechaFin());
         dtRecorrido.setTipoExperiencia(recorrido.getTipoExperiencia());
         dtRecorrido.setEstado(recorrido.getEstado());
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());

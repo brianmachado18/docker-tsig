@@ -46,10 +46,6 @@ public class ZonaService {
         return zonaRepository.findByIdZona(id);
     }
 
-    public DTZona obtenerPorNombre(String nombre){
-        return objToDto(zonaRepository.findByNombre(nombre));
-    }
-
     public Zona dtoToObj(DTZona dtZona){
         Zona zona = new Zona();
         zona.setIdZona(dtZona.getIdZona());

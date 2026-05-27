@@ -64,13 +64,4 @@ public class RecorridoController {
         }
     }
 
-    @GetMapping("/buscar/nombre")
-    public ResponseEntity<DTRecorrido> obtenerPorNombre(@RequestParam String nombre){
-        try{
-            return ResponseEntity.ok().body(recorridoService.obtenerPorNombre(nombre));
-        } catch (Exception e){
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
 }

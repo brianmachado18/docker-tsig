@@ -9,6 +9,5 @@ public interface AtraccionRepository extends JpaRepository<Atraccion, Long> {
 
     Atraccion findByIdAtraccion(Long id);
     List<Atraccion> findAll();
-    Atraccion findByNombre(String nombre);
 
 }

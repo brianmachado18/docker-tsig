@@ -45,10 +45,6 @@ public class AtraccionService {
         return objToDto(atraccionRepository.findByIdAtraccion(id));
     }
 
-    public DTAtraccion obtenerPorNombre(String nombre){
-        return objToDto(atraccionRepository.findByNombre(nombre));
-    }
-
     public Atraccion dtoToObj(DTAtraccion dtAtraccion){
         Atraccion atraccion = new Atraccion();
         atraccion.setIdAtraccion(dtAtraccion.getIdAtraccion());
