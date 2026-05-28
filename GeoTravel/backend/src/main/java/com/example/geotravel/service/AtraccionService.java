@@ -49,6 +49,10 @@ public class AtraccionService {
         return objToDto(atraccionRepository.findByIdAtraccion(id));
     }
 
+    public Atraccion obtenerObjPorId(Long id){
+        return atraccionRepository.findByIdAtraccion(id);
+    }
+
     public Atraccion dtoToObj(DTAtraccion dtAtraccion){
         Atraccion atraccion = new Atraccion();
         atraccion.setIdAtraccion(dtAtraccion.getIdAtraccion());
