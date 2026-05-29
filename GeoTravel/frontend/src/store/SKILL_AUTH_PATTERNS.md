@@ -195,7 +195,7 @@ export default function AdminLoginForm() {
     if (result.success) {
       navigate('/zones');
     } else {
-      setError(result.error || t('auth.loginFailed'));
+      setError(result.error || t('auth.signInFailed'));
     }
     
     setLoading(false);
@@ -222,7 +222,7 @@ export default function AdminLoginForm() {
       />
       
       <button type="submit" disabled={loading}>
-        {loading ? t('common.loading') : t('auth.login')}
+        {loading ? t('common.loading') : t('auth.signIn')}
       </button>
     </form>
   );

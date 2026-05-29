@@ -26,14 +26,14 @@ import * as yup from 'yup';
 
 export const zoneSchema = yup.object().shape({
   name: yup.string()
-    .required('El nombre es obligatorio')
-    .min(3, 'Mínimo 3 caracteres')
-    .max(100, 'Máximo 100 caracteres'),
+    .required(t('validation.nameRequired'))
+    .min(3, t('validation.nameMin', {count: 3}))
+    .max(100, t('validation.nameMax', {count: 100})),
 
   description: yup.string()
-    .required('La descripción es obligatoria')
-    .min(10, 'Mínimo 10 caracteres')
-    .max(500, 'Máximo 500 caracteres'),
+    .required(t('validation.descriptionRequired'))
+    .min(10, t('validation.descriptionMin', {count: 10}))
+    .max(500, t('validation.descriptionMax', {count: 500})),
 
   attractionLevel: yup.number()
     .required('El nivel de atractivo es obligatorio')

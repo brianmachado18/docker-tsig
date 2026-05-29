@@ -1,23 +1,26 @@
 {
   "common": {
-    "dashboard": "Tablero",
     "zones": "Zonas",
     "routes": "Recorridos",
     "attractions": "Atracciones",
-    "settings": "Configuración",
-    "support": "Soporte",
     "logout": "Cerrar Sesión",
     "save": "Guardar",
-    "discard": "Descartar",
     "loading": "Cargando...",
     "error": "Error",
-    "search": "Buscar...",
     "appTitle": "GeoTravel GIS",
     "english": "English",
     "spanish": "Español"
     ,"cancel": "Cancelar",
     "description": "Descripción",
-    "edit": "Editar"
+    "edit": "Editar",
+    "savedSuccessfully": "Guardado con éxito",
+    "errorSaving": "Error al guardar",
+    "selectItem": "Seleccione un elemento",
+    "discardChanges": "¿Descartar los cambios?"
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "durationMin": "La duración debe ser al menos 1"
   },
   "guest": {
     "title": "Explora Uruguay",
@@ -45,8 +48,8 @@
     "password": "Contraseña",
     "signIn": "Ingresar",
     "signingIn": "Ingresando...",
+    "signInFailed": "Error de acceso. Intenta nuevamente.",
     "mockNote": "Login simulado. Reemplazar con auth real cuando esté listo.",
-    "publicDesc": "Los invitados navegan libremente. Los administradores ingresan para gestionar rutas, zonas y atracciones.",
     "adminPortal": "Portal de Administración"
   },
   "zones": {
@@ -71,6 +74,7 @@
     "available": "Disponible",
     "pending": "Pendiente",
     "offSeason": "Fuera de Temporada",
+    "archived": "Archivado",
     "name": "Nombre del Recorrido",
     
     "duration": "Duración Est.",

@@ -1,23 +1,39 @@
 {
   "common": {
-    "dashboard": "Dashboard",
     "zones": "Zones",
     "routes": "Routes",
     "attractions": "Attractions",
-    "settings": "Settings",
-    "support": "Support",
     "logout": "Logout",
     "save": "Save",
-    "discard": "Discard",
     "loading": "Loading...",
     "error": "Error",
-    "search": "Search...",
     "appTitle": "GeoTravel GIS",
     "english": "English",
     "spanish": "Español"
     ,"cancel": "Cancel",
     "description": "Description",
-    "edit": "Edit"
+    "edit": "Edit",
+    "savedSuccessfully": "Saved successfully",
+    "errorSaving": "Error saving",
+    "selectItem": "Select an item",
+    "discardChanges": "Discard changes?"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "durationMin": "Duration must be at least 1"
+  },
+  "routes": {
+    "design": "Design Route",
+    "newRoute": "New Route",
+    "available": "Available",
+    "pending": "Pending",
+    "offSeason": "Off-Season",
+    "archived": "Archived",
+    "name": "Route Name",
+    "duration": "Est. Duration",
+    "guide": "Assigned Guide",
+    "stops": "Route Stops",
+    "addStop": "Add Stop"
   },
   "guest": {
     "title": "Explore Uruguay",
@@ -45,8 +61,8 @@
     "password": "Password",
     "signIn": "Sign in",
     "signingIn": "Signing in...",
+    "signInFailed": "Sign in failed. Please try again.",
     "mockNote": "Mock login only. Replace with backend auth when ready.",
-    "publicDesc": "Guests browse freely. Admins sign in to manage routes, zones, and attractions.",
     "adminPortal": "Administration Portal"
   },
   "zones": {
@@ -55,7 +71,7 @@
     "newZone": "New Zone",
     "polygonId": "Editing Polygon ID",
     "loading": "Loading zones...",
-    "loadFailed": "Failed to load zones.",
+    "offSeason": "Off-Season",
     "name": "Zone Name",
     
     "attractionLevel": "Attraction Level",
@@ -65,19 +81,7 @@
     "active": "Active Zone",
     "offSeason": "Off-season Zone"
   },
-  "routes": {
-    "design": "Design Route",
-    "newRoute": "New Route",
-    "available": "Available",
-    "pending": "Pending",
-    "offSeason": "Off-Season",
-    "name": "Route Name",
-    
-    "duration": "Est. Duration",
-    "guide": "Assigned Guide",
-    "stops": "Route Stops",
-    "addStop": "Add Stop"
-  },
+  
   "attractions": {
     "title": "Attraction Catalog",
     "poi": "Points of Interest",

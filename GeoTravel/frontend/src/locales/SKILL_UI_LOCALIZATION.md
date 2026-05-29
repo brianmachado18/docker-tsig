@@ -63,9 +63,7 @@ frontend/
     "name": "Zone Name",
     "description": "Description",
     "attractionLevel": "Attraction Level",
-    "observations": "Internal Observations",
-    "save": "Save Zone",
-    "delete": "Delete Zone"
+    "observations": "Internal Observations"
   },
   "routes": {
     "title": "Route Planning",
@@ -312,7 +310,7 @@ export default function ZoneForm({ zone, onSave }) {
         ))}
       </div>
       
-      <button type="submit">{t('zones.save')}</button>
+      <button type="submit">{t('common.save')}</button>
     </form>
   );
 }

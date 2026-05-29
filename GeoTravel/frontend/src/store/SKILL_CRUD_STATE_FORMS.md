@@ -185,7 +185,7 @@ export default function ZoneForm({ zone, onSaveComplete }) {
       
       // Validaciones básicas
       if (!zoneName.trim()) {
-        alert(t('zones.nameRequired'));
+        alert(t('validation.nameRequired'));
         setIsSaving(false);
         return;
       }
@@ -275,7 +275,7 @@ export default function ZoneForm({ zone, onSaveComplete }) {
           disabled={isSaving}
           className="px-4 py-2 bg-blue-600 text-white rounded"
         >
-          {isSaving ? t('common.loading') : t('zones.save')}
+          {isSaving ? t('common.loading') : t('common.save')}
         </button>
         <button
           type="button"
@@ -442,9 +442,9 @@ export default function RouteForm({ route, onSaveComplete }) {
           onChange={(e) => setStatus(e.target.value)}
           className="w-full border p-2"
         >
-          <option value="active">{t('routes.statusActive')}</option>
-          <option value="planning">{t('routes.statusPlanning')}</option>
-          <option value="archived">{t('routes.statusArchived')}</option>
+          <option value="active">{t('routes.available')}</option>
+          <option value="planning">{t('routes.pending')}</option>
+          <option value="archived">{t('routes.archived')}</option>
         </select>
       </div>
       
@@ -479,7 +479,7 @@ export default function RouteForm({ route, onSaveComplete }) {
         disabled={isSaving}
         className="px-4 py-2 bg-blue-600 text-white rounded"
       >
-        {isSaving ? t('common.loading') : t('routes.save')}
+        {isSaving ? t('common.loading') : t('common.save')}
       </button>
     </form>
   );
