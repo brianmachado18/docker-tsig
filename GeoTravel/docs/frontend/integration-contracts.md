@@ -1,13 +1,13 @@
 # Frontend Integration Contracts
 
-Use this document to capture assumptions between `@Frontend SPA Architect` and `@Geo Platform Architect`.
+Use this document to capture assumptions between `@GeoTravel-FE` and `@GeoTravel-GIS`.
 
 | Integration | Frontend Expects | Owner |
 |---|---|---|
-| REST API | `VITE_API_URL`, JSON DTOs, stable error shape | `@Geo Platform Architect` |
-| GeoServer | `VITE_GEOSERVER_URL`, workspace/layer names, WMS/WFS availability | `@Geo Platform Architect` |
+| REST API | `VITE_API_URL`, JSON DTOs, stable error shape | `@GeoTravel-GIS` |
+| GeoServer | `VITE_GEOSERVER_URL`, workspace/layer names, WMS/WFS availability | `@GeoTravel-GIS` |
 | Geometry exchange | Explicit CRS/SRID and GeoJSON shape when applicable | Both agents |
-| Mock data | Same entity names and status values as backend contracts | `@Frontend SPA Architect` |
+| Mock data | Same entity names and status values as backend contracts | `@GeoTravel-FE` |
 
 Current frontend env names:
 

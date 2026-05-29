@@ -1,7 +1,7 @@
 # P0 - Frontend Critical Documentation
 
 Date: 2026-05-28
-Author: @Frontend SPA Architect
+Author: @GeoTravel-FE
 
 Summary
 -------
@@ -21,7 +21,7 @@ Files changed (quick list)
 - `frontend/src/pages/ZoneManagement.jsx` — ahora muestra el formulario solo si `isFormOpen`; agregado FAB "Nueva Zona" que llama `openForm()`.
 - `frontend/src/components/zones/ZoneForm.jsx` — ahora usa `useZonesStore().closeForm()` para el botón de cancelar; los botones usan i18n (`zones.cancel`, `common.save`).
 - `frontend/src/locales/en.json` y `frontend/src/locales/es.json` — agregadas claves `zones.newZone` y `zones.cancel`.
-- `AGENTS.md` - actualizado con `@Frontend SPA Architect` y `@Geo Platform Architect`.
+- `AGENTS.md` - actualizado con `@GeoTravel-FE` y `@GeoTravel-GIS`.
 - Skills añadidos y movidos a `docs/skills/frontend/`.
 - Memoria resumen: `/memories/repo/geotravel_retrospective_implementation.md`.
 
@@ -138,4 +138,3 @@ Appendix: lista de archivos creados por este task
 - `docs/P0_frontend_critical.md` (este archivo)
 - `docs/snippets/zones_flow.md`
 - `docs/snippets/i18n_quick.md`
-

@@ -16,5 +16,5 @@ GeoTravel documentation is organized so agents and humans can find the right con
 1. Start with `AGENTS.md`.
 2. Read `docs/spec/TSIG-2026-Letra.md` for product scope.
 3. For frontend work, read the relevant file in `docs/skills/frontend/`.
-4. For GIS/backend/infra work, use `@Geo Platform Architect`.
+4. For GIS/backend/infra work, use `@GeoTravel-GIS`.
 5. Keep implementation files under `frontend/src/`; keep prompts and skills under `docs/` or `.github/agents/`.

@@ -6,29 +6,29 @@ Use this file as the stable entry point for AI work in GeoTravel. Detailed docum
 
 | Agent | File | Owns | Use For |
 |---|---|---|---|
-| `@Frontend SPA Architect` | `.github/agents/frontend-spa-architect.agent.md` | React SPA, OpenLayers client, Zustand, services, forms, UI/i18n | Any `frontend/` implementation or architecture task |
-| `@Geo Platform Architect` | `.github/agents/geo-platform-architect.agent.md` | GIS architecture, PostGIS, GeoServer, Spring Boot, Docker, Tomcat | Backend/GIS/infra tasks or frontend contracts that depend on them |
+| `@GeoTravel-FE` | `.github/agents/frontend-spa-architect.agent.md` | React SPA, OpenLayers client, Zustand, services, forms, UI/i18n | Any `frontend/` implementation or architecture task |
+| `@GeoTravel-GIS` | `.github/agents/geo-platform-architect.agent.md` | GIS architecture, PostGIS, GeoServer, Spring Boot, Docker, Tomcat | Backend/GIS/infra tasks or frontend contracts that depend on them |
 
 ## Skill Map
 
 | Task | Primary Agent | Skill |
 |---|---|---|
-| UI components, pages, layout | `@Frontend SPA Architect` | `docs/skills/frontend/react-components.md` |
-| Forms, validation, field errors | `@Frontend SPA Architect` | `docs/skills/frontend/forms-validation.md` |
-| Zustand stores, shared state, hooks | `@Frontend SPA Architect` | `docs/skills/frontend/state-management.md` |
-| CRUD flows joining forms and stores | `@Frontend SPA Architect` | `docs/skills/frontend/crud-state-forms.md` |
-| API clients, service adapters, mocks | `@Frontend SPA Architect` | `docs/skills/frontend/services-apis.md` |
-| OpenLayers, WMS/WFS, map interactions | `@Frontend SPA Architect` | `docs/skills/frontend/openlayers-geoserver.md` |
-| Auth route guards and mock login | `@Frontend SPA Architect` | `docs/skills/frontend/auth-patterns.md` |
-| Locales, copy, i18n audit | `@Frontend SPA Architect` | `docs/skills/frontend/ui-localization.md` |
-| PostGIS schema, spatial SQL, SRID | `@Geo Platform Architect` | Agent instructions |
-| GeoServer stores/layers/styles | `@Geo Platform Architect` | Agent instructions |
-| Docker, Tomcat, Spring Boot contracts | `@Geo Platform Architect` | Agent instructions |
+| UI components, pages, layout | `@GeoTravel-FE` | `docs/skills/frontend/react-components.md` |
+| Forms, validation, field errors | `@GeoTravel-FE` | `docs/skills/frontend/forms-validation.md` |
+| Zustand stores, shared state, hooks | `@GeoTravel-FE` | `docs/skills/frontend/state-management.md` |
+| CRUD flows joining forms and stores | `@GeoTravel-FE` | `docs/skills/frontend/crud-state-forms.md` |
+| API clients, service adapters, mocks | `@GeoTravel-FE` | `docs/skills/frontend/services-apis.md` |
+| OpenLayers, WMS/WFS, map interactions | `@GeoTravel-FE` | `docs/skills/frontend/openlayers-geoserver.md` |
+| Auth route guards and mock login | `@GeoTravel-FE` | `docs/skills/frontend/auth-patterns.md` |
+| Locales, copy, i18n audit | `@GeoTravel-FE` | `docs/skills/frontend/ui-localization.md` |
+| PostGIS schema, spatial SQL, SRID | `@GeoTravel-GIS` | Agent instructions |
+| GeoServer stores/layers/styles | `@GeoTravel-GIS` | Agent instructions |
+| Docker, Tomcat, Spring Boot contracts | `@GeoTravel-GIS` | Agent instructions |
 
 ## Workspace Rules
 
 1. Read the current branch before acting: `docker-compose.yml`, `frontend/src`, `backend`, `postgres/init`, and the relevant docs.
 2. Use `docs/spec/TSIG-2026-Letra.md` as the source of product requirements.
 3. Keep `frontend/src` free of agent prompts and skills; it should contain runtime code and assets only.
-4. When a frontend change depends on backend/GIS behavior, ask `@Geo Platform Architect` for the contract or document the assumption.
+4. When a frontend change depends on backend/GIS behavior, ask `@GeoTravel-GIS` for the contract or document the assumption.
 5. Legacy prompts are archived in `docs/archive/frontend-prompts/` for reference only.
