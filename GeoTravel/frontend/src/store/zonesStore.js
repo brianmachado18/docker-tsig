@@ -1,22 +1,20 @@
 import { create } from 'zustand';
 import { zonesService } from '../services/zonesService';
 
-const useZonesStore = create((set) => ({
+const useZonesStore = create((set, get) => ({
   zones: [],
   selectedZone: null,
-  isEditing: false,
   isFormOpen: false,
   isLoading: false,
+  isSaving: false,
+  isDeleting: false,
   error: null,
 
-  // Acciones
-  setZones: (zones) => set({ zones }),
-  setSelectedZone: (zone) => set({ selectedZone: zone, isFormOpen: !!zone }),
-  setIsEditing: (isEditing) => set({ isEditing }),
-  openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone }),
-  closeForm: () => set({ isFormOpen: false, selectedZone: null }),
-  
-  // Dummy actions para ser implementadas luego (Conexión con PostGIS/GeoServer)
+  setSelectedZone: (zone) => set({ selectedZone: zone }),
+  openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone, error: null }),
+  closeForm: () => set({ isFormOpen: false, selectedZone: null, error: null }),
+  clearError: () => set({ error: null }),
+
   fetchZones: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -28,33 +26,31 @@ const useZonesStore = create((set) => ({
   },
 
   saveZone: async (zoneData) => {
-    set({ isLoading: true, error: null });
+    set({ isSaving: true, error: null });
     try {
-      const savedZone = await zonesService.save(zoneData);
-      set((state) => ({
-        zones: [...state.zones.filter((zone) => zone.id !== savedZone.id), savedZone],
-        isLoading: false,
-        isEditing: false,
-        selectedZone: savedZone,
-      }));
+      await zonesService.save(zoneData);
+      await get().fetchZones();
+      set({ isSaving: false, isFormOpen: false, selectedZone: null });
+      return true;
     } catch (error) {
-      set({ error, isLoading: false });
+      set({ error, isSaving: false });
+      return false;
     }
   },
 
   deleteZone: async (zoneId) => {
-    set({ isLoading: true, error: null });
+    set({ isDeleting: true, error: null });
     try {
       await zonesService.remove(zoneId);
-      set((state) => ({
-        zones: state.zones.filter((zone) => zone.id !== zoneId),
-        isLoading: false,
-        selectedZone: null,
-      }));
+      await get().fetchZones();
+      set({ isDeleting: false, selectedZone: null });
+      return true;
     } catch (error) {
-      set({ error, isLoading: false });
+      set({ error, isDeleting: false });
+      return false;
     }
-  }
+  },
 }));
 
 export default useZonesStore;
+

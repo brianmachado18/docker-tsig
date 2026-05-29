@@ -64,9 +64,12 @@ const AttractionCatalog = () => {
             {!isLoading && !error && attractions.map((attraction) => (
               <AttractionCard
                 key={attraction.id}
-                {...attraction}
+                title={attraction.title}
+                description={attraction.description}
+                imageUrl={attraction.imageUrl}
+                tag={attraction.category}
+                status="Configurada"
                 onEdit={() => openForm(attraction)}
-                status={attraction.status.replace('-', ' ')}
               />
             ))}
 

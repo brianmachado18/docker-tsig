@@ -1,23 +1,51 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import useLangStore from '../../store/langStore';
 import useZonesStore from '../../store/zonesStore';
+import useRoutesStore from '../../store/routesStore';
+import { parsePolygonWkt } from '../../services/wkt';
 
 const ZoneForm = ({ zone, onClose }) => {
   const { t } = useLangStore();
-  const { closeForm } = useZonesStore();
-  const zoneId = zone?.id || 'N/A';
-  const [zoneName, setZoneName] = useState(zone?.name || '');
-  const [zoneDescription, setZoneDescription] = useState(zone?.description || '');
-  const [attractionLevel, setAttractionLevel] = useState(zone?.attractionLevel || 4);
-  const [zoneNotes, setZoneNotes] = useState(zone?.notes || '');
-  const status = zone?.status || 'active';
+  const {
+    closeForm,
+    saveZone,
+    deleteZone,
+    isSaving,
+    isDeleting,
+    error,
+    clearError,
+  } = useZonesStore();
+  const { routes, fetchRoutes } = useRoutesStore();
+
+  const [zoneName, setZoneName] = useState('');
+  const [zoneDescription, setZoneDescription] = useState('');
+  const [attractionLevel, setAttractionLevel] = useState(1);
+  const [zoneNotes, setZoneNotes] = useState('');
+  const [geomWkt, setGeomWkt] = useState('');
+  const [routeIds, setRouteIds] = useState([]);
+  const [validationError, setValidationError] = useState('');
+
+  useEffect(() => {
+    fetchRoutes();
+  }, [fetchRoutes]);
 
   useEffect(() => {
     setZoneName(zone?.name || '');
     setZoneDescription(zone?.description || '');
-    setAttractionLevel(zone?.attractionLevel || 4);
+    setAttractionLevel(Number(zone?.attractionLevel) || 1);
     setZoneNotes(zone?.notes || '');
-  }, [zone]);
+    setGeomWkt(zone?.geomWkt || '');
+    setRouteIds(Array.isArray(zone?.routeIds) ? zone.routeIds : []);
+    setValidationError('');
+    clearError();
+  }, [zone, clearError]);
+
+  const apiError = useMemo(() => {
+    if (!error) {
+      return '';
+    }
+    return error.details || error.message || t('common.error');
+  }, [error, t]);
 
   const handleClose = () => {
     if (onClose) {
@@ -27,105 +55,182 @@ const ZoneForm = ({ zone, onClose }) => {
     closeForm();
   };
 
+  const toggleRoute = (routeId) => {
+    setRouteIds((current) =>
+      current.includes(routeId) ? current.filter((id) => id !== routeId) : [...current, routeId]
+    );
+  };
+
+  const validate = () => {
+    if (!zoneName.trim()) return t('validation.nameRequired');
+    if (!zoneDescription.trim()) return t('common.description') + ' requerida.';
+    if (!Number.isInteger(Number(attractionLevel)) || Number(attractionLevel) < 1 || Number(attractionLevel) > 5) {
+      return 'Nivel de atractivo debe estar entre 1 y 5.';
+    }
+    if (!geomWkt.trim()) return 'Geometría WKT obligatoria.';
+    if (!parsePolygonWkt(geomWkt.trim())) {
+      return 'La geometría debe ser un POLYGON WKT válido.';
+    }
+    return '';
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const validation = validate();
+    setValidationError(validation);
+    if (validation) {
+      return;
+    }
+
+    await saveZone({
+      id: zone?.id,
+      name: zoneName,
+      description: zoneDescription,
+      attractionLevel: Number(attractionLevel),
+      notes: zoneNotes,
+      geomWkt,
+      routeIds,
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!zone?.id) {
+      return;
+    }
+    const confirmed = window.confirm('¿Eliminar zona?');
+    if (!confirmed) {
+      return;
+    }
+    const ok = await deleteZone(zone.id);
+    if (ok) {
+      handleClose();
+    }
+  };
+
   return (
-    <aside className="absolute top-0 right-0 h-full w-[360px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col transform transition-transform duration-300 translate-x-0">
+    <aside className="absolute top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col">
       <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
         <div>
           <h2 className="font-headline-md text-headline-md text-on-surface">{t('zones.details')}</h2>
-          <p className="font-label-md text-label-md text-on-surface-variant mt-1">{t('zones.polygonId')}: {zoneId}</p>
+          <p className="font-label-md text-label-md text-on-surface-variant mt-1">
+            {t('zones.polygonId')}: {zone?.id ?? 'nuevo'}
+          </p>
         </div>
-        <button 
+        <button
           onClick={handleClose}
           className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container transition-colors"
+          type="button"
         >
           <span className="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
 
-      <div className="p-6 flex-grow overflow-y-auto flex flex-col gap-6">
-        {/* Name */}
-        <div className="flex flex-col gap-2">
-          <label className="font-label-md text-label-md text-on-surface" htmlFor="zone_name">{t('zones.name')}</label>
+      <form className="p-6 flex-grow overflow-y-auto flex flex-col gap-4" onSubmit={handleSubmit}>
+        <label className="flex flex-col gap-1">
+          <span className="font-label-md text-label-md text-on-surface">{t('zones.name')}</span>
           <input
-            className="px-3 py-2 border border-outline rounded-lg bg-transparent font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-            id="zone_name"
+            className="px-3 py-2 border border-outline rounded-lg bg-transparent"
             type="text"
             value={zoneName}
             onChange={(event) => setZoneName(event.target.value)}
           />
-        </div>
-        
-        {/* Description */}
-        <div className="flex flex-col gap-2">
-          <label className="font-label-md text-label-md text-on-surface" htmlFor="zone_desc">{t('common.description')}</label>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-label-md text-label-md text-on-surface">{t('common.description')}</span>
           <textarea
-            className="px-3 py-2 border border-outline rounded-lg bg-transparent font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
-            id="zone_desc"
+            className="px-3 py-2 border border-outline rounded-lg bg-transparent resize-none"
             rows="3"
             value={zoneDescription}
             onChange={(event) => setZoneDescription(event.target.value)}
-          ></textarea>
-        </div>
+          />
+        </label>
 
-        {/* Attraction Level */}
+        <label className="flex flex-col gap-1">
+          <span className="font-label-md text-label-md text-on-surface">{t('zones.attractionLevel')}</span>
+          <input
+            className="px-3 py-2 border border-outline rounded-lg bg-transparent"
+            type="number"
+            min={1}
+            max={5}
+            value={attractionLevel}
+            onChange={(event) => setAttractionLevel(event.target.value)}
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-label-md text-label-md text-on-surface">{t('zones.internalNotes')}</span>
+          <textarea
+            className="px-3 py-2 border border-outline rounded-lg bg-transparent resize-none"
+            rows="3"
+            value={zoneNotes}
+            onChange={(event) => setZoneNotes(event.target.value)}
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-label-md text-label-md text-on-surface">Geom WKT (POLYGON)</span>
+          <textarea
+            className="px-3 py-2 border border-outline rounded-lg bg-transparent resize-none font-mono text-xs"
+            rows="4"
+            value={geomWkt}
+            onChange={(event) => setGeomWkt(event.target.value)}
+            placeholder="POLYGON((-56.2 -34.9, -56.1 -34.9, -56.1 -35.0, -56.2 -35.0, -56.2 -34.9))"
+          />
+        </label>
+
         <div className="flex flex-col gap-2">
-          <label className="font-label-md text-label-md text-on-surface">{t('zones.attractionLevel')}</label>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map(level => (
-              <label key={level} className="cursor-pointer">
+          <span className="font-label-md text-label-md text-on-surface">Recorridos vinculados (opcional)</span>
+          <div className="max-h-32 overflow-y-auto border border-outline rounded-lg p-2 bg-surface">
+            {!routes.length && <p className="text-xs text-outline">Sin recorridos para vincular.</p>}
+            {routes.map((route) => (
+              <label key={route.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
                 <input
-                  className="sr-only peer"
-                  name="attraction_level"
-                  type="radio"
-                  value={level}
-                  checked={level === attractionLevel}
-                  onChange={() => setAttractionLevel(level)}
+                  type="checkbox"
+                  checked={routeIds.includes(route.id)}
+                  onChange={() => toggleRoute(route.id)}
                 />
-                <div className="w-10 h-10 rounded border border-outline flex items-center justify-center font-label-md text-label-md text-on-surface-variant peer-checked:bg-primary-container peer-checked:text-on-primary-container peer-checked:border-primary hover:bg-surface-container transition-colors">
-                  {level}
-                </div>
+                <span>{route.name || `Recorrido ${route.id}`}</span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* Observations */}
-        <div className="flex flex-col gap-2">
-          <label className="font-label-md text-label-md text-on-surface" htmlFor="zone_obs">{t('zones.internalNotes')}</label>
-          <textarea
-            className="px-3 py-2 border border-outline rounded-lg bg-surface-container-low font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none placeholder:text-outline"
-            id="zone_obs"
-            placeholder={t('zones.notesPlaceholder')}
-            rows="4"
-            value={zoneNotes}
-            onChange={(event) => setZoneNotes(event.target.value)}
-          ></textarea>
-        </div>
+        {(validationError || apiError) && (
+          <p className="text-sm text-error">{validationError || apiError}</p>
+        )}
 
-        {/* Status Chip */}
-        <div className="flex items-center gap-3 py-2 border-t border-outline-variant mt-2">
-          <span className="font-label-md text-label-md text-on-surface">{t('zones.status')}</span>
-          <span className="px-3 py-1 rounded-full bg-secondary-fixed-dim text-on-secondary-fixed-variant font-label-md text-label-md flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">check_circle</span>
-            {status === 'off-season' ? t('zones.offSeason') : t('zones.active')}
-          </span>
+        <div className="pt-4 mt-auto border-t border-outline-variant flex items-center justify-between">
+          <button
+            type="button"
+            disabled={!zone?.id || isDeleting || isSaving}
+            onClick={handleDelete}
+            className="px-4 py-2 rounded-lg border border-error text-error disabled:opacity-40"
+          >
+            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-4 py-2 rounded-lg border border-outline text-on-surface"
+              disabled={isSaving || isDeleting}
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
+              disabled={isSaving || isDeleting}
+            >
+              {isSaving ? 'Guardando...' : t('common.save')}
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="p-4 border-t border-outline-variant bg-surface-bright flex justify-end gap-3">
-        <button 
-          onClick={handleClose}
-          className="px-4 py-2 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors"
-        >
-          {t('common.cancel')}
-        </button>
-        <button className="px-4 py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">save</span>
-          {t('common.save')}
-        </button>
-      </div>
+      </form>
     </aside>
   );
 };
 
 export default ZoneForm;
+

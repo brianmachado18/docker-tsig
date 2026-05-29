@@ -4,10 +4,10 @@ import useLangStore from '../../store/langStore';
 const AttractionCard = ({
   title = 'Palacio Salvo',
   description = 'Iconic building in Plaza Independencia, designed by architect Mario Palanti. A must-see architectural landmark.',
-  tag = 'Historic',
+  tag = 'CULTURAL',
   tagIcon = 'account_balance',
-  status = 'Active',
-  zone = 'Central',
+  status = 'Configured',
+  zone = '-',
   imageUrl,
   onEdit,
   onViewOnMap,

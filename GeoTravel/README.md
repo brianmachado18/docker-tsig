@@ -16,6 +16,29 @@ Git e IntelliJ se usan en tu maquina como herramientas de desarrollo. No convien
 - Git
 - IntelliJ IDEA
 
+## Configuracion de entorno (.env)
+
+Este proyecto usa variables de entorno para alinear frontend, backend, base de datos y GeoServer.
+
+1. Crear archivo local `.env` a partir del ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+2. Revisar/ajustar valores en `.env` segun tu entorno local.
+
+3. Levantar el stack con esas variables:
+
+```bash
+docker compose up --build
+```
+
+Notas:
+
+- `.env` es local de cada desarrollador (no se versiona).
+- Si cambia `.env.example`, conviene replicar esos cambios en tu `.env`.
+
 ## Levantar el entorno
 
 ```bash

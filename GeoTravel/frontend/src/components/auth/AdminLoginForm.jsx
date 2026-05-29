@@ -6,20 +6,22 @@ import useLangStore from '../../store/langStore';
 const AdminLoginForm = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const isSubmitting = useAuthStore((state) => state.isSubmitting);
+  const authError = useAuthStore((state) => state.error);
   const { t } = useLangStore();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localError, setLocalError] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsSubmitting(true);
-
-    window.setTimeout(() => {
-      login();
-      setIsSubmitting(false);
+    setLocalError('');
+    const ok = await login(username, password);
+    if (ok) {
       navigate('/zones');
-    }, 400);
+      return;
+    }
+    setLocalError(t('auth.signInFailed'));
   };
 
   return (
@@ -63,7 +65,9 @@ const AdminLoginForm = () => {
           {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
         </button>
 
-        <p className="text-xs text-on-surface-variant">{t('auth.mockNote')}</p>
+        {(localError || authError) && (
+          <p className="text-xs text-error">{authError || localError}</p>
+        )}
       </div>
     </form>
   );

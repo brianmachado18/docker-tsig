@@ -1,16 +1,19 @@
 import { create } from 'zustand';
 import { attractionsService } from '../services/attractionsService';
 
-const useAttractionsStore = create((set) => ({
+const useAttractionsStore = create((set, get) => ({
   attractions: [],
   selectedAttraction: null,
   isFormOpen: false,
   isLoading: false,
+  isSaving: false,
+  isDeleting: false,
   error: null,
 
   setSelectedAttraction: (attraction) => set({ selectedAttraction: attraction }),
-  openForm: (attraction) => set({ isFormOpen: true, selectedAttraction: attraction }),
-  closeForm: () => set({ isFormOpen: false, selectedAttraction: null }),
+  openForm: (attraction = null) => set({ isFormOpen: true, selectedAttraction: attraction, error: null }),
+  closeForm: () => set({ isFormOpen: false, selectedAttraction: null, error: null }),
+  clearError: () => set({ error: null }),
 
   fetchAttractions: async () => {
     set({ isLoading: true, error: null });
@@ -23,32 +26,31 @@ const useAttractionsStore = create((set) => ({
   },
 
   saveAttraction: async (attractionData) => {
-    set({ isLoading: true, error: null });
+    set({ isSaving: true, error: null });
     try {
-      const saved = await attractionsService.save(attractionData);
-      set((state) => ({
-        attractions: [...state.attractions.filter((item) => item.id !== saved.id), saved],
-        isLoading: false,
-        selectedAttraction: saved,
-      }));
+      await attractionsService.save(attractionData);
+      await get().fetchAttractions();
+      set({ isSaving: false, isFormOpen: false, selectedAttraction: null });
+      return true;
     } catch (error) {
-      set({ error, isLoading: false });
+      set({ error, isSaving: false });
+      return false;
     }
   },
 
   deleteAttraction: async (attractionId) => {
-    set({ isLoading: true, error: null });
+    set({ isDeleting: true, error: null });
     try {
       await attractionsService.remove(attractionId);
-      set((state) => ({
-        attractions: state.attractions.filter((item) => item.id !== attractionId),
-        isLoading: false,
-        selectedAttraction: null,
-      }));
+      await get().fetchAttractions();
+      set({ isDeleting: false, selectedAttraction: null });
+      return true;
     } catch (error) {
-      set({ error, isLoading: false });
+      set({ error, isDeleting: false });
+      return false;
     }
   },
 }));
 
 export default useAttractionsStore;
+

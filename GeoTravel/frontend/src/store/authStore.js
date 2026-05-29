@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { authService } from '../services/authService';
 
 const STORAGE_KEY = 'geotravel_auth';
 
@@ -11,17 +12,32 @@ const getInitialAuth = () => {
 
 const useAuthStore = create((set) => ({
   isAuthenticated: getInitialAuth(),
-  login: () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, 'true');
+  isSubmitting: false,
+  error: null,
+  login: async (username, password) => {
+    set({ isSubmitting: true, error: null });
+    try {
+      const success = await authService.login(username, password);
+      if (!success) {
+        set({ isSubmitting: false, error: 'Credenciales inválidas.' });
+        return false;
+      }
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(STORAGE_KEY, 'true');
+      }
+      set({ isAuthenticated: true, isSubmitting: false, error: null });
+      return true;
+    } catch (error) {
+      const details = error?.details || error?.message || 'Error de autenticación.';
+      set({ isSubmitting: false, error: details });
+      return false;
     }
-    set({ isAuthenticated: true });
   },
   logout: () => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, 'false');
     }
-    set({ isAuthenticated: false });
+    set({ isAuthenticated: false, error: null, isSubmitting: false });
   },
 }));
 

@@ -97,7 +97,7 @@ const MapCanvas = ({ zones = [], routes = [], attractions = [], className = '' }
           type: 'Feature',
           properties: {
             id: attraction.id,
-            name: attraction.title,
+            name: attraction.title || attraction.name,
             status: attraction.status,
           },
           geometry: {

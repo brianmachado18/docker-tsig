@@ -1,16 +1,20 @@
 import { create } from 'zustand';
 import { routesService } from '../services/routesService';
 
-const useRoutesStore = create((set) => ({
+const useRoutesStore = create((set, get) => ({
   routes: [],
+  stations: [],
   selectedRoute: null,
   isFormOpen: false,
   isLoading: false,
+  isSaving: false,
+  isDeleting: false,
   error: null,
 
-  setSelectedRoute: (route) => set({ selectedRoute: route, isFormOpen: !!route }),
-  openForm: (route = null) => set({ isFormOpen: true, selectedRoute: route }),
-  closeForm: () => set({ isFormOpen: false, selectedRoute: null }),
+  setSelectedRoute: (route) => set({ selectedRoute: route }),
+  openForm: (route = null) => set({ isFormOpen: true, selectedRoute: route, error: null }),
+  closeForm: () => set({ isFormOpen: false, selectedRoute: null, error: null }),
+  clearError: () => set({ error: null }),
 
   fetchRoutes: async () => {
     set({ isLoading: true, error: null });
@@ -22,33 +26,57 @@ const useRoutesStore = create((set) => ({
     }
   },
 
-  saveRoute: async (routeData) => {
-    set({ isLoading: true, error: null });
+  fetchStations: async () => {
     try {
-      const saved = await routesService.save(routeData);
-      set((state) => ({
-        routes: [...state.routes.filter((item) => item.id !== saved.id), saved],
-        isLoading: false,
-        selectedRoute: saved,
-      }));
+      const stations = await routesService.listStations();
+      set({ stations });
     } catch (error) {
-      set({ error, isLoading: false });
+      set({ error });
+    }
+  },
+
+  loadRouteAttractions: async (routeId) => {
+    if (!routeId) {
+      return [];
+    }
+    try {
+      const relations = await routesService.listRouteAttractions(routeId);
+      return relations
+        .slice()
+        .sort((a, b) => a.orden - b.orden)
+        .map((item) => item.idAtraccion);
+    } catch (error) {
+      set({ error });
+      return [];
+    }
+  },
+
+  saveRoute: async (routeData) => {
+    set({ isSaving: true, error: null });
+    try {
+      await routesService.save(routeData);
+      await get().fetchRoutes();
+      set({ isSaving: false, isFormOpen: false, selectedRoute: null });
+      return true;
+    } catch (error) {
+      set({ error, isSaving: false });
+      return false;
     }
   },
 
   deleteRoute: async (routeId) => {
-    set({ isLoading: true, error: null });
+    set({ isDeleting: true, error: null });
     try {
       await routesService.remove(routeId);
-      set((state) => ({
-        routes: state.routes.filter((item) => item.id !== routeId),
-        isLoading: false,
-        selectedRoute: null,
-      }));
+      await get().fetchRoutes();
+      set({ isDeleting: false, selectedRoute: null });
+      return true;
     } catch (error) {
-      set({ error, isLoading: false });
+      set({ error, isDeleting: false });
+      return false;
     }
   },
 }));
 
 export default useRoutesStore;
+

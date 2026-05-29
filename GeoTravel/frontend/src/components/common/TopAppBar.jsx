@@ -10,13 +10,13 @@ const TopAppBar = ({
 }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { lang, setLang, t } = useLangStore();
+  const isPublicVariant = variant === 'public';
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isPublicVariant) {
     return null;
   }
 
   const displayTitle = title || t('common.appTitle');
-  const isPublicVariant = variant === 'public';
   const headerClasses = isPublicVariant
     ? 'absolute top-4 left-4 right-4 z-40 h-14'
     : 'fixed top-4 right-4 left-4 md:left-[376px] h-16 z-50';

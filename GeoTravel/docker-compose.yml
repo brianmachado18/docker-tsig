@@ -4,16 +4,16 @@ services:
     container_name: tsig-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: tsig
-      POSTGRES_USER: tsig
-      POSTGRES_PASSWORD: tsig
+      POSTGRES_DB: ${POSTGRES_DB:-tsig}
+      POSTGRES_USER: ${POSTGRES_USER:-tsig}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tsig}
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tsig -d tsig"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tsig} -d ${POSTGRES_DB:-tsig}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,12 +26,12 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      GEOSERVER_ADMIN_USER: admin
-      GEOSERVER_ADMIN_PASSWORD: geoserver
+      GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:-admin}
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:-geoserver}
       INITIAL_MEMORY: 1G
       MAXIMUM_MEMORY: 2G
     ports:
-      - "8081:8080"
+      - "${GEOSERVER_PORT:-8081}:8080"
     volumes:
       - geoserver_data:/opt/geoserver/data_dir
 
@@ -44,13 +44,13 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tsig
-      SPRING_DATASOURCE_USERNAME: tsig
-      SPRING_DATASOURCE_PASSWORD: tsig
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      GEOSERVER_URL: http://geoserver:8080/geoserver
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/tsig}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-tsig}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-tsig}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
+      GEOSERVER_URL: ${GEOSERVER_URL:-http://geoserver:8080/geoserver}
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
 
   frontend:
     image: node:22-alpine
@@ -58,19 +58,26 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-/api}
+      VITE_GEOSERVER_URL: ${VITE_GEOSERVER_URL:-/geoserver}
+      VITE_GEOSERVER_WORKSPACE: ${VITE_GEOSERVER_WORKSPACE:-geotravel}
+      VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
+      VITE_API_PROXY_TARGET: ${VITE_API_PROXY_TARGET:-http://backend:8080}
+      VITE_GEOSERVER_PROXY_TARGET: ${VITE_GEOSERVER_PROXY_TARGET:-http://geoserver:8080}
     working_dir: /app
     volumes:
       - ./frontend:/app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port ${FRONTEND_PORT:-5173}"
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT:-5173}:${FRONTEND_PORT:-5173}"
 
   tomcat:
     image: tomcat:10.1-jdk21-temurin
     container_name: tsig-tomcat
     restart: unless-stopped
     ports:
-      - "8082:8080"
+      - "${TOMCAT_PORT:-8082}:8080"
     volumes:
       - ./tomcat/webapps:/usr/local/tomcat/webapps
 

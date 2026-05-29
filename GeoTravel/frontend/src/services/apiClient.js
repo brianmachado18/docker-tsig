@@ -1,8 +1,17 @@
 import { ENV } from '../config/env';
 
-const defaultHeaders = {
+const jsonHeaders = {
   'Content-Type': 'application/json',
 };
+
+export class ApiError extends Error {
+  constructor(message, status, details = null) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
 
 const buildUrl = (path) => {
   if (path.startsWith('http')) {
@@ -11,46 +20,52 @@ const buildUrl = (path) => {
   return `${ENV.apiUrl}${path}`;
 };
 
+const parseResponse = async (response) => {
+  if (response.status === 204) {
+    return null;
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  return response.text();
+};
+
+const request = async (path, options = {}) => {
+  const response = await fetch(buildUrl(path), options);
+  const body = await parseResponse(response);
+
+  if (!response.ok) {
+    const details = typeof body === 'string' ? body : body?.message || null;
+    throw new ApiError(`HTTP ${response.status}`, response.status, details);
+  }
+
+  return body;
+};
+
 export const apiClient = {
   async get(path) {
-    const response = await fetch(buildUrl(path), {
-      headers: defaultHeaders,
-    });
-    if (!response.ok) {
-      throw new Error(`GET ${path} failed with ${response.status}`);
-    }
-    return response.json();
+    return request(path);
   },
   async post(path, body) {
-    const response = await fetch(buildUrl(path), {
+    return request(path, {
       method: 'POST',
-      headers: defaultHeaders,
+      headers: jsonHeaders,
       body: JSON.stringify(body),
     });
-    if (!response.ok) {
-      throw new Error(`POST ${path} failed with ${response.status}`);
-    }
-    return response.json();
   },
   async put(path, body) {
-    const response = await fetch(buildUrl(path), {
+    return request(path, {
       method: 'PUT',
-      headers: defaultHeaders,
+      headers: jsonHeaders,
       body: JSON.stringify(body),
     });
-    if (!response.ok) {
-      throw new Error(`PUT ${path} failed with ${response.status}`);
-    }
-    return response.json();
   },
   async delete(path) {
-    const response = await fetch(buildUrl(path), {
+    return request(path, {
       method: 'DELETE',
-      headers: defaultHeaders,
     });
-    if (!response.ok) {
-      throw new Error(`DELETE ${path} failed with ${response.status}`);
-    }
-    return response.json();
   },
 };
