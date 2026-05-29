@@ -6,12 +6,17 @@ import useLangStore from '../../store/langStore';
 const Sidebar = ({ activeItem }) => {
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
-  const { t } = useLangStore();
+  const { t, lang, setLang } = useLangStore();
 
   const handleLogout = () => {
     logout();
     navigate('/guest');
   };
+
+  const toggleLanguage = () => {
+    setLang(lang === 'es' ? 'en' : 'es');
+  };
+
   const items = [
     { id: 'zones', label: t('common.zones'), icon: 'map', href: '/zones' },
     { id: 'routes', label: t('common.routes'), icon: 'route', href: '/routes' },
@@ -26,7 +31,7 @@ const Sidebar = ({ activeItem }) => {
             GA
           </div>
           <div>
-            <h1 className="font-headline-md text-headline-md font-bold text-primary">GeoTravel GIS</h1>
+            <h1 className="font-headline-md text-headline-md font-bold text-primary">{t('common.appTitle')}</h1>
             <p className="font-label-md text-label-md text-on-surface-variant">{t('auth.adminPortal')}</p>
           </div>
         </div>
@@ -53,7 +58,15 @@ const Sidebar = ({ activeItem }) => {
       </ul>
 
       <div className="px-2 mt-auto space-y-1 pt-4 border-t border-outline-variant">
-        <button className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors duration-200" onClick={handleLogout} type="button">
+        <button 
+          className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors duration-200 w-full"
+          onClick={toggleLanguage} 
+          type="button"
+        >
+          <span className="material-symbols-outlined">language</span>
+          <span className="font-label-md text-label-md">{lang === 'es' ? t('common.english') : t('common.spanish')}</span>
+        </button>
+        <button className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors duration-200 w-full" onClick={handleLogout} type="button">
           <span className="material-symbols-outlined">logout</span>
           <span className="font-label-md text-label-md">{t('common.logout')}</span>
         </button>

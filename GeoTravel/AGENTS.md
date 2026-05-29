@@ -1,5 +1,49 @@
 # AGENTS.md - Guía de Agentes y Workflows
 
+## 🧭 Agent Router
+
+Usa esta guía para decidir rápido qué agente y skill corresponde según el tipo de tarea.
+
+### Regla de selección
+- Si la tarea es de UI o layout: usa `@GeoTravel-Frontend-Builder` y `SKILL_REACT_COMPONENTS.md`.
+- Si la tarea tiene strings, idiomas o copy: usa `@GeoTravel-Localization` y `SKILL_UI_LOCALIZATION.md`.
+- Si la tarea toca formularios, validación o errores: combina `SKILL_FORMS_VALIDATION.md` con el agente principal.
+- Si la tarea toca estado compartido o flujo CRUD: combina `SKILL_STATE_MANAGEMENT.md` y, si aplica, `SKILL_CRUD_STATE_FORMS.md`.
+- Si la tarea toca mapas, geometrías o GeoServer: combina `SKILL_OPENLAYERS_GEOSERVER.md` y `SKILL_SERVICES_APIs.md`.
+- Si la tarea mezcla varias áreas, prioriza por orden: `UI -> Forms -> State -> Services -> Mapas -> i18n`.
+
+### Mapa de decisión
+| Tipo de tarea | Agente | Skill principal | Skills secundarios | Ejemplos |
+|---|---|---|---|---|
+| Layout, pantallas, componentes visuales | `@GeoTravel-Frontend-Builder` | `SKILL_REACT_COMPONENTS.md` | `SKILL_FORMS_VALIDATION.md` si hay inputs | Sidebar, cards, dashboards, panels |
+| Formularios CRUD | `@GeoTravel-Frontend-Builder` | `SKILL_FORMS_VALIDATION.md` | `SKILL_CRUD_STATE_FORMS.md`, `SKILL_STATE_MANAGEMENT.md` | `ZoneForm`, `RouteForm`, `AdminLoginForm` |
+| Estado compartido, stores, hooks | `@GeoTravel-Frontend-Builder` | `SKILL_STATE_MANAGEMENT.md` | `SKILL_CRUD_STATE_FORMS.md` | `zonesStore`, `routesStore`, `authStore` |
+| Mapas y edición geométrica | `@GeoTravel-Frontend-Builder` | `SKILL_OPENLAYERS_GEOSERVER.md` | `SKILL_SERVICES_APIs.md` | `MapCanvas`, layers, draw/modify/select |
+| APIs, services, GeoServer | `@GeoTravel-Frontend-Builder` | `SKILL_SERVICES_APIs.md` | `SKILL_STATE_MANAGEMENT.md` | `zonesService`, `routesService`, `apiClient` |
+| Autenticación y protección de rutas | `@GeoTravel-Frontend-Builder` | `SKILL_AUTH_PATTERNS.md` | `SKILL_STATE_MANAGEMENT.md` | `ProtectedRoute`, `AdminLoginForm` |
+| i18n, locales, strings | `@GeoTravel-Localization` | `SKILL_UI_LOCALIZATION.md` | `SKILL_REACT_COMPONENTS.md` | `en.json`, `es.json`, `t()` |
+| Refactor amplio multiárea | Ambos si hace falta, pero lidera `@GeoTravel-Frontend-Builder` | `SKILL_REACT_COMPONENTS.md` | según el bloque afectado | Migraciones de pantallas completas |
+
+### Router por archivo
+| Archivo o carpeta | Agente recomendado | Skill recomendado |
+|---|---|---|
+| `src/components/common/` | `@GeoTravel-Frontend-Builder` | `SKILL_REACT_COMPONENTS.md` |
+| `src/components/zones/` | `@GeoTravel-Frontend-Builder` | `SKILL_FORMS_VALIDATION.md` + `SKILL_CRUD_STATE_FORMS.md` |
+| `src/components/routes/` | `@GeoTravel-Frontend-Builder` | `SKILL_FORMS_VALIDATION.md` + `SKILL_CRUD_STATE_FORMS.md` |
+| `src/components/attractions/` | `@GeoTravel-Frontend-Builder` | `SKILL_REACT_COMPONENTS.md` |
+| `src/components/map/` | `@GeoTravel-Frontend-Builder` | `SKILL_OPENLAYERS_GEOSERVER.md` |
+| `src/components/auth/` | `@GeoTravel-Frontend-Builder` | `SKILL_AUTH_PATTERNS.md` |
+| `src/pages/` | `@GeoTravel-Frontend-Builder` | `SKILL_REACT_COMPONENTS.md` |
+| `src/store/` | `@GeoTravel-Frontend-Builder` | `SKILL_STATE_MANAGEMENT.md` |
+| `src/services/` | `@GeoTravel-Frontend-Builder` | `SKILL_SERVICES_APIs.md` |
+| `src/locales/` | `@GeoTravel-Localization` | `SKILL_UI_LOCALIZATION.md` |
+
+### Cuándo detenerse y pedir realineación
+- Si la tarea toca router real de navegación y aún no está definido `react-router-dom`.
+- Si el diseño Stitch y el código actual tienen diferencias estructurales grandes.
+- Si hay nombres de skills o prompts que contradicen el estado real del proyecto.
+- Si una tarea mezcla i18n con refactor masivo de UI y hay riesgo de duplicar trabajo.
+
 ## 🤖 Agentes Disponibles
 
 ### 1. GeoTravel Frontend Builder (Agente Principal)

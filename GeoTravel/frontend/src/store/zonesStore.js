@@ -5,13 +5,16 @@ const useZonesStore = create((set) => ({
   zones: [],
   selectedZone: null,
   isEditing: false,
+  isFormOpen: false,
   isLoading: false,
   error: null,
 
   // Acciones
   setZones: (zones) => set({ zones }),
-  setSelectedZone: (zone) => set({ selectedZone: zone }),
+  setSelectedZone: (zone) => set({ selectedZone: zone, isFormOpen: !!zone }),
   setIsEditing: (isEditing) => set({ isEditing }),
+  openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone }),
+  closeForm: () => set({ isFormOpen: false, selectedZone: null }),
   
   // Dummy actions para ser implementadas luego (Conexión con PostGIS/GeoServer)
   fetchZones: async () => {

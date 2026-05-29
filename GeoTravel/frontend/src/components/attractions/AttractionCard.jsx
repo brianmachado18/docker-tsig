@@ -26,7 +26,7 @@ const AttractionCard = ({
         ) : (
           <div className="flex flex-col items-center text-outline">
             <span className="material-symbols-outlined text-4xl mb-2">image_not_supported</span>
-            <span className="font-mono-label text-mono-label">No Image</span>
+            <span className="font-mono-label text-mono-label">{t('attractions.noImage')}</span>
           </div>
         )}
 
@@ -47,7 +47,7 @@ const AttractionCard = ({
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-headline-md text-headline-md text-on-surface line-clamp-1">{title}</h3>
-          <button className="text-outline hover:text-primary transition-colors p-1" title="View on Map">
+          <button className="text-outline hover:text-primary transition-colors p-1" title={t('attractions.viewOnMap')}>
             <span className="material-symbols-outlined text-[20px]">location_on</span>
           </button>
         </div>
@@ -59,7 +59,7 @@ const AttractionCard = ({
             <span className="material-symbols-outlined text-[14px]">map</span>
             {`${t('common.zones')}: ${zone}`}
           </span>
-          <button className="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors">Edit</button>
+          <button className="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors">{t('attractions.edit')}</button>
         </div>
       </div>
     </div>

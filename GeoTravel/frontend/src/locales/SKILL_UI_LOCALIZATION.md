@@ -293,7 +293,7 @@ export default function ZoneForm({ zone, onSave }) {
       </div>
       
       <div>
-        <label>{t('zones.description')}</label>
+        <label>{t('common.description')}</label>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
       

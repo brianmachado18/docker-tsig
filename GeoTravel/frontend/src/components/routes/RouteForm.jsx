@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import useLangStore from '../../store/langStore';
+import useRoutesStore from '../../store/routesStore';
 
 const RouteForm = ({ route }) => {
   const { t } = useLangStore();
+  const { closeForm } = useRoutesStore();
   const statusOptions = [
     { id: 'available', label: t('routes.available'), icon: 'check_circle' },
     { id: 'pending', label: t('routes.pending'), icon: 'schedule' },
@@ -57,10 +59,18 @@ const RouteForm = ({ route }) => {
     : [1, 2, 3].map((value) => ({ id: value, name: `Stop ${value}`, order: value }));
 
   return (
-    <aside className="absolute left-6 top-28 bottom-6 w-[380px] bg-surface rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.1)] border border-outline flex flex-col z-10 overflow-hidden">
-      <div className="p-5 border-b border-outline-variant bg-surface-bright">
-        <h3 className="font-headline-lg text-headline-lg text-on-surface mb-2">{t('routes.design')}</h3>
-        <div className="flex gap-2">
+    <aside className="absolute top-0 right-0 h-full w-[360px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col transform transition-transform duration-300 translate-x-0">
+      <div className="px-6 py-5 border-b border-outline-variant flex flex-col gap-4 bg-surface-bright">
+        <div className="flex items-center justify-between">
+          <h3 className="font-headline-lg text-headline-lg text-on-surface">{t('routes.design')}</h3>
+          <button 
+            onClick={closeForm}
+            className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container transition-colors"
+          >
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
           {statusOptions.map((option) => {
             const isActive = routeStatus === option.id;
             const activeClasses = 'bg-status-available/20 text-status-available border-status-available';
@@ -80,7 +90,7 @@ const RouteForm = ({ route }) => {
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+      <div className="p-6 flex-grow overflow-y-auto flex flex-col gap-6">
         {/* Name */}
         <div className="flex flex-col gap-1">
           <label className="font-label-md text-label-md text-on-surface-variant">{t('routes.name')}</label>
@@ -94,7 +104,7 @@ const RouteForm = ({ route }) => {
         
         {/* Description */}
         <div className="flex flex-col gap-1">
-          <label className="font-label-md text-label-md text-on-surface-variant">{t('routes.description')}</label>
+          <label className="font-label-md text-label-md text-on-surface-variant">{t('common.description')}</label>
           <textarea
             className="w-full px-3 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md text-on-surface resize-none"
             rows="3"
@@ -156,10 +166,16 @@ const RouteForm = ({ route }) => {
         </div>
       </div>
       
-      <div className="p-4 border-t border-outline-variant bg-surface flex justify-between items-center bg-surface-bright">
-        <button className="text-on-surface-variant font-label-md hover:text-on-surface transition-colors">{t('common.discard')}</button>
-        <button className="px-6 py-2 bg-primary text-on-primary rounded font-label-md flex items-center gap-2 hover:opacity-90 transition-opacity">
-          <span className="material-symbols-outlined text-[18px]">save</span> {t('common.save')}
+      <div className="p-4 border-t border-outline-variant bg-surface-bright flex justify-end gap-3">
+        <button 
+          onClick={closeForm}
+          className="px-4 py-2 rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors"
+        >
+          {t('common.cancel')}
+        </button>
+        <button className="px-4 py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">save</span>
+          {t('common.save')}
         </button>
       </div>
     </aside>

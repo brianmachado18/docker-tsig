@@ -4,10 +4,13 @@ import { routesService } from '../services/routesService';
 const useRoutesStore = create((set) => ({
   routes: [],
   selectedRoute: null,
+  isFormOpen: false,
   isLoading: false,
   error: null,
 
-  setSelectedRoute: (route) => set({ selectedRoute: route }),
+  setSelectedRoute: (route) => set({ selectedRoute: route, isFormOpen: !!route }),
+  openForm: (route = null) => set({ isFormOpen: true, selectedRoute: route }),
+  closeForm: () => set({ isFormOpen: false, selectedRoute: null }),
 
   fetchRoutes: async () => {
     set({ isLoading: true, error: null });

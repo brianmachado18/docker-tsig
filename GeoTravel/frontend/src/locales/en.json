@@ -11,7 +11,13 @@
     "discard": "Discard",
     "loading": "Loading...",
     "error": "Error",
-    "search": "Search..."
+    "search": "Search...",
+    "appTitle": "GeoTravel GIS",
+    "english": "English",
+    "spanish": "Español"
+    ,"cancel": "Cancel",
+    "description": "Description",
+    "edit": "Edit"
   },
   "guest": {
     "title": "Explore Uruguay",
@@ -44,10 +50,14 @@
     "adminPortal": "Administration Portal"
   },
   "zones": {
+    "title": "Zone Management",
     "details": "Zone Details",
+    "newZone": "New Zone",
     "polygonId": "Editing Polygon ID",
+    "loading": "Loading zones...",
+    "loadFailed": "Failed to load zones.",
     "name": "Zone Name",
-    "description": "Description",
+    
     "attractionLevel": "Attraction Level",
     "internalNotes": "Internal Observations",
     "notesPlaceholder": "Enter notes for administrative staff only...",
@@ -57,14 +67,47 @@
   },
   "routes": {
     "design": "Design Route",
+    "newRoute": "New Route",
     "available": "Available",
     "pending": "Pending",
     "offSeason": "Off-Season",
     "name": "Route Name",
-    "description": "Description",
+    
     "duration": "Est. Duration",
     "guide": "Assigned Guide",
     "stops": "Route Stops",
     "addStop": "Add Stop"
+  },
+  "attractions": {
+    "title": "Attraction Catalog",
+    "poi": "Points of Interest",
+    "description": "Manage and organize tourist attractions across all zones.",
+    "filter": "Filter",
+    "addAttraction": "Add Attraction",
+    "noAttractions": "No attractions available yet.",
+    "addNew": "Add New Attraction",
+    "addInstructions": "Create a new point of interest to appear on the map.",
+    "open": "Open",
+    "maintenance": "Maintenance",
+    "closed": "Closed",
+    "museum": "Museum",
+    "park": "Park",
+    "monument": "Monument",
+    "landmark": "Landmark",
+    "edit": "Edit Attraction",
+    "noImage": "No Image",
+    "viewOnMap": "View on Map",
+    "name": "Name",
+    "namePlaceholder": "Enter attraction name",
+    "category": "Category",
+    "descriptionPlaceholder": "Enter description",
+    "latitude": "Latitude",
+    "longitude": "Longitude"
+  },
+  "map": {
+    "select": "Select",
+    "drawPolygon": "Draw Polygon",
+    
+    "delete": "Delete"
   }
 }

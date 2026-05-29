@@ -4,10 +4,13 @@ import { attractionsService } from '../services/attractionsService';
 const useAttractionsStore = create((set) => ({
   attractions: [],
   selectedAttraction: null,
+  isFormOpen: false,
   isLoading: false,
   error: null,
 
   setSelectedAttraction: (attraction) => set({ selectedAttraction: attraction }),
+  openForm: (attraction) => set({ isFormOpen: true, selectedAttraction: attraction }),
+  closeForm: () => set({ isFormOpen: false, selectedAttraction: null }),
 
   fetchAttractions: async () => {
     set({ isLoading: true, error: null });

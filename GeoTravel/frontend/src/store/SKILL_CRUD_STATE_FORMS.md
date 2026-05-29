@@ -230,7 +230,7 @@ export default function ZoneForm({ zone, onSaveComplete }) {
       
       {/* Descripción */}
       <div className="mb-4">
-        <label className="block font-semibold">{t('zones.description')}</label>
+        <label className="block font-semibold">{t('common.description')}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -403,7 +403,7 @@ export default function RouteForm({ route, onSaveComplete }) {
       
       {/* Descripción */}
       <div className="mb-4">
-        <label className="block font-semibold">{t('routes.description')}</label>
+        <label className="block font-semibold">{t('common.description')}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
