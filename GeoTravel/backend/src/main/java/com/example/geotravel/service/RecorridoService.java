@@ -1,0 +1,115 @@
+package com.example.geotravel.service;
+
+import com.example.geotravel.dto.DTRecorrido;
+import com.example.geotravel.model.Recorrido;
+import com.example.geotravel.model.Zona;
+import com.example.geotravel.repository.RecorridoRepository;
+import com.example.geotravel.repository.ZonaRepository;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class RecorridoService {
+
+    @Autowired
+    private RecorridoRepository recorridoRepository;
+
+    @Autowired
+    private EstacionService estacionService;
+
+    @Autowired
+    private ZonaRepository zonaRepository;
+
+    public void alta(DTRecorrido dtRecorrido){
+        recorridoRepository.save(dtoToObj(dtRecorrido));
+    }
+
+    public void actualizar(DTRecorrido dtRecorrido){
+        recorridoRepository.save(dtoToObj(dtRecorrido));
+    }
+
+    public void eliminar(Long idRecorrido){
+        recorridoRepository.delete(recorridoRepository.findByIdRecorrido(idRecorrido));
+    }
+
+    public Boolean existe(Long idRecorrido){
+        return recorridoRepository.existsByIdRecorrido(idRecorrido);
+    }
+
+    public List<DTRecorrido> obtenerTodos(){
+        List<DTRecorrido> listDto = new ArrayList<>();
+        for (Recorrido r : recorridoRepository.findAll()){
+            listDto.add(objToDto(r));
+        }
+        return listDto;
+    }
+
+    public DTRecorrido obtenerPorId(Long id){
+        return objToDto(recorridoRepository.findByIdRecorrido(id));
+    }
+
+    public Recorrido obtenerObjPorId(Long id){
+        return recorridoRepository.findByIdRecorrido(id);
+    }
+
+    public Recorrido dtoToObj(DTRecorrido dtRecorrido){
+        Recorrido recorrido = new Recorrido();
+        recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
+        recorrido.setEstacion(estacionService.obtenerPorId(dtRecorrido.getIdEstacion()));
+        recorrido.setNombre(dtRecorrido.getNombre());
+        recorrido.setDescripcion(dtRecorrido.getDescripcion());
+        recorrido.setDuracionEstimada(dtRecorrido.getDuracionEstimada());
+        recorrido.setGuiaResponsable(dtRecorrido.getGuiaResponsable());
+        recorrido.setTipoExperiencia(dtRecorrido.getTipoExperiencia());
+        recorrido.setEstado(dtRecorrido.getEstado());
+
+        if (dtRecorrido.getZonas() == null) {
+            recorrido.setZonas(new ArrayList<>());
+        } else {
+            List<Zona> zonasList = new ArrayList<>();
+            for (Long z : dtRecorrido.getZonas()){
+                zonasList.add(zonaRepository.findByIdZona(z));
+            }
+            recorrido.setZonas(zonasList);
+        }
+
+        WKTReader reader = new WKTReader();
+        try {
+            recorrido.setGeomWkt((LineString) reader.read(dtRecorrido.getGeomWkt()));
+        } catch(ParseException e) {
+            System.err.println(e.getMessage());
+            recorrido.setGeomWkt(null);
+        }
+
+        return recorrido;
+    }
+
+    public DTRecorrido objToDto(Recorrido recorrido){
+        DTRecorrido dtRecorrido = new DTRecorrido();
+        dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
+        dtRecorrido.setIdEstacion(recorrido.getEstacion().getIdEstacion());
+        dtRecorrido.setNombre(recorrido.getNombre());
+        dtRecorrido.setDescripcion(recorrido.getDescripcion());
+        dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
+        dtRecorrido.setGuiaResponsable(recorrido.getGuiaResponsable());
+        dtRecorrido.setTipoExperiencia(recorrido.getTipoExperiencia());
+        dtRecorrido.setEstado(recorrido.getEstado());
+
+        List<Long> idZonasList = new ArrayList<>();
+        for (Zona z : recorrido.getZonas()){
+            idZonasList.add(z.getIdZona());
+        }
+        dtRecorrido.setZonas(idZonasList);
+
+        dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
+
+        return dtRecorrido;
+    }
+
+}

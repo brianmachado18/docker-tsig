@@ -1,0 +1,75 @@
+package com.example.geotravel.controller;
+
+import com.example.geotravel.dto.DTZona;
+import com.example.geotravel.service.ZonaService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
+import java.util.List;
+
+@RestController
+@RequestMapping("/zona")
+public class ZonaController {
+
+    @Autowired
+    private ZonaService zonaService;
+
+    @PostMapping("/alta")
+    public ResponseEntity<String> altaZona(@RequestBody DTZona dtZona){
+        try{
+            zonaService.alta(dtZona);
+            return ResponseEntity.ok().body("Alta completada.");
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/actualizar")
+    public ResponseEntity<String> actualizarZona(@RequestBody DTZona dtZona){
+        try{
+            if (zonaService.existe(dtZona.getIdZona())){
+                zonaService.actualizar(dtZona);
+                return ResponseEntity.ok().body("Actualizacion completada.");
+            } else {
+                return ResponseEntity.ok().body("Zona no encontrada.");
+            }
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/eliminar")
+    public ResponseEntity<String> eliminarZona(@RequestParam Long idZona){
+        try{
+            if (zonaService.existe(idZona)){
+                zonaService.eliminar(idZona);
+                return ResponseEntity.ok().body("Eliminacion completada.");
+            } else {
+                return ResponseEntity.ok().body("Zona no encontrada.");
+            }
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/buscar/todos")
+    public ResponseEntity<List<DTZona>> obtenerTodos(){
+        try{
+            return ResponseEntity.ok().body(zonaService.obtenerTodos());
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("/buscar/id")
+    public ResponseEntity<DTZona> obtenerPorId(@RequestParam Long id){
+        try{
+            return ResponseEntity.ok().body(zonaService.obtenerPorId(id));
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+}
