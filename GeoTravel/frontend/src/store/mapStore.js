@@ -3,7 +3,7 @@ import { create } from 'zustand';
 const useMapStore = create((set) => ({
   mapInstance: null,
   activeLayer: 'zones', // 'zones', 'routes', 'attractions'
-  activeTool: 'select', // 'select', 'draw', 'edit', 'delete'
+  activeTool: null, // 'select', 'draw', 'edit', 'delete'
   center: [-56, -33], // Default center (Uruguay)
   zoom: 10,
   

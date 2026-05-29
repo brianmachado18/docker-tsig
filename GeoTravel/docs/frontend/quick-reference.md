@@ -375,7 +375,7 @@ export default function App() {
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -407,9 +407,9 @@ apiClient.interceptors.response.use(
 
 ```bash
 # .env
-REACT_APP_API_URL=http://localhost:8080/api
-REACT_APP_GEOSERVER_URL=http://localhost:8080/geoserver
-REACT_APP_ENV=development
+VITE_API_URL=http://localhost:8080/api
+VITE_GEOSERVER_URL=http://localhost:8081/geoserver
+VITE_GEOSERVER_WORKSPACE=geotravel
 ```
 
 ---

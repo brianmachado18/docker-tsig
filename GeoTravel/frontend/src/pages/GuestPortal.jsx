@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import useAttractionsStore from '../store/attractionsStore';
 import useRoutesStore from '../store/routesStore';
 import MapCanvas from '../components/map/MapCanvas';
+import TopAppBar from '../components/common/TopAppBar';
 import useLangStore from '../store/langStore';
 
 const GuestPortal = () => {
-  const { lang, setLang, t } = useLangStore();
+  const { t } = useLangStore();
   const {
     attractions,
     isLoading: isAttractionsLoading,
@@ -44,27 +44,7 @@ const GuestPortal = () => {
   return (
     <div className="bg-background text-on-background h-screen overflow-hidden font-body-md flex">
       <main className="flex-1 relative flex flex-col h-full bg-surface-container-lowest">
-        <header className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between rounded-xl border border-outline-variant bg-surface/90 backdrop-blur-md px-6 h-14 shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>public</span>
-            </div>
-            <div>
-              <h1 className="font-headline-md text-headline-md text-primary">GeoTravel GIS</h1>
-              <p className="font-label-md text-label-md text-on-surface-variant">{t('guest.publicView')}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex bg-surface-container rounded-lg p-1 border border-outline-variant">
-              <button className={`px-2 py-1 text-xs rounded ${lang === 'en' ? 'bg-primary text-on-primary' : 'text-on-surface'}`} onClick={() => setLang('en')}>EN</button>
-              <button className={`px-2 py-1 text-xs rounded ${lang === 'es' ? 'bg-primary text-on-primary' : 'text-on-surface'}`} onClick={() => setLang('es')}>ES</button>
-            </div>
-            <Link className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center gap-2 shadow-sm hover:bg-primary/90 transition-colors" to="/login">
-              <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-              {t('guest.adminLogin')}
-            </Link>
-          </div>
-        </header>
+        <TopAppBar title="GeoTravel GIS" variant="public" showGuestActions />
 
         <div className="absolute inset-0 z-0">
           <MapCanvas routes={featuredRoutes} attractions={mapAttractions} />

@@ -1,4 +1,4 @@
-# SKILL_UI_LOCALIZATION.md - Multiidioma en React SPA
+# Skill: Multiidioma en React SPA
 
 ## Problema Resuelto
 Soportar múltiples idiomas (EN/ES) sin hardcoding, con selección de idioma persistente y fallbacks, sin crear nuevos componentes.
@@ -424,4 +424,3 @@ grep -r "'[A-Z]" src/components/ --include="*.jsx" | grep -v "t("
 const itemLabel = t('common.item');
 {items.map(item => <p key={item.id}>{itemLabel}</p>)}
 ```
-

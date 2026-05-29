@@ -1,4 +1,4 @@
-# SKILL_AUTH_PATTERNS.md - Autenticación en React SPA
+# Skill: Autenticacion en React SPA
 
 ## Problema Resuelto
 Implementar autenticación mock (desarrollo) y token-based real (producción) en SPA React con manejo de sesiones limpio, sin duplicación de lógica.
@@ -324,4 +324,3 @@ export const authService = {
 | Logout no limpia estado | logout() incompleto | Limpiar user, token, isAuthenticated |
 | Token expira sin refresh | Sin refresh logic | Implementar refresh token interceptor |
 | Token visible en localStorage | Persistencia insegura | No persista token, solo isAuthenticated |
-

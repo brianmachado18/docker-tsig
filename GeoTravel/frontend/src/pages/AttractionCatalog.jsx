@@ -62,7 +62,12 @@ const AttractionCatalog = () => {
               <div className="col-span-full text-sm text-outline">{t('attractions.noAttractions')}</div>
             )}
             {!isLoading && !error && attractions.map((attraction) => (
-              <AttractionCard key={attraction.id} {...attraction} status={attraction.status.replace('-', ' ')} />
+              <AttractionCard
+                key={attraction.id}
+                {...attraction}
+                onEdit={() => openForm(attraction)}
+                status={attraction.status.replace('-', ' ')}
+              />
             ))}
 
             <button 

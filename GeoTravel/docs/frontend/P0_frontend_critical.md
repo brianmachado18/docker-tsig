@@ -1,7 +1,7 @@
 # P0 - Frontend Critical Documentation
 
 Date: 2026-05-28
-Author: @GeoTravel-Frontend-Builder (agent)
+Author: @Frontend SPA Architect
 
 Summary
 -------
@@ -13,7 +13,7 @@ Este documento describe y documenta los cambios críticos aplicados al frontend 
 
 Objetivo
 --------
-Proveer a desarrolladores y revisores de una guía clara para verificar los cambios P0, los fragmentos de código relevantes y una checklist de aceptación para cerrar los items P0 en `BACKLOG_DOCUMENTATION.md`.
+Proveer a desarrolladores y revisores de una guía clara para verificar los cambios P0, los fragmentos de código relevantes y una checklist de aceptación para cerrar los items P0 en `docs/backlog.md`.
 
 Files changed (quick list)
 -------------------------
@@ -21,8 +21,8 @@ Files changed (quick list)
 - `frontend/src/pages/ZoneManagement.jsx` — ahora muestra el formulario solo si `isFormOpen`; agregado FAB "Nueva Zona" que llama `openForm()`.
 - `frontend/src/components/zones/ZoneForm.jsx` — ahora usa `useZonesStore().closeForm()` para el botón de cancelar; los botones usan i18n (`zones.cancel`, `common.save`).
 - `frontend/src/locales/en.json` y `frontend/src/locales/es.json` — agregadas claves `zones.newZone` y `zones.cancel`.
-- `AGENTS.md` — agregado `@GeoTravel-Localization` y workflows nuevos.
-- Skills añadidos: `frontend/src/locales/SKILL_UI_LOCALIZATION.md`, `frontend/src/store/SKILL_AUTH_PATTERNS.md`, `frontend/src/store/SKILL_CRUD_STATE_FORMS.md`.
+- `AGENTS.md` - actualizado con `@Frontend SPA Architect` y `@Geo Platform Architect`.
+- Skills añadidos y movidos a `docs/skills/frontend/`.
 - Memoria resumen: `/memories/repo/geotravel_retrospective_implementation.md`.
 
 Design and rationale
@@ -35,7 +35,7 @@ Detailed sections
 -----------------
 
 **1) Authentication (short note)**
-- Nota: El flujo de autenticación en P0 sigue siendo mock. Ver `SKILL_AUTH_PATTERNS.md` para detalles de la store `authStore` y `ProtectedRoute`.
+- Nota: El flujo de autenticacion en P0 sigue siendo mock. Ver `docs/skills/frontend/auth-patterns.md` para detalles de la store `authStore` y `ProtectedRoute`.
 
 **2) Zones flow (fetch / select / open / save / delete)**
 - Fetch:
@@ -138,6 +138,4 @@ Appendix: lista de archivos creados por este task
 - `docs/P0_frontend_critical.md` (este archivo)
 - `docs/snippets/zones_flow.md`
 - `docs/snippets/i18n_quick.md`
-
-
 

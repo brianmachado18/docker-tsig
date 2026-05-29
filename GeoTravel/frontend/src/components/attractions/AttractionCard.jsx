@@ -9,10 +9,22 @@ const AttractionCard = ({
   status = 'Active',
   zone = 'Central',
   imageUrl,
+  onEdit,
+  onViewOnMap,
 }) => {
   const { t } = useLangStore();
   const isOffSeason = status.toLowerCase().includes('off');
   const hasImage = Boolean(imageUrl);
+
+  const handleEditClick = (event) => {
+    event.stopPropagation();
+    if (onEdit) onEdit();
+  };
+
+  const handleViewOnMapClick = (event) => {
+    event.stopPropagation();
+    if (onViewOnMap) onViewOnMap();
+  };
 
   return (
     <div className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm hover:shadow-md transition-shadow group relative flex flex-col h-full">
@@ -47,7 +59,12 @@ const AttractionCard = ({
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-headline-md text-headline-md text-on-surface line-clamp-1">{title}</h3>
-          <button className="text-outline hover:text-primary transition-colors p-1" title={t('attractions.viewOnMap')}>
+          <button
+            className="text-outline hover:text-primary transition-colors p-1"
+            onClick={handleViewOnMapClick}
+            title={t('attractions.viewOnMap')}
+            type="button"
+          >
             <span className="material-symbols-outlined text-[20px]">location_on</span>
           </button>
         </div>
@@ -59,7 +76,13 @@ const AttractionCard = ({
             <span className="material-symbols-outlined text-[14px]">map</span>
             {`${t('common.zones')}: ${zone}`}
           </span>
-          <button className="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors">{t('attractions.edit')}</button>
+          <button
+            className="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors"
+            onClick={handleEditClick}
+            type="button"
+          >
+            {t('attractions.edit')}
+          </button>
         </div>
       </div>
     </div>

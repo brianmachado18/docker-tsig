@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import Sidebar from '../components/common/Sidebar';
 import TopAppBar from '../components/common/TopAppBar';
+import MapControls from '../components/map/MapControls';
 import MapCanvas from '../components/map/MapCanvas';
 import RouteForm from '../components/routes/RouteForm';
 import useRoutesStore from '../store/routesStore';
@@ -31,6 +32,8 @@ const RoutePlanner = () => {
             Failed to load routes.
           </div>
         )}
+
+        <MapControls />
 
         {/* Floating Action Button for New Route */}
         {!isFormOpen && (

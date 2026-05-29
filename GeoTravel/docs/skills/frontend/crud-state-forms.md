@@ -1,4 +1,4 @@
-# SKILL_CRUD_STATE_FORMS.md - Componentes CRUD con Estado y Drag-Drop
+# Skill: Componentes CRUD con Estado y Drag-Drop
 
 ## Problema Resuelto
 Implementar formularios funcionales con estado local, almacenamiento mock en stores, y UI interactivo (drag-drop, listas editables) sin repetir patrones.
@@ -667,4 +667,3 @@ const handleSave = async (e) => {
 | Drag-drop no reordena | Drop handler no recalcula order | Verificar: `updated.map((s, idx) => ({...s, order: idx+1}))` |
 | Lista no refresca | Componente Lista no re-render | Zustand debe update state correctamente |
 | Cambios se pierden | useState no sincroniza con prop | Verificar useEffect cuando `zone` cambia |
-

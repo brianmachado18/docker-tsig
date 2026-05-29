@@ -1,7 +1,7 @@
 # i18n Audit Report
 
 Date: 2026-05-29
-Author: @GeoTravel-Frontend-Builder (agent)
+Author: @Frontend SPA Architect
 
 Scope
 -----

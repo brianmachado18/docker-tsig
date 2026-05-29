@@ -32,7 +32,7 @@ const Sidebar = ({ activeItem }) => {
           </div>
           <div>
             <h1 className="font-headline-md text-headline-md font-bold text-primary">{t('common.appTitle')}</h1>
-            <p className="font-label-md text-label-md text-on-surface-variant">{t('auth.adminPortal')}</p>
+            {/* <p className="font-label-md text-label-md text-on-surface-variant">{t('auth.adminPortal')}</p> */}
           </div>
         </div>
       </div>

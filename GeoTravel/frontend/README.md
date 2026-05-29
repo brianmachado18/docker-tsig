@@ -71,11 +71,11 @@ frontend/
 ## Documentación relacionada
 
 - Router de agentes y skills: [`../AGENTS.md`](../AGENTS.md)
-- Backlog de documentación: [`../BACKLOG_DOCUMENTATION.md`](../BACKLOG_DOCUMENTATION.md)
-- Instrucciones del frontend:
-  - [`./.agent.md`](./.agent.md)
-  - [`./.instructions.md`](./.instructions.md)
-  - [`./.prompt.md`](./.prompt.md)
+- Indice de documentacion: [`../docs/INDEX.md`](../docs/INDEX.md)
+- Arquitectura frontend: [`../docs/frontend/architecture.md`](../docs/frontend/architecture.md)
+- Skills frontend: [`../docs/skills/frontend/`](../docs/skills/frontend/)
+- Backlog de documentación: [`../docs/backlog.md`](../docs/backlog.md)
+- Prompts legacy archivados: [`../docs/archive/frontend-prompts/`](../docs/archive/frontend-prompts/)
 
 ## Troubleshooting rápido
 
