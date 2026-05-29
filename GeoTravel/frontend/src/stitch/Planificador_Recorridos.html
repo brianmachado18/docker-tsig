@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GeoTravel GIS - Route Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#005231",
+                    "attraction-marker": "#805ad5",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed": "#301400",
+                    "surface": "#faf9fd",
+                    "status-off-season": "#718096",
+                    "surface-container-low": "#f4f3f7",
+                    "tertiary-fixed": "#ffdcc5",
+                    "surface-bright": "#faf9fd",
+                    "inverse-surface": "#2f3033",
+                    "on-tertiary-container": "#e88532",
+                    "on-tertiary-fixed-variant": "#703700",
+                    "secondary-fixed": "#9ff5c1",
+                    "on-primary-fixed": "#001b3c",
+                    "error": "#ba1a1a",
+                    "inverse-primary": "#adc7f7",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#455f88",
+                    "on-secondary-container": "#167249",
+                    "surface-variant": "#e3e2e6",
+                    "outline": "#74777f",
+                    "secondary": "#0a6c44",
+                    "surface-container": "#efedf1",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb783",
+                    "on-surface-variant": "#43474e",
+                    "secondary-container": "#9ff5c1",
+                    "on-secondary-fixed": "#002111",
+                    "on-error-container": "#93000a",
+                    "map-overlay-dark": "#1a202c",
+                    "primary-container": "#1a365d",
+                    "surface-container-high": "#e9e7eb",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "primary": "#002045",
+                    "on-tertiary": "#ffffff",
+                    "status-cancelled": "#e53e3e",
+                    "status-pending": "#ed8936",
+                    "outline-variant": "#c4c6cf",
+                    "background": "#faf9fd",
+                    "primary-fixed-dim": "#adc7f7",
+                    "surface-container-highest": "#e3e2e6",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#572900",
+                    "surface-dim": "#dad9dd",
+                    "on-error": "#ffffff",
+                    "tertiary": "#371800",
+                    "on-primary-container": "#86a0cd",
+                    "primary-fixed": "#d6e3ff",
+                    "inverse-on-surface": "#f1f0f4",
+                    "on-background": "#1a1c1e",
+                    "on-surface": "#1a1c1e",
+                    "status-available": "#2f855a",
+                    "secondary-fixed-dim": "#83d8a6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "collapsed-sidebar-width": "64px",
+                    "sidebar-width": "320px",
+                    "stack-gap": "0.75rem",
+                    "container-padding": "1.5rem",
+                    "gutter": "1rem"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "mono-label": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-xl": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "mono-label": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen w-screen overflow-hidden flex light">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[360px] bg-surface border-r border-border-subtle z-40 flex flex-col py-6">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">GT</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">GeoTravel GIS</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Management Portal</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-lg hover:bg-on-primary-fixed-variant transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                New Project
+            </button>
+</div>
+<ul class="flex-1 flex flex-col gap-1">
+<!-- Dashboard -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<!-- Zones -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-md text-label-md">Zones</span>
+</a>
+</li>
+<!-- Routes (Active) -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-r-full border-l-4 border-primary scale-[0.98] transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">route</span>
+<span class="font-label-md text-label-md">Routes</span>
+</a>
+</li>
+<!-- Attractions -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">photo_library</span>
+<span class="font-label-md text-label-md">Attractions</span>
+</a>
+</li>
+<!-- Guest Portal -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Guest Portal</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto border-t border-outline-variant pt-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help_center</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="fixed top-4 right-4 left-[376px] rounded-xl bg-map-overlay-bg backdrop-blur-md border border-border-subtle shadow-md flex justify-between items-center px-6 h-16 z-50 bg-surface/90">
+<div class="flex items-center gap-4">
+<h2 class="font-headline-md text-headline-md font-black text-primary">Route Planner</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative focus-within:ring-2 focus-within:ring-primary rounded-lg">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container border border-outline-variant rounded-lg font-body-md text-body-md w-64 focus:outline-none" placeholder="Search locations..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas (Map Area) -->
+<main class="ml-[360px] flex-1 relative h-full bg-surface-dim">
+<!-- Map Background -->
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A highly detailed, professional GIS map interface showing the diverse topography of Uruguay, rendered in a modern light-mode color palette. The map features crisp, high-contrast roads and geographic borders against a soft, subtle background of pale greens and muted earthy tones, adhering to a sophisticated corporate mapping aesthetic. The scene is illuminated evenly, emphasizing data clarity and an exploratory, technical mood suitable for a travel management platform." data-location="Uruguay" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB0sZ6e0bZXyjbekZ6pA-5N4nzivCdSZBudshe-oNh0jo-DAatDDNF1BxOaWoAQxS36gZ266lH1sejGMgnlm6XgJaYA3hYo7VP4spueWu5AZXAif-vWi5q3crmAbHUEmSTu8E7TaLZKrxEW1b_Nbe3_yUjUbXOP-Uuc-RJ1GekZ7L3ydVjHsMVFwqGv8YgpiKnrS85KEM-aDPmf80qubtdPUkOosL4sZBrGsH5hC573FDUP40_Hl-51B6lkWUwH8SMYDahCpO1b05xK');">
+<div class="absolute inset-0 bg-surface/30 mix-blend-overlay"></div>
+</div>
+<!-- Floating Route Editor Form -->
+<aside class="absolute left-6 top-28 bottom-6 w-[380px] bg-surface rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.1)] border border-outline flex flex-col z-10 overflow-hidden">
+<!-- Form Header -->
+<div class="p-5 border-b border-outline-variant bg-surface-bright">
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-2">Design Route</h3>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-status-available/20 text-status-available border border-status-available rounded font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> Available
+                    </button>
+<button class="px-3 py-1 bg-surface-container-high text-on-surface-variant border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-variant">
+                        Pending
+                    </button>
+<button class="px-3 py-1 bg-surface-container-high text-on-surface-variant border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-variant">
+                        Off-Season
+                    </button>
+</div>
+</div>
+<!-- Form Body -->
+<div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+<!-- Input: Name -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Route Name</label>
+<input class="w-full px-3 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md text-on-surface" type="text" value="Coastal Heritage Trail"/>
+</div>
+<!-- Input: Description -->
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Description</label>
+<textarea class="w-full px-3 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md text-on-surface resize-none" rows="3">Explore the historical lighthouses and coastal defenses along the eastern seaboard.</textarea>
+</div>
+<!-- Row: Duration & Guide -->
+<div class="flex gap-4">
+<div class="flex flex-col gap-1 flex-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Est. Duration</label>
+<div class="relative">
+<input class="w-full pl-3 pr-10 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md text-on-surface" type="number" value="4.5"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant font-mono-label text-mono-label">hrs</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Assigned Guide</label>
+<select class="w-full px-3 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md text-on-surface appearance-none">
+<option>Maria Silva</option>
+<option>Carlos Ruiz</option>
+<option>Unassigned</option>
+</select>
+</div>
+</div>
+<!-- Experience Type (Chips) -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Experience Type</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 bg-primary-container text-primary border border-primary rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">history_edu</span> Historical
+                        </button>
+<button class="px-3 py-1.5 bg-surface-container text-on-surface-variant border border-outline-variant rounded-full font-label-md text-label-md hover:bg-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">restaurant</span> Gastronomic
+                        </button>
+<button class="px-3 py-1.5 bg-primary-container text-primary border border-primary rounded-full font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">landscape</span> Natural
+                        </button>
+<button class="px-3 py-1.5 bg-surface-container text-on-surface-variant border border-outline-variant rounded-full font-label-md text-label-md hover:bg-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">museum</span> Cultural
+                        </button>
+</div>
+</div>
+<!-- Seasonality -->
+<div class="flex flex-col gap-1 border-t border-outline-variant pt-4 mt-2">
+<label class="font-label-md text-label-md text-on-surface-variant mb-1">Operational Season</label>
+<div class="flex items-center gap-3">
+<select class="flex-1 px-3 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary font-body-md text-body-md text-on-surface">
+<option>March</option>
+<option>April</option>
+</select>
+<span class="text-outline-variant font-mono-label">to</span>
+<select class="flex-1 px-3 py-2 border border-outline rounded bg-surface focus:outline-none focus:border-primary font-body-md text-body-md text-on-surface">
+<option>December</option>
+<option>November</option>
+</select>
+</div>
+</div>
+<!-- POI Sequence Preview -->
+<div class="flex flex-col gap-2 border-t border-outline-variant pt-4 mt-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Route Sequence (Click map to add)</label>
+<div class="bg-surface-container rounded-lg p-2 flex flex-col gap-1">
+<div class="flex items-center gap-3 p-2 bg-surface rounded border border-outline-variant">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md text-[10px]">1</div>
+<span class="font-body-md text-body-md flex-1">Punta del Este Lighthouse</span>
+<span class="material-symbols-outlined text-outline hover:text-error cursor-pointer text-[18px]">delete</span>
+</div>
+<div class="flex items-center gap-3 p-2 bg-surface rounded border border-outline-variant">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md text-[10px]">2</div>
+<span class="font-body-md text-body-md flex-1">Casapueblo Museum</span>
+<span class="material-symbols-outlined text-outline hover:text-error cursor-pointer text-[18px]">delete</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Form Footer -->
+<div class="p-4 border-t border-outline-variant bg-surface-container-lowest flex justify-end gap-3">
+<button class="px-4 py-2 border border-primary text-primary font-label-md text-label-md rounded hover:bg-primary-fixed transition-colors">Cancel</button>
+<button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded hover:bg-on-primary-fixed-variant transition-colors shadow-sm">Save Route</button>
+</div>
+</aside>
+<!-- Simulated Map Markers & Lines -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<path d="M 400 300 Q 550 250 650 400" fill="none" stroke="#002045" stroke-dasharray="6,6" stroke-width="3"></path>
+</svg>
+<!-- Marker 1 -->
+<div class="absolute left-[380px] top-[280px] flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary border-2 border-surface shadow-md flex items-center justify-center font-headline-md text-sm font-bold z-10 cursor-pointer hover:scale-110 transition-transform">1</div>
+<div class="mt-1 px-2 py-0.5 bg-surface/90 backdrop-blur-sm border border-outline-variant rounded text-xs font-label-md text-on-surface whitespace-nowrap shadow-sm">Punta del Este Lighthouse</div>
+</div>
+<!-- Marker 2 -->
+<div class="absolute left-[630px] top-[380px] flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary border-2 border-surface shadow-md flex items-center justify-center font-headline-md text-sm font-bold z-10 cursor-pointer hover:scale-110 transition-transform">2</div>
+<div class="mt-1 px-2 py-0.5 bg-surface/90 backdrop-blur-sm border border-outline-variant rounded text-xs font-label-md text-on-surface whitespace-nowrap shadow-sm">Casapueblo Museum</div>
+</div>
+<!-- Map Floating Controls (Right) -->
+<div class="absolute right-6 top-28 flex flex-col gap-2">
+<div class="bg-surface rounded-lg shadow-md border border-outline flex flex-col overflow-hidden">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors border-b border-outline-variant" title="Zoom In">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors" title="Zoom Out">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+<div class="bg-surface rounded-lg shadow-md border border-outline flex flex-col overflow-hidden mt-4">
+<button class="w-10 h-10 flex items-center justify-center bg-primary-container text-primary transition-colors border-b border-outline-variant" title="Add POI (Active)">
+<span class="material-symbols-outlined text-[20px]">add_location_alt</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" title="Draw Path">
+<span class="material-symbols-outlined text-[20px]">draw</span>
+</button>
+</div>
+</div>
+</main>
+</body></html>

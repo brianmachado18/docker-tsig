@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Attraction Catalog - GeoTravel GIS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#005231",
+                        "attraction-marker": "#805ad5",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#301400",
+                        "surface": "#faf9fd",
+                        "status-off-season": "#718096",
+                        "surface-container-low": "#f4f3f7",
+                        "tertiary-fixed": "#ffdcc5",
+                        "surface-bright": "#faf9fd",
+                        "inverse-surface": "#2f3033",
+                        "on-tertiary-container": "#e88532",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "secondary-fixed": "#9ff5c1",
+                        "on-primary-fixed": "#001b3c",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#adc7f7",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#455f88",
+                        "on-secondary-container": "#167249",
+                        "surface-variant": "#e3e2e6",
+                        "outline": "#74777f",
+                        "secondary": "#0a6c44",
+                        "surface-container": "#efedf1",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "on-surface-variant": "#43474e",
+                        "secondary-container": "#9ff5c1",
+                        "on-secondary-fixed": "#002111",
+                        "on-error-container": "#93000a",
+                        "map-overlay-dark": "#1a202c",
+                        "primary-container": "#1a365d",
+                        "surface-container-high": "#e9e7eb",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "primary": "#002045",
+                        "on-tertiary": "#ffffff",
+                        "status-cancelled": "#e53e3e",
+                        "status-pending": "#ed8936",
+                        "outline-variant": "#c4c6cf",
+                        "background": "#faf9fd",
+                        "primary-fixed-dim": "#adc7f7",
+                        "surface-container-highest": "#e3e2e6",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#572900",
+                        "surface-dim": "#dad9dd",
+                        "on-error": "#ffffff",
+                        "tertiary": "#371800",
+                        "on-primary-container": "#86a0cd",
+                        "primary-fixed": "#d6e3ff",
+                        "inverse-on-surface": "#f1f0f4",
+                        "on-background": "#1a1c1e",
+                        "on-surface": "#1a1c1e",
+                        "status-available": "#2f855a",
+                        "secondary-fixed-dim": "#83d8a6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "collapsed-sidebar-width": "64px",
+                        "sidebar-width": "320px",
+                        "stack-gap": "0.75rem",
+                        "container-padding": "1.5rem",
+                        "gutter": "1rem"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "mono-label": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "mono-label": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-surface dark:bg-on-background text-primary dark:text-primary-fixed fixed left-0 top-0 h-full w-[320px] border-r border-border-subtle dark:border-outline-variant flex flex-col h-screen py-6 z-40 transition-all duration-300 hidden md:flex">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden shrink-0">
+<img alt="GeoTravel Admin" class="w-full h-full object-cover" data-alt="A professional headshot of an administrative user in a corporate setting. The image should convey trust and reliability, fitting a modern GIS travel management platform. The lighting is soft and even, highlighting a friendly yet professional demeanor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgU38X768UChftq1-jG-uyTPVOOS_c_8H2OxGg0oGo-jr2GSkqAXiUZcBMaOBgZeEyopQsvXXxBGWdHN8mZtRH7IzQVP5Eap0dGYpBQ81Iy_IlYlvtyxOv__Imoaj7mUmLqCRGC6avaiiOjiLLVNxcm5zHOUh4_ZWvF8STVDWTWTNpP4oAe3qS2UpPgUiTHYMoBrqoCu6ZzJgyUXV6MKEicFTOG0rfx8xc5l_Wm7pbTon3eMNsBiBxWwRIK4ykOTAH-Dynx0mlg_0n"/>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">GeoTravel GIS</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Management Portal</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-on-primary py-2.5 rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Project
+            </button>
+</div>
+<ul class="flex-1 flex flex-col gap-1 overflow-y-auto px-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Zones</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="route">route</span>
+<span class="font-label-md text-label-md">Routes</span>
+</a>
+</li>
+<li>
+<!-- ACTIVE NAV -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-primary-fixed rounded-r-full border-l-4 border-primary scale-[0.98] transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="photo_library" data-weight="fill">photo_library</span>
+<span class="font-label-md text-label-md">Attractions</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Guest Portal</span>
+</a>
+</li>
+</ul>
+<ul class="mt-auto flex flex-col gap-1 px-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help_center">help_center</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col md:ml-[320px] w-full relative">
+<!-- TopAppBar -->
+<header class="bg-surface-container-low backdrop-blur-md dark:bg-on-background/80 text-primary dark:text-primary-fixed-dim fixed top-4 right-4 left-4 md:left-[336px] rounded-xl border border-outline-variant dark:border-outline-variant shadow-md flex justify-between items-center px-6 h-16 z-30">
+<div class="flex items-center gap-4 hidden md:flex">
+<span class="font-headline-md text-headline-md font-black text-primary dark:text-primary-fixed">Attraction Catalog</span>
+</div>
+<div class="flex-1 flex justify-end items-center gap-4">
+<!-- Search -->
+<div class="relative w-full max-w-md hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search attractions..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors md:hidden">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 overflow-y-auto pt-28 px-4 md:px-8 pb-8 bg-surface-container-lowest">
+<!-- Page Header & Actions -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-background">Points of Interest</h2>
+<p class="font-body-md text-body-md text-outline mt-1">Manage and organize tourist attractions across all zones.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 bg-surface text-primary border border-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filter
+                    </button>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md shadow-sm hover:bg-primary/90 transition-colors" onclick="document.getElementById('addModal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-sm">add</span>
+                        Add Attraction
+                    </button>
+</div>
+</div>
+<!-- Bento Grid of Attractions -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm hover:shadow-md transition-shadow group relative flex flex-col h-full">
+<div class="h-48 bg-surface-container relative overflow-hidden">
+<img alt="Palacio Salvo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-quality architectural photograph of a historic, ornate building in a South American city, likely Palacio Salvo in Montevideo. The lighting is warm afternoon sun, highlighting the intricate details of the facade against a clear blue sky. Professional, crisp, and vibrant." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ4_coJaC1naD1gEbl51HRcMDjdrL7F2KsYe14kLAm3wtsFC5bDDvFxpYNL8meI4tmq9cKfsJdIgT6kqkOt3cypfk6R8jypbSVBpa7IjZI25r-DiPgkJXLd9fU17MJ_6Vc0KGcnISamf-qIXAKlRbSkf4mDmvQqCw5P75Z8YL1RkT9_ogwdSunJRaHCnaLIRHORAI07yXlHoHlJHlzzgsx6iKp6AE4wDhS2it6MVPFPL8nFTMosrPtcVFif68RE8ciB1OxgGUu30oW"/>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-md text-on-surface font-mono-label text-mono-label flex items-center gap-1 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[14px] text-attraction-marker">account_balance</span>
+                                Historic
+                            </span>
+</div>
+<div class="absolute top-3 right-3">
+<span class="bg-status-available/10 text-status-available px-2 py-1 rounded-md font-label-md text-label-md backdrop-blur-sm border border-status-available/20">Active</span>
+</div>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface line-clamp-1">Palacio Salvo</h3>
+<button class="text-outline hover:text-primary transition-colors p-1" title="View on Map">
+<span class="material-symbols-outlined text-[20px]">location_on</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 line-clamp-2 text-sm flex-1">Iconic building in Plaza Independencia, designed by architect Mario Palanti. A must-see architectural landmark.</p>
+<div class="pt-3 border-t border-surface-variant flex justify-between items-center">
+<span class="font-mono-label text-mono-label text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">map</span>
+                                Zone: Central
+                            </span>
+<button class="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors">Edit</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm hover:shadow-md transition-shadow group relative flex flex-col h-full">
+<div class="h-48 bg-surface-container relative overflow-hidden">
+<img alt="Casapueblo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A striking coastal architectural structure, white against a deep blue ocean, resembling Mediterranean style but located in South America (Casapueblo). The image is bathed in golden hour light, casting dramatic shadows. The aesthetic is serene, artistic, and visually captivating." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUXufl6QpD7b-cUmoa5fHyl8RgRCdTWrMltZTEm08WEULCYFSIZajM3xB7ZicdiMBcNsm_aUDWuT7FtIv3GwjHORM9km0dLDsuOF79kVq5XFbOEnyavpS-LH0stJbvhxC3dzI7kemFGir9vR3zZ9izQ5fmUTh-NVOSvDVwVmst1Ju0jMZUaoUHFXjtRFpy_bK7SaeighpivvZj8UbP6ERqpwpa4RvcDMfW_HVQqc_3fyqqqbiuhTur_bwTGg6s3ouYOdOPJlDJv5cr"/>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-md text-on-surface font-mono-label text-mono-label flex items-center gap-1 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[14px] text-attraction-marker">palette</span>
+                                Art/Culture
+                            </span>
+</div>
+<div class="absolute top-3 right-3">
+<span class="bg-status-available/10 text-status-available px-2 py-1 rounded-md font-label-md text-label-md backdrop-blur-sm border border-status-available/20">Active</span>
+</div>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface line-clamp-1">Casapueblo</h3>
+<button class="text-outline hover:text-primary transition-colors p-1" title="View on Map">
+<span class="material-symbols-outlined text-[20px]">location_on</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 line-clamp-2 text-sm flex-1">A building constructed by the Uruguayan artist Carlos Páez Vilaró. It functions as a hotel, museum, and art gallery.</p>
+<div class="pt-3 border-t border-surface-variant flex justify-between items-center">
+<span class="font-mono-label text-mono-label text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">map</span>
+                                Zone: Punta Ballena
+                            </span>
+<button class="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors">Edit</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm hover:shadow-md transition-shadow group relative flex flex-col h-full">
+<div class="h-48 bg-surface-container relative overflow-hidden flex items-center justify-center bg-surface-variant/50">
+<!-- Placeholder for missing image -->
+<div class="flex flex-col items-center text-outline">
+<span class="material-symbols-outlined text-4xl mb-2">image_not_supported</span>
+<span class="font-mono-label text-mono-label">No Image</span>
+</div>
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-md text-on-surface font-mono-label text-mono-label flex items-center gap-1 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[14px] text-attraction-marker">park</span>
+                                Natural
+                            </span>
+</div>
+<div class="absolute top-3 right-3">
+<span class="bg-status-off-season/10 text-status-off-season px-2 py-1 rounded-md font-label-md text-label-md backdrop-blur-sm border border-status-off-season/20">Off-season</span>
+</div>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface line-clamp-1">Cabo Polonio</h3>
+<button class="text-outline hover:text-primary transition-colors p-1" title="View on Map">
+<span class="material-symbols-outlined text-[20px]">location_on</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 line-clamp-2 text-sm flex-1">Remote coastal village located on a peninsula. Known for sand dunes, sea lions, and lack of grid electricity.</p>
+<div class="pt-3 border-t border-surface-variant flex justify-between items-center">
+<span class="font-mono-label text-mono-label text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">map</span>
+                                Zone: Rocha
+                            </span>
+<button class="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors">Edit</button>
+</div>
+</div>
+</div>
+<!-- Add New Placeholder Card -->
+<button class="bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant hover:border-primary hover:bg-surface-container transition-all flex flex-col items-center justify-center min-h-[320px] group" onclick="document.getElementById('addModal').classList.remove('hidden')">
+<div class="w-16 h-16 rounded-full bg-primary-container/20 group-hover:bg-primary-container/40 flex items-center justify-center text-primary mb-4 transition-colors">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface">Add New Attraction</span>
+<span class="font-body-md text-body-md text-outline mt-2 text-center px-6">Create a new point of interest to appear on the map.</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Add New Attraction Modal -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-background/50 backdrop-blur-sm transition-opacity" id="addModal">
+<div class="bg-surface rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[921px]">
+<!-- Modal Header -->
+<div class="px-6 py-4 border-b border-surface-variant flex justify-between items-center bg-surface-container-low">
+<h3 class="font-headline-lg text-headline-lg text-on-surface">New Attraction</h3>
+<button class="text-outline hover:text-on-surface transition-colors" onclick="document.getElementById('addModal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body (Form) -->
+<div class="p-6 overflow-y-auto flex-1">
+<form class="space-y-6">
+<!-- Basic Info Section -->
+<div class="space-y-4">
+<h4 class="font-label-md text-label-md text-primary uppercase tracking-wider border-b border-surface-variant pb-2">Basic Information</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Attraction Name</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="e.g., Teatro Solís" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Classification</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+<option>Select Type...</option>
+<option>Historic / Architecture</option>
+<option>Natural / Park</option>
+<option>Gastronomy</option>
+<option>Art / Culture</option>
+</select>
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Description</label>
+<textarea class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Brief description for the guest portal..." rows="3"></textarea>
+</div>
+</div>
+<!-- Location Section -->
+<div class="space-y-4">
+<h4 class="font-label-md text-label-md text-primary uppercase tracking-wider border-b border-surface-variant pb-2">Location Data</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Zone Assignment</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+<option>Assign to Zone...</option>
+<option>Central</option>
+<option>Coastal</option>
+<option>Rural</option>
+</select>
+</div>
+<div class="flex items-end gap-2">
+<div class="space-y-1 flex-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Coordinates</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-mono-label text-mono-label text-outline" placeholder="-34.9011, -56.1645" readonly="" type="text"/>
+</div>
+<button class="bg-surface text-primary border border-primary px-3 py-2 rounded-lg hover:bg-surface-container-low transition-colors h-[42px]" title="Pick on Map" type="button">
+<span class="material-symbols-outlined text-sm">location_searching</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Media Section -->
+<div class="space-y-4">
+<h4 class="font-label-md text-label-md text-primary uppercase tracking-wider border-b border-surface-variant pb-2">Media</h4>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center text-center bg-surface-container-lowest hover:bg-surface-container-low transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-outline mb-2">cloud_upload</span>
+<p class="font-headline-md text-headline-md text-on-surface mb-1">Click to upload photo</p>
+<p class="font-body-md text-body-md text-outline">or drag and drop. JPG, PNG, up to 5MB.</p>
+</div>
+</div>
+</form>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-4 border-t border-surface-variant bg-surface-container-low flex justify-end gap-3">
+<button class="px-4 py-2 rounded-lg font-label-md text-label-md text-primary hover:bg-surface-container-high transition-colors" onclick="document.getElementById('addModal').classList.add('hidden')">Cancel</button>
+<button class="px-4 py-2 rounded-lg font-label-md text-label-md bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm">Save Attraction</button>
+</div>
+</div>
+</div>
+</body></html>

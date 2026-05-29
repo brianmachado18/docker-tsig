@@ -1,0 +1,70 @@
+{
+  "common": {
+    "dashboard": "Tablero",
+    "zones": "Zonas",
+    "routes": "Recorridos",
+    "attractions": "Atracciones",
+    "settings": "Configuración",
+    "support": "Soporte",
+    "logout": "Cerrar Sesión",
+    "save": "Guardar",
+    "discard": "Descartar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "search": "Buscar..."
+  },
+  "guest": {
+    "title": "Explora Uruguay",
+    "subtitle": "Descubre recorridos y atracciones seleccionadas.",
+    "filters": "Filtros",
+    "clearAll": "Limpiar Todo",
+    "availability": "Disponibilidad",
+    "available": "Disponible",
+    "offSeason": "Fuera de temporada",
+    "experienceType": "Tipo de Experiencia",
+    "cultural": "Cultural",
+    "gastronomic": "Gastronómica",
+    "natural": "Natural",
+    "historical": "Histórica",
+    "featured": "Destinos Destacados",
+    "noRoutes": "No hay recorridos disponibles con los filtros seleccionados.",
+    "publicView": "Vista Pública",
+    "adminLogin": "Ingreso Admin",
+    "stops": "Paradas",
+    "hours": "Horas"
+  },
+  "auth": {
+    "adminAccess": "Acceso Admin",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "signIn": "Ingresar",
+    "signingIn": "Ingresando...",
+    "mockNote": "Login simulado. Reemplazar con auth real cuando esté listo.",
+    "publicDesc": "Los invitados navegan libremente. Los administradores ingresan para gestionar rutas, zonas y atracciones.",
+    "adminPortal": "Portal de Administración"
+  },
+  "zones": {
+    "details": "Detalles de Zona",
+    "polygonId": "Editando Polígono ID",
+    "name": "Nombre de Zona",
+    "description": "Descripción",
+    "attractionLevel": "Nivel de Atractivo",
+    "internalNotes": "Observaciones Internas",
+    "notesPlaceholder": "Ingrese notas solo para personal administrativo...",
+    "status": "Estado Actual:",
+    "active": "Zona Activa",
+    "offSeason": "Zona Fuera de Temporada"
+  },
+  "routes": {
+    "design": "Diseñar Recorrido",
+    "available": "Disponible",
+    "pending": "Pendiente",
+    "offSeason": "Fuera de Temporada",
+    "name": "Nombre del Recorrido",
+    "description": "Descripción",
+    "duration": "Duración Est.",
+    "guide": "Guía Asignado",
+    "stops": "Paradas del Recorrido",
+    "addStop": "Agregar Parada"
+  }
+}

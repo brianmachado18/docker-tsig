@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GeoTravel GIS - Guest Portal</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#ffb783",
+                      "secondary-container": "#9ff5c1",
+                      "on-background": "#1a1c1e",
+                      "on-error": "#ffffff",
+                      "attraction-marker": "#805ad5",
+                      "status-off-season": "#718096",
+                      "surface-tint": "#455f88",
+                      "tertiary": "#371800",
+                      "on-secondary": "#ffffff",
+                      "on-secondary-container": "#167249",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#572900",
+                      "primary-fixed": "#d6e3ff",
+                      "primary-container": "#1a365d",
+                      "inverse-on-surface": "#f1f0f4",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-fixed-dim": "#83d8a6",
+                      "inverse-primary": "#adc7f7",
+                      "on-primary-container": "#86a0cd",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface-variant": "#e3e2e6",
+                      "on-secondary-fixed-variant": "#005231",
+                      "status-cancelled": "#e53e3e",
+                      "background": "#faf9fd",
+                      "outline-variant": "#c4c6cf",
+                      "outline": "#74777f",
+                      "on-surface": "#1a1c1e",
+                      "surface-container": "#efedf1",
+                      "status-pending": "#ed8936",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#703700",
+                      "inverse-surface": "#2f3033",
+                      "surface-container-low": "#f4f3f7",
+                      "on-primary-fixed-variant": "#2d476f",
+                      "surface": "#faf9fd",
+                      "on-tertiary-fixed": "#301400",
+                      "on-tertiary-container": "#e88532",
+                      "surface-bright": "#faf9fd",
+                      "surface-container-high": "#e9e7eb",
+                      "on-surface-variant": "#43474e",
+                      "secondary-fixed": "#9ff5c1",
+                      "surface-dim": "#dad9dd",
+                      "surface-container-highest": "#e3e2e6",
+                      "on-secondary-fixed": "#002111",
+                      "primary-fixed-dim": "#adc7f7",
+                      "on-error-container": "#93000a",
+                      "map-overlay-dark": "#1a202c",
+                      "secondary": "#0a6c44",
+                      "primary": "#002045",
+                      "on-primary-fixed": "#001b3c",
+                      "status-available": "#2f855a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-gap": "0.75rem",
+                      "gutter": "1rem",
+                      "container-padding": "1.5rem",
+                      "sidebar-width": "320px",
+                      "collapsed-sidebar-width": "64px"
+              },
+              "fontFamily": {
+                      "headline-xl": ["Inter", "sans-serif"],
+                      "headline-md": ["Inter", "sans-serif"],
+                      "body-md": ["Inter", "sans-serif"],
+                      "mono-label": ["Inter", "sans-serif"],
+                      "label-md": ["Inter", "sans-serif"],
+                      "body-lg": ["Inter", "sans-serif"],
+                      "headline-lg": ["Inter", "sans-serif"]
+              },
+              "fontSize": {
+                      "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "mono-label": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c4c6cf; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #74777f; }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen w-screen overflow-hidden flex">
+<!-- JSON Component: SideNavBar -->
+<!-- Applying execution styles strictly from JSON keys -->
+<nav class="fixed left-0 top-0 h-full w-[360px] bg-surface dark:bg-on-background border-r border-border-subtle dark:border-outline-variant flex flex-col h-screen py-6 z-50 transition-all duration-300 md:translate-x-0 -translate-x-full" id="sideNav">
+<!-- Brand Header -->
+<div class="px-6 pb-6 border-b border-surface-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">public</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">GeoTravel GIS</h1>
+<p class="font-body-md text-body-md text-outline">Management Portal</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 rounded-lg mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Zones -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 rounded-lg mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Zones</span>
+</a>
+<!-- Routes -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 rounded-lg mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="route">route</span>
+<span class="font-label-md text-label-md">Routes</span>
+</a>
+<!-- Attractions -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 rounded-lg mx-2" href="#">
+<span class="material-symbols-outlined" data-icon="photo_library">photo_library</span>
+<span class="font-label-md text-label-md">Attractions</span>
+</a>
+<!-- Guest Portal (ACTIVE) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-primary-fixed rounded-r-full border-l-4 border-primary scale-[0.98] transition-transform duration-150 mr-2 shadow-sm" href="#">
+<span class="material-symbols-outlined" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-label-md text-label-md font-bold">Guest Portal</span>
+</a>
+</div>
+<!-- CTA & Footer -->
+<div class="px-6 pt-4 border-t border-surface-variant flex flex-col gap-4">
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 shadow-md hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Project
+            </button>
+<div class="flex flex-col gap-1 mt-2">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 rounded-lg mx-[-8px]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 rounded-lg mx-[-8px]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="help_center">help_center</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content Area (Workbench Layout) -->
+<main class="flex-1 relative md:ml-[360px] flex flex-col h-full bg-surface-container-lowest">
+<!-- JSON Component: TopAppBar -->
+<!-- Adjusted shape as per design system requirements for map overlay -->
+<header class="fixed top-4 right-4 left-[376px] rounded-xl border border-border-subtle dark:border-outline-variant shadow-md bg-map-overlay-bg backdrop-blur-md dark:bg-on-background/80 flex justify-between items-center px-6 h-16 z-50 glass-panel">
+<div class="flex items-center gap-4">
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden p-2 text-primary hover:bg-surface-variant rounded-full transition-colors" onclick="document.getElementById('sideNav').classList.toggle('-translate-x-full')">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="font-headline-md text-headline-md font-black text-primary dark:text-primary-fixed">GeoTravel GIS</h2>
+<span class="hidden lg:inline-block px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-mono-label text-mono-label ml-2">Explorer View</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Search Bar -->
+<div class="hidden md:flex items-center bg-surface w-64 h-10 rounded-full border border-outline-variant px-4 focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all shadow-sm">
+<span class="material-symbols-outlined text-outline text-[20px]">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 font-body-md text-body-md text-on-surface placeholder-outline ml-2 py-1 outline-none" placeholder="Search locations, tours..." type="text"/>
+</div>
+<!-- Trailing Icons & Admin Access -->
+<div class="flex items-center gap-3 border-l border-outline-variant pl-6">
+<button class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-variant">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+<!-- Admin Login Button added as requested by prompt -->
+<button class="ml-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center gap-2 shadow-sm hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                        Admin Login
+                    </button>
+</div>
+</div>
+</header>
+<!-- Map Viewport -->
+<div class="absolute inset-0 z-0 bg-surface-dim overflow-hidden">
+<!-- Map Placeholder Image -->
+<img alt="Map view" class="w-full h-full object-cover opacity-90 sepia-[.2] hue-rotate-[190deg] contrast-[1.1]" data-alt="A highly detailed, top-down satellite view of the vibrant coastal region of Uruguay, featuring the intricate interplay of deep blue ocean waters and textured, rich green terrestrial landscapes. The map-like perspective is rendered in a modern, professional high-contrast style, optimized for a geographic information system interface. The lighting is crisp and even, simulating a cloudless daylight satellite pass, emphasizing the natural topography and coastal contours essential for geographic exploration and travel planning." data-location="Uruguay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3XtTZVqM7P4w9VFZ4IodJQPoz-rEJ7tFSsN27xMhul0gIaEAdwrH0W3L0q3HPiQZTWj5nkVGwKvVnkTvysuxWJbKQpQ2RXxo8tSjD00SHZVy-uUEI1GlLzueUhWth-Dr3W-hUKuPV6IL1gbmhK8oiMTCz9DdU2C_VNFsVAZmeR_bU5YJ0D6ygSXTpQj75_J_EVq7k5HHPduvqvtHyhxG84Zy2SNG3EP5PFTarhz7xqsLRCjhl_iEBYf9n6WkmIhRJPzsSwzChKLS2"/>
+<!-- Map Grid Overlay (Atmospheric) -->
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTM5IDM5VjFoLTM4djM4aDM4eiIgZmlsbD0iIzAwMjA0NSIgZmlsbC1vcGFjaXR5PSIwLjA1IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=')] opacity-50"></div>
+<!-- Map Markers -->
+<div class="absolute top-1/3 left-1/4 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 bg-attraction-marker rounded-full border-2 border-surface flex items-center justify-center shadow-md shadow-black/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-[16px]">restaurant</span>
+</div>
+<div class="mt-1 px-2 py-0.5 bg-surface text-on-surface font-mono-label text-[10px] rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Bodega Garzón</div>
+</div>
+<div class="absolute top-1/2 left-1/2 flex flex-col items-center group cursor-pointer">
+<div class="w-8 h-8 bg-primary rounded-full border-2 border-surface flex items-center justify-center shadow-md shadow-black/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-[16px]">museum</span>
+</div>
+<div class="mt-1 px-2 py-0.5 bg-surface text-on-surface font-mono-label text-[10px] rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Casapueblo</div>
+</div>
+<!-- Polyline Route -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<path class="opacity-80 drop-shadow-md" d="M 25% 33% Q 35% 40% 50% 50% T 65% 60%" fill="transparent" stroke="#2f855a" stroke-dasharray="8 4" stroke-width="4"></path>
+</svg>
+</div>
+<!-- Guest Explorer Side Panel (Floating on Right) -->
+<aside class="absolute top-24 right-4 bottom-4 w-[380px] z-40 glass-panel rounded-2xl flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
+<!-- Panel Header -->
+<div class="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
+<h3 class="font-headline-lg text-headline-lg text-primary">Explore Uruguay</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Discover curated tours and attractions.</p>
+</div>
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+<!-- Filters Section -->
+<section class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-label-md text-outline uppercase tracking-wider">Filters</h4>
+<button class="text-primary font-label-md text-label-md hover:underline">Clear All</button>
+</div>
+<!-- Filter: Status -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface">Availability</label>
+<div class="flex gap-2">
+<button class="px-4 py-1.5 rounded-full border border-status-available text-status-available bg-status-available/10 font-label-md text-label-md flex items-center gap-1 transition-colors hover:bg-status-available/20">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                Available
+                            </button>
+<button class="px-4 py-1.5 rounded-full border border-status-off-season text-status-off-season bg-surface font-label-md text-label-md flex items-center gap-1 transition-colors hover:bg-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                                Off-season
+                            </button>
+</div>
+</div>
+<!-- Filter: Experience Type (Chips) -->
+<div class="flex flex-col gap-2 mt-2">
+<label class="font-label-md text-label-md text-on-surface">Experience Type</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-sm">Cultural</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface border border-outline-variant text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors">Gastronomic</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface border border-outline-variant text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors">Natural</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface border border-outline-variant text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors">Historical</button>
+</div>
+</div>
+</section>
+<hr class="border-outline-variant/30"/>
+<!-- Featured Tours (Bento Grid Style) -->
+<section class="flex flex-col gap-4 pb-4">
+<h4 class="font-label-md text-label-md text-outline uppercase tracking-wider">Featured Destinations</h4>
+<div class="grid grid-cols-1 gap-4">
+<!-- Tour Card 1 -->
+<div class="bg-surface rounded-xl overflow-hidden border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+<div class="h-32 w-full relative overflow-hidden">
+<img alt="Coastal wine tour" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A sun-drenched vineyard nestled in the rolling hills of rural Uruguay, featuring neat rows of lush green grapevines stretching towards a modern architectural winery building. The scene is captured during late afternoon, with warm natural light enhancing the vibrant greens of the foliage and the earthy browns of the soil. The overall visual style is premium, inviting, and professional, aligning with a high-end travel and tourism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN4zEH5vKemi0-jb_WalzP6T0SOGOuxgmW_arPe5P-ClX0mfun8zo115M9XJM-97lG6am1JP4YaNi1F5TyhudoImrrASLFbNNDVMey8oLrhVCEG8fruvsydzJ-XXn7YiLEi8Hb0NRryxRQsK4-3usHpvR-XZvkoBvDHUC8vkOFOZogFKxegxrnf-ydVZc8X8L4JmfxCM9iy747fCyC95z7yPlzytfZrgsCBEHKYTm6LNvHg9IkOvh10AJgNVPtor-fO6UjF5UdqYpj"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/90 backdrop-blur rounded font-mono-label text-[10px] text-status-available flex items-center gap-1 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-available"></span> Active
+                                </div>
+</div>
+<div class="p-4 flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h5 class="font-headline-md text-[16px] leading-tight text-primary font-semibold">Maldonado Wine Route</h5>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Explore premium bodegas and taste world-class Tannat overlooking breathtaking coastal landscapes.</p>
+<div class="flex items-center gap-4 mt-1">
+<span class="flex items-center gap-1 text-outline font-mono-label text-mono-label">
+<span class="material-symbols-outlined text-[14px]">map</span> 4 Stops
+                                    </span>
+<span class="flex items-center gap-1 text-outline font-mono-label text-mono-label">
+<span class="material-symbols-outlined text-[14px]">timer</span> 6 Hours
+                                    </span>
+</div>
+</div>
+</div>
+<!-- Tour Card 2 -->
+<div class="bg-surface rounded-xl overflow-hidden border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+<div class="h-32 w-full relative overflow-hidden bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[48px] text-outline opacity-20">landscape</span>
+<img alt="Historic Colonia" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A picturesque, narrow cobblestone street in the historic district of Colonia del Sacramento, Uruguay, lined with colonial-era buildings featuring distressed facades, colorful doors, and vintage street lamps. The image is bathed in soft, diffused morning light, creating a calm, nostalgic, and culturally rich atmosphere. The photography style is sharp, architectural, and highly textured, fitting for a sophisticated geographic tourism platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtYYBzVtP1Vn6DqbxQzD3JZOhxYK2Y05Wgf3lDSg7-LulVei5f3NZ3uOKSAtfm6Xb67mFODV2VpBKL4E8fvrj2VZqyvPyWmQh5TGD1kKSvzzP4MLDfRHU7qjRFyQuIwLKj_z8-cJ70rM18hZwkij85_8ZeYerlvsUqjPmQR599bmr6ukMbN8kgZrEmJDbzIve7vaogLSOrf0qbFAa0ytXnUqIrW6be4YFpb6rpiG0wylG_eiQOzKG85JrrIhjF4uHcc4-dBj_M13Ly"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/90 backdrop-blur rounded font-mono-label text-[10px] text-status-off-season flex items-center gap-1 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-off-season"></span> Off-season
+                                </div>
+</div>
+<div class="p-4 flex flex-col gap-2">
+<h5 class="font-headline-md text-[16px] leading-tight text-primary font-semibold">Colonia Heritage Walk</h5>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">A guided stroll through the UNESCO recognized historic quarter, featuring centuries-old architecture.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</aside>
+</main>
+<script>
+        // Simple script to handle interactive states if needed for UI demonstration
+        document.querySelectorAll('.group.cursor-pointer').forEach(el => {
+            el.addEventListener('click', function() {
+                // Example interaction logging
+                console.log('Interaction triggered on:', this);
+            });
+        });
+    </script>
+</body></html>
