@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DTAtraccion {
     private Long idAtraccion;
-    private Long idZona;
     private String nombre;
     private String descripcion;
     private String clasificacion;

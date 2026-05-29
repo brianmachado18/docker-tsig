@@ -15,10 +15,6 @@ public class Atraccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idAtraccion;
 
-    @ManyToOne
-    @JoinColumn(name = "idZona")
-    private Zona zona;
-
     private String nombre;
     private String descripcion;
     private String clasificacion;

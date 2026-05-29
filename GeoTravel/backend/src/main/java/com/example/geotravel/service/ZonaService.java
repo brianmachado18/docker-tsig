@@ -1,7 +1,9 @@
 package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTZona;
+import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.Zona;
+import com.example.geotravel.repository.RecorridoRepository;
 import com.example.geotravel.repository.ZonaRepository;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
@@ -17,6 +19,9 @@ public class ZonaService {
 
     @Autowired
     private ZonaRepository zonaRepository;
+
+    @Autowired
+    private RecorridoRepository recorridoRepository;
 
     public void alta(DTZona dtZona){
         zonaRepository.save(dtoToObj(dtZona));
@@ -58,12 +63,24 @@ public class ZonaService {
         zona.setObservaciones(dtZona.getObservaciones());
         zona.setNivelAtractivo(dtZona.getNivelAtractivo());
         WKTReader reader = new WKTReader();
+
+        if (dtZona.getRecorridos() == null) {
+            zona.setRecorridos(new ArrayList<>());
+        } else {
+            List<Recorrido> zonasList = new ArrayList<>();
+            for (Long r : dtZona.getRecorridos()){
+                zonasList.add(recorridoRepository.findByIdRecorrido(r));
+            }
+            zona.setRecorridos(zonasList);
+        }
+
         try {
             zona.setGeomWkt((Polygon)reader.read(dtZona.getGeomWkt()));
         } catch(ParseException e) {
             System.err.println(e.getMessage());
             zona.setGeomWkt(null);
         }
+
         return zona;
     }
 
@@ -74,7 +91,15 @@ public class ZonaService {
         dtZona.setNombre(zona.getNombre());
         dtZona.setObservaciones(zona.getObservaciones());
         dtZona.setNivelAtractivo(zona.getNivelAtractivo());
+
+        List<Long> idRecorriodsList = new ArrayList<>();
+        for (Recorrido r : zona.getRecorridos()){
+            idRecorriodsList.add(r.getIdRecorrido());
+        }
+        dtZona.setRecorridos(idRecorriodsList);
+
         dtZona.setGeomWkt(zona.getGeomWkt().toString());
+
         return dtZona;
     }
 

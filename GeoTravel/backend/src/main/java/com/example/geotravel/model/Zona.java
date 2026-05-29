@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.Polygon;
 
+import java.util.List;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -14,6 +16,9 @@ public class Zona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idZona;
+
+    @ManyToMany(mappedBy="zonas")
+    private List<Recorrido> recorridos;
 
     private String nombre;
     private String descripcion;

@@ -51,6 +51,7 @@ public class HistoricoService {
         historico.setIdHistorico(dtHistorico.getIdHistorico());
         historico.setRecorrido(recorridoService.obtenerObjPorId(dtHistorico.getIdRecorrido()));
         historico.setFechaCambio(dtHistorico.getFechaCambio());
+        historico.setEstado(dtHistorico.getEstado());
         return historico;
     }
 
@@ -59,6 +60,7 @@ public class HistoricoService {
         dtHistorico.setIdHistorico(historico.getIdHistorico());
         dtHistorico.setIdRecorrido(historico.getRecorrido().getIdRecorrido());
         dtHistorico.setFechaCambio(historico.getFechaCambio());
+        dtHistorico.setEstado(historico.getEstado());
         return dtHistorico;
     }
 

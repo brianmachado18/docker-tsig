@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.LineString;
 
+import java.util.List;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -20,6 +22,10 @@ public class Recorrido {
     @ManyToOne
     @JoinColumn(name = "idEstacion")
     private Estacion estacion;
+
+    @ManyToMany
+    @JoinTable(name="recorridoZona", joinColumns=@JoinColumn(name="idRecorrido"), inverseJoinColumns=@JoinColumn(name="idZona"))
+    private List<Zona> zonas;
 
     private String nombre;
     private String descripcion;

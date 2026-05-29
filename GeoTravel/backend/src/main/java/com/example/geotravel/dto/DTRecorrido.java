@@ -5,6 +5,8 @@ import com.example.geotravel.enums.TipoExperiencia;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 public class DTRecorrido {
@@ -17,4 +19,5 @@ public class DTRecorrido {
     private TipoExperiencia tipoExperiencia;
     private Estado estado;
     private String geomWkt;
+    private List<Long> zonas;
 }

@@ -56,7 +56,6 @@ public class AtraccionService {
     public Atraccion dtoToObj(DTAtraccion dtAtraccion){
         Atraccion atraccion = new Atraccion();
         atraccion.setIdAtraccion(dtAtraccion.getIdAtraccion());
-        atraccion.setZona(zonaService.obtenerObjPorId(dtAtraccion.getIdZona()));
         atraccion.setNombre(dtAtraccion.getNombre());
         atraccion.setDescripcion(dtAtraccion.getDescripcion());
         atraccion.setClasificacion(dtAtraccion.getClasificacion());
@@ -74,7 +73,6 @@ public class AtraccionService {
     public DTAtraccion objToDto(Atraccion atraccion){
         DTAtraccion dtAtraccion = new DTAtraccion();
         dtAtraccion.setIdAtraccion(atraccion.getIdAtraccion());
-        dtAtraccion.setIdZona(atraccion.getZona().getIdZona());
         dtAtraccion.setNombre(atraccion.getNombre());
         dtAtraccion.setDescripcion(atraccion.getDescripcion());
         dtAtraccion.setClasificacion(atraccion.getClasificacion());

@@ -2,7 +2,9 @@ package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
 import com.example.geotravel.model.Recorrido;
+import com.example.geotravel.model.Zona;
 import com.example.geotravel.repository.RecorridoRepository;
+import com.example.geotravel.repository.ZonaRepository;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -20,6 +22,9 @@ public class RecorridoService {
 
     @Autowired
     private EstacionService estacionService;
+
+    @Autowired
+    private ZonaRepository zonaRepository;
 
     public void alta(DTRecorrido dtRecorrido){
         recorridoRepository.save(dtoToObj(dtRecorrido));
@@ -63,6 +68,17 @@ public class RecorridoService {
         recorrido.setGuiaResponsable(dtRecorrido.getGuiaResponsable());
         recorrido.setTipoExperiencia(dtRecorrido.getTipoExperiencia());
         recorrido.setEstado(dtRecorrido.getEstado());
+
+        if (dtRecorrido.getZonas() == null) {
+            recorrido.setZonas(new ArrayList<>());
+        } else {
+            List<Zona> zonasList = new ArrayList<>();
+            for (Long z : dtRecorrido.getZonas()){
+                zonasList.add(zonaRepository.findByIdZona(z));
+            }
+            recorrido.setZonas(zonasList);
+        }
+
         WKTReader reader = new WKTReader();
         try {
             recorrido.setGeomWkt((LineString) reader.read(dtRecorrido.getGeomWkt()));
@@ -70,6 +86,7 @@ public class RecorridoService {
             System.err.println(e.getMessage());
             recorrido.setGeomWkt(null);
         }
+
         return recorrido;
     }
 
@@ -83,7 +100,15 @@ public class RecorridoService {
         dtRecorrido.setGuiaResponsable(recorrido.getGuiaResponsable());
         dtRecorrido.setTipoExperiencia(recorrido.getTipoExperiencia());
         dtRecorrido.setEstado(recorrido.getEstado());
+
+        List<Long> idZonasList = new ArrayList<>();
+        for (Zona z : recorrido.getZonas()){
+            idZonasList.add(z.getIdZona());
+        }
+        dtRecorrido.setZonas(idZonasList);
+
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
+
         return dtRecorrido;
     }
 

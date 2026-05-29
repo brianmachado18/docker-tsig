@@ -3,6 +3,8 @@ package com.example.geotravel.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 public class DTZona {
@@ -12,4 +14,5 @@ public class DTZona {
     private int nivelAtractivo;
     private String observaciones;
     private String geomWkt;
+    private List<Long> recorridos;
 }

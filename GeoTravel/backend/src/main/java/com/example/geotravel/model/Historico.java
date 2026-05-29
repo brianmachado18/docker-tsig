@@ -1,5 +1,6 @@
 package com.example.geotravel.model;
 
+import com.example.geotravel.enums.Estado;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,4 +20,5 @@ public class Historico {
     private Recorrido recorrido;
 
     private String fechaCambio;
+    private Estado estado;
 }
