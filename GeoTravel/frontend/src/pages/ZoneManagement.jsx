@@ -78,11 +78,10 @@ const ZoneManagement = () => {
           </button>
         )}
 
-        {isFormOpen && <ZoneForm zone={selectedZone || {}} onClose={closeForm} />}
+        {isFormOpen && <ZoneForm zone={selectedZone} onClose={closeForm} />}
       </main>
     </div>
   );
 };
 
 export default ZoneManagement;
-

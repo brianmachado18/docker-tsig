@@ -78,11 +78,10 @@ const RoutePlanner = () => {
           </button>
         )}
 
-        {isFormOpen && <RouteForm route={selectedRoute || {}} onClose={closeForm} />}
+        {isFormOpen && <RouteForm route={selectedRoute} onClose={closeForm} />}
       </main>
     </div>
   );
 };
 
 export default RoutePlanner;
-
