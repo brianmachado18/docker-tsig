@@ -33,8 +33,8 @@ const GuestPortal = () => {
     });
   }, [routes, availabilityFilter, experienceFilter]);
 
-  const featuredRoutes = filteredRoutes.slice(0, 2);
-  const mapAttractions = attractions.slice(0, 4);
+  const featuredRoutes = filteredRoutes//.slice(0, 2);
+  const mapAttractions = attractions//.slice(0, 4);
 
   const clearFilters = () => {
     setAvailabilityFilter('all');
