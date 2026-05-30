@@ -100,15 +100,8 @@ public class RecorridoService {
         dtRecorrido.setGuiaResponsable(recorrido.getGuiaResponsable());
         dtRecorrido.setTipoExperiencia(recorrido.getTipoExperiencia());
         dtRecorrido.setEstado(recorrido.getEstado());
-
-        List<Long> idZonasList = new ArrayList<>();
-        for (Zona z : recorrido.getZonas()){
-            idZonasList.add(z.getIdZona());
-        }
-        dtRecorrido.setZonas(idZonasList);
-
+        dtRecorrido.setZonas(new ArrayList<>());
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
-
         return dtRecorrido;
     }
 

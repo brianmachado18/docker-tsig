@@ -91,15 +91,8 @@ public class ZonaService {
         dtZona.setNombre(zona.getNombre());
         dtZona.setObservaciones(zona.getObservaciones());
         dtZona.setNivelAtractivo(zona.getNivelAtractivo());
-
-        List<Long> idRecorriodsList = new ArrayList<>();
-        for (Recorrido r : zona.getRecorridos()){
-            idRecorriodsList.add(r.getIdRecorrido());
-        }
-        dtZona.setRecorridos(idRecorriodsList);
-
+        dtZona.setRecorridos(new ArrayList<>());
         dtZona.setGeomWkt(zona.getGeomWkt().toString());
-
         return dtZona;
     }
 
