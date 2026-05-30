@@ -59,11 +59,11 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_URL: ${VITE_API_URL:-/api}
+      VITE_API_URL: ${VITE_API_URL:-/tsig-backend}
       VITE_GEOSERVER_URL: ${VITE_GEOSERVER_URL:-/geoserver}
       VITE_GEOSERVER_WORKSPACE: ${VITE_GEOSERVER_WORKSPACE:-geotravel}
       VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
-      VITE_API_PROXY_TARGET: ${VITE_API_PROXY_TARGET:-http://backend:8080}
+      VITE_API_PROXY_TARGET: ${VITE_API_PROXY_TARGET:-http://tomcat:8080}
       VITE_GEOSERVER_PROXY_TARGET: ${VITE_GEOSERVER_PROXY_TARGET:-http://geoserver:8080}
     working_dir: /app
     volumes:
@@ -73,13 +73,13 @@ services:
       - "${FRONTEND_PORT:-5173}:${FRONTEND_PORT:-5173}"
 
   tomcat:
-    image: tomcat:10.1-jdk21-temurin
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.tomcat
     container_name: tsig-tomcat
     restart: unless-stopped
     ports:
       - "${TOMCAT_PORT:-8082}:8080"
-    volumes:
-      - ./tomcat/webapps:/usr/local/tomcat/webapps
 
 volumes:
   postgres_data:

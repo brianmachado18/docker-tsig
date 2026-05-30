@@ -12,13 +12,15 @@ Use this document to capture assumptions between `@GeoTravel-FE` and `@GeoTravel
 Current frontend env names:
 
 ```env
-VITE_API_URL=/api
+VITE_API_URL=/tsig-backend
 VITE_GEOSERVER_URL=/geoserver
 VITE_GEOSERVER_WORKSPACE=geotravel
 VITE_USE_MOCKS=false
-VITE_API_PROXY_TARGET=http://backend:8080
+VITE_API_PROXY_TARGET=http://tomcat:8080
 VITE_GEOSERVER_PROXY_TARGET=http://geoserver:8080
 ```
+
+In local development, the frontend keeps calling `/tsig-backend/*`, and Vite or nginx forwards that path to the Tomcat container running the WAR artifact.
 
 ## CRS/SRID Policy
 
