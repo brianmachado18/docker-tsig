@@ -47,7 +47,7 @@ const GuestPortal = () => {
         <TopAppBar title="GeoTravel GIS" variant="public" showGuestActions />
 
         <div className="absolute inset-0 z-0">
-          <MapCanvas routes={featuredRoutes} attractions={mapAttractions} />
+          <MapCanvas screenId="guestPortal" routes={featuredRoutes} attractions={mapAttractions} />
         </div>
 
         <aside className="absolute top-24 right-4 bottom-4 w-[380px] z-40 bg-surface/90 backdrop-blur-md border border-outline-variant rounded-2xl flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">

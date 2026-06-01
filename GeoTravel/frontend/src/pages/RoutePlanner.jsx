@@ -30,7 +30,7 @@ const RoutePlanner = () => {
 
       <main className="ml-[360px] flex-1 relative h-full bg-surface-dim">
         <TopAppBar title="Route Planner" />
-        <MapCanvas routes={routes} />
+        <MapCanvas screenId="routePlanner" routes={routes} />
 
         <section className="absolute top-24 left-20 z-30 w-[380px] bg-surface/95 backdrop-blur border border-outline-variant rounded-xl shadow-md overflow-hidden">
           <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">

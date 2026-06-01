@@ -30,7 +30,7 @@ const ZoneManagement = () => {
 
       <main className="ml-[360px] flex-grow relative h-full bg-surface-dim map-pattern">
         <TopAppBar />
-        <MapCanvas zones={zones} />
+        <MapCanvas screenId="zoneManagement" zones={zones} />
 
         <section className="absolute top-24 left-20 z-30 w-[360px] bg-surface/95 backdrop-blur border border-outline-variant rounded-xl shadow-md overflow-hidden">
           <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
