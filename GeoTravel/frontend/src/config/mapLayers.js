@@ -18,6 +18,9 @@ const MAP_LAYER_STRATEGIES = {
   routePlanner: {
     routes: 'vector-primary',
   },
+  attractionCatalog: {
+    attractions: 'vector-primary',
+  },
 };
 
 export const getMapLayerStrategy = (screenId) => ({

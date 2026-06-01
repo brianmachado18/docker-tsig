@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import Sidebar from '../components/common/Sidebar';
 import TopAppBar from '../components/common/TopAppBar';
+import MapCanvas from '../components/map/MapCanvas';
+import MapControls from '../components/map/MapControls';
 import AttractionCard from '../components/attractions/AttractionCard';
 import AttractionForm from '../components/attractions/AttractionForm';
 import useAttractionsStore from '../store/attractionsStore';
@@ -49,6 +51,11 @@ const AttractionCatalog = () => {
               </button>
             </div>
           </div>
+
+          <section className="relative h-[360px] w-full overflow-hidden rounded-xl border border-outline-variant bg-surface-dim map-pattern shadow-sm mb-8">
+            <MapCanvas screenId="attractionCatalog" attractions={attractions} />
+            <MapControls />
+          </section>
           
           {/* Grid de Atracciones (Mock) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
