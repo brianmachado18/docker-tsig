@@ -4,8 +4,8 @@ export const geoserverLayers = {
   zones: {
     key: 'zones',
     workspace: ENV.geoserverWorkspace,
-    layerName: 'zona_turistica',
-    typeName: 'zona_turistica',
+    layerName: 'zona',
+    typeName: 'zona',
     title: 'Zonas turísticas',
   },
   routes: {
@@ -18,8 +18,8 @@ export const geoserverLayers = {
   attractions: {
     key: 'attractions',
     workspace: ENV.geoserverWorkspace,
-    layerName: 'atraccion_turistica',
-    typeName: 'atraccion_turistica',
+    layerName: 'atraccion',
+    typeName: 'atraccion',
     title: 'Atracciones turísticas',
   },
 };
