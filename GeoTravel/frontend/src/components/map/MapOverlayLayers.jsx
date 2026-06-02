@@ -4,6 +4,7 @@ import AttractionsWmsLayer from './layers/AttractionsWmsLayer';
 import RoutesVectorLayer from './layers/RoutesVectorLayer';
 import RoutesWmsLayer from './layers/RoutesWmsLayer';
 import ZonesVectorLayer from './layers/ZonesVectorLayer';
+import ZonesWfsLayer from './layers/ZonesWfsLayer';
 import ZonesWmsLayer from './layers/ZonesWmsLayer';
 
 const MapOverlayLayers = ({ map, screenId, zones = [], routes = [], attractions = [] }) => {
@@ -13,6 +14,7 @@ const MapOverlayLayers = ({ map, screenId, zones = [], routes = [], attractions 
   return (
     <>
       {strategy.zones === 'vector-primary' && <ZonesVectorLayer map={map} zones={zones} />}
+      {strategy.zones === 'wfs' && <ZonesWfsLayer map={map} />}
       {showZonesWms && <ZonesWmsLayer map={map} />}
 
       {strategy.routes === 'vector-primary' && <RoutesVectorLayer map={map} routes={routes} />}

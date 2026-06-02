@@ -57,6 +57,7 @@
     "title": "Gestión de Zonas",
     "details": "Detalles de Zona",
     "newZone": "Nueva Zona",
+    "formSubtitle": "Completa los datos de la zona seleccionada en el mapa.",
     "polygonId": "Editando Polígono ID",
     "loading": "Cargando zonas...",
     "loadFailed": "Error al cargar zonas.",
@@ -65,6 +66,8 @@
     "attractionLevel": "Nivel de Atractivo",
     "internalNotes": "Observaciones Internas",
     "notesPlaceholder": "Ingrese notas solo para personal administrativo...",
+    "geometryRequired": "La geometría de la zona es obligatoria. Dibújala o selecciónala en el mapa.",
+    "geometryInvalid": "La geometría capturada no es válida. Vuelve a dibujar o editar la zona.",
     "status": "Estado Actual:",
     "active": "Zona Activa",
     "offSeason": "Zona Fuera de Temporada"
@@ -126,6 +129,7 @@
   },
   "map": {
     "select": "Seleccionar",
+    "selectEdit": "Seleccionar y ajustar",
     "drawPolygon": "Dibujar Polígono",
     
     "delete": "Eliminar"

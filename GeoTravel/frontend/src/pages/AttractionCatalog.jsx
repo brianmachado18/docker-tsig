@@ -77,7 +77,7 @@ const AttractionCatalog = () => {
       <main className="ml-[360px] flex-1 flex flex-col relative h-full">
         <TopAppBar title={t('attractions.title')} mobileOnlyAccount />
         
-        <div className="flex-1 overflow-y-auto pt-28 px-4 md:px-8 pb-8 bg-surface-container-lowest">
+        <div className="flex-1 overflow-y-auto pt-8 px-4 md:px-8 pb-8 bg-surface-container-lowest">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div>
               <h2 className="font-headline-lg text-headline-lg text-on-background">{t('attractions.poi')}</h2>

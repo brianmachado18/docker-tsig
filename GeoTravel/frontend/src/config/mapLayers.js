@@ -12,7 +12,7 @@ const MAP_LAYER_STRATEGIES = {
     zones: 'off',
   },
   zoneManagement: {
-    zones: 'wms',
+    zones: 'wfs',
   },
   routePlanner: {
     routes: 'wms',

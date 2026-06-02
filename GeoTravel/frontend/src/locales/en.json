@@ -70,6 +70,7 @@
     "title": "Zone Management",
     "details": "Zone Details",
     "newZone": "New Zone",
+    "formSubtitle": "Complete the details for the zone selected on the map.",
     "polygonId": "Editing Polygon ID",
     "loading": "Loading zones...",
     "offSeason": "Off-Season",
@@ -78,6 +79,8 @@
     "attractionLevel": "Attraction Level",
     "internalNotes": "Internal Observations",
     "notesPlaceholder": "Enter notes for administrative staff only...",
+    "geometryRequired": "Zone geometry is required. Draw or select it on the map.",
+    "geometryInvalid": "The captured geometry is invalid. Draw or edit the zone again.",
     "status": "Current Status:",
     "active": "Active Zone",
     "offSeason": "Off-season Zone"
@@ -126,6 +129,7 @@
   },
   "map": {
     "select": "Select",
+    "selectEdit": "Select and adjust",
     "drawPolygon": "Draw Polygon",
     
     "delete": "Delete"

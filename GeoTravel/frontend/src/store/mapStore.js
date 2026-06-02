@@ -5,7 +5,7 @@ const useMapStore = create((set, get) => ({
   activeLayer: 'zones', // 'zones', 'routes', 'attractions'
   activeTool: null, // 'select', 'draw', 'edit', 'delete'
   center: [-56, -33], // Default center (Uruguay)
-  zoom: 10,
+  zoom: 7,
   
   // Acciones
   setMapInstance: (instance) => set({ mapInstance: instance }),
@@ -32,6 +32,11 @@ const useMapStore = create((set, get) => ({
       return false;
     }
 
+    const reload = source.get?.('reload');
+    if (typeof reload === 'function') {
+      reload();
+      return true;
+    }
     if (typeof source.updateParams === 'function') {
       source.updateParams({ _ts: Date.now() });
       return true;

@@ -24,6 +24,10 @@ const AdminLoginForm = () => {
     setLocalError(t('auth.signInFailed'));
   };
 
+  const handleCancel = () => {
+    navigate('/guest');
+  };
+
   return (
     <form className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-8" onSubmit={handleSubmit}>
       <div className="mb-6">
@@ -63,6 +67,15 @@ const AdminLoginForm = () => {
         >
           <span className="material-symbols-outlined text-[18px]">login</span>
           {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+        </button>
+
+        <button
+          className="w-full py-3 border border-outline text-on-surface rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-container-high transition-colors"
+          type="button"
+          onClick={handleCancel}
+        >
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          {t('common.cancel')}
         </button>
 
         {(localError || authError) && (

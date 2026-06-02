@@ -31,7 +31,8 @@ const useZonesStore = create((set, get) => ({
     try {
       await zonesService.save(zoneData);
       await get().fetchZones();
-      useMapStore.getState().refreshWmsLayer('zones-wms');
+      const mapStore = useMapStore.getState();
+      mapStore.refreshWmsLayer('zones-wfs') || mapStore.refreshWmsLayer('zones-wms');
       set({ isSaving: false, isFormOpen: false, selectedZone: null });
       return true;
     } catch (error) {
@@ -45,7 +46,8 @@ const useZonesStore = create((set, get) => ({
     try {
       await zonesService.remove(zoneId);
       await get().fetchZones();
-      useMapStore.getState().refreshWmsLayer('zones-wms');
+      const mapStore = useMapStore.getState();
+      mapStore.refreshWmsLayer('zones-wfs') || mapStore.refreshWmsLayer('zones-wms');
       set({ isDeleting: false, selectedZone: null });
       return true;
     } catch (error) {

@@ -67,9 +67,9 @@ const ZoneForm = ({ zone, onClose }) => {
     if (!Number.isInteger(Number(attractionLevel)) || Number(attractionLevel) < 1 || Number(attractionLevel) > 5) {
       return 'Nivel de atractivo debe estar entre 1 y 5.';
     }
-    if (!geomWkt.trim()) return 'Geometría WKT obligatoria.';
+    if (!geomWkt.trim()) return t('zones.geometryRequired');
     if (!parsePolygonWkt(geomWkt.trim())) {
-      return 'La geometría debe ser un POLYGON WKT válido.';
+      return t('zones.geometryInvalid');
     }
     return '';
   };
@@ -111,10 +111,10 @@ const ZoneForm = ({ zone, onClose }) => {
     <aside className="absolute top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col">
       <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
         <div>
-          <h2 className="font-headline-md text-headline-md text-on-surface">{t('zones.details')}</h2>
-          <p className="font-label-md text-label-md text-on-surface-variant mt-1">
-            {t('zones.polygonId')}: {zone?.id ?? 'nuevo'}
-          </p>
+          <h2 className="font-headline-md text-headline-md text-on-surface">
+            {zone?.id ? t('zones.details') : t('zones.newZone')}
+          </h2>
+          <p className="font-label-md text-label-md text-on-surface-variant mt-1">{t('zones.formSubtitle')}</p>
         </div>
         <button
           onClick={handleClose}
@@ -165,17 +165,6 @@ const ZoneForm = ({ zone, onClose }) => {
             rows="3"
             value={zoneNotes}
             onChange={(event) => setZoneNotes(event.target.value)}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="font-label-md text-label-md text-on-surface">Geom WKT (POLYGON)</span>
-          <textarea
-            className="px-3 py-2 border border-outline rounded-lg bg-transparent resize-none font-mono text-xs"
-            rows="4"
-            value={geomWkt}
-            onChange={(event) => setGeomWkt(event.target.value)}
-            placeholder="POLYGON((-56.2 -34.9, -56.1 -34.9, -56.1 -35.0, -56.2 -35.0, -56.2 -34.9))"
           />
         </label>
 
@@ -233,4 +222,3 @@ const ZoneForm = ({ zone, onClose }) => {
 };
 
 export default ZoneForm;
-
