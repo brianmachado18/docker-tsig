@@ -41,31 +41,27 @@ Simple idea:
 
 ### ZoneManagement
 
-ZoneManagement stays **vector + REST first** because the lab spec says:
+ZoneManagement now uses GeoServer as the main render source for zones.
 
-- zones are edited directly on the map
-- zones must not overlap each other
-
-That is why we do **not** replace the editable vector flow with WMS.
-
-Current role split:
-
-- editable zone geometry = **vector layer from current frontend data**
-- support/reference visualization = **WMS layer from GeoServer**
-- saving and validation = **Spring backend**
+- Zones are shown through **WMS**
+- Zone CRUD still goes through **REST backend**
+- The form keeps `geomWkt` input and backend validation as before
 
 Simple idea:
 
-`ZoneManagement -> editable vector layer + support WMS`
+`ZoneManagement -> MapCanvas -> OpenLayers -> GeoServer WMS`
 
 ### RoutePlanner
 
-RoutePlanner stays as it was functionally:
+RoutePlanner now also uses GeoServer as the main visual source.
 
-- route geometry still comes from the current vector/REST flow
-- GeoServer is **not** the primary source here yet
+- Routes are shown through **WMS**
+- Route list, form, and save/delete continue in **REST backend**
+- After route ABM, visible WMS layers are refreshed from the frontend store
 
-This keeps the first rollout controlled and avoids changing all admin behavior at once.
+Simple idea:
+
+`RoutePlanner -> MapCanvas -> OpenLayers -> GeoServer WMS`
 
 ## The new frontend structure
 
@@ -135,10 +131,10 @@ To avoid confusion, this implementation does **not** do the following:
 
 ## Why this design is safer
 
-Because it lets us evolve the GIS side **incrementally**:
+Because it keeps responsibilities explicit:
 
-- public/visual screens can benefit from WMS first
-- admin editing remains stable
+- all map render screens can consume WMS
+- admin forms and business rules remain in REST backend
 - the backend keeps enforcing rules like zone overlap validation
 - future WFS read-only use cases can be added without rewriting the map again
 

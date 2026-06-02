@@ -12,11 +12,13 @@ const MAP_LAYER_STRATEGIES = {
     zones: 'off',
   },
   zoneManagement: {
-    zones: 'vector-primary',
-    zonesSupport: 'wms',
+    zones: 'wms',
   },
   routePlanner: {
-    routes: 'vector-primary',
+    routes: 'wms',
+  },
+  attractionMap: {
+    attractions: 'wms',
   },
 };
 

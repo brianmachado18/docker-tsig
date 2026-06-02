@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { routesService } from '../services/routesService';
+import useMapStore from './mapStore';
 
 const useRoutesStore = create((set, get) => ({
   routes: [],
@@ -56,6 +57,7 @@ const useRoutesStore = create((set, get) => ({
     try {
       await routesService.save(routeData);
       await get().fetchRoutes();
+      useMapStore.getState().refreshWmsLayer('routes-wms');
       set({ isSaving: false, isFormOpen: false, selectedRoute: null });
       return true;
     } catch (error) {
@@ -69,6 +71,7 @@ const useRoutesStore = create((set, get) => ({
     try {
       await routesService.remove(routeId);
       await get().fetchRoutes();
+      useMapStore.getState().refreshWmsLayer('routes-wms');
       set({ isDeleting: false, selectedRoute: null });
       return true;
     } catch (error) {
@@ -79,4 +82,3 @@ const useRoutesStore = create((set, get) => ({
 }));
 
 export default useRoutesStore;
-

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { zonesService } from '../services/zonesService';
+import useMapStore from './mapStore';
 
 const useZonesStore = create((set, get) => ({
   zones: [],
@@ -30,6 +31,7 @@ const useZonesStore = create((set, get) => ({
     try {
       await zonesService.save(zoneData);
       await get().fetchZones();
+      useMapStore.getState().refreshWmsLayer('zones-wms');
       set({ isSaving: false, isFormOpen: false, selectedZone: null });
       return true;
     } catch (error) {
@@ -43,6 +45,7 @@ const useZonesStore = create((set, get) => ({
     try {
       await zonesService.remove(zoneId);
       await get().fetchZones();
+      useMapStore.getState().refreshWmsLayer('zones-wms');
       set({ isDeleting: false, selectedZone: null });
       return true;
     } catch (error) {
@@ -53,4 +56,3 @@ const useZonesStore = create((set, get) => ({
 }));
 
 export default useZonesStore;
-

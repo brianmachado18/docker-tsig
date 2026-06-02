@@ -9,13 +9,10 @@ import useLangStore from '../store/langStore';
 
 const ZoneManagement = () => {
   const {
-    zones,
     selectedZone,
     isFormOpen,
     openForm,
     closeForm,
-    isLoading,
-    error,
     fetchZones,
   } = useZonesStore();
   const { t } = useLangStore();
@@ -30,9 +27,9 @@ const ZoneManagement = () => {
 
       <main className="ml-[360px] flex-grow relative h-full bg-surface-dim map-pattern">
         <TopAppBar />
-        <MapCanvas screenId="zoneManagement" zones={zones} />
+        <MapCanvas screenId="zoneManagement" />
 
-        <section className="absolute top-24 left-20 z-30 w-[360px] bg-surface/95 backdrop-blur border border-outline-variant rounded-xl shadow-md overflow-hidden">
+        {/* <section className="absolute top-24 left-20 z-30 w-[360px] bg-surface/95 backdrop-blur border border-outline-variant rounded-xl shadow-md overflow-hidden">
           <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
             <h3 className="font-headline-md text-headline-md text-on-surface">{t('zones.title')}</h3>
             <button
@@ -63,7 +60,7 @@ const ZoneManagement = () => {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         <MapControls />
 

@@ -8,11 +8,12 @@ import ZonesWmsLayer from './layers/ZonesWmsLayer';
 
 const MapOverlayLayers = ({ map, screenId, zones = [], routes = [], attractions = [] }) => {
   const strategy = getMapLayerStrategy(screenId);
+  const showZonesWms = strategy.zones === 'wms' || strategy.zonesSupport === 'wms';
 
   return (
     <>
       {strategy.zones === 'vector-primary' && <ZonesVectorLayer map={map} zones={zones} />}
-      {strategy.zonesSupport === 'wms' && <ZonesWmsLayer map={map} />}
+      {showZonesWms && <ZonesWmsLayer map={map} />}
 
       {strategy.routes === 'vector-primary' && <RoutesVectorLayer map={map} routes={routes} />}
       {strategy.routes === 'wms' && <RoutesWmsLayer map={map} />}

@@ -30,9 +30,9 @@ const RoutePlanner = () => {
 
       <main className="ml-[360px] flex-1 relative h-full bg-surface-dim">
         <TopAppBar title="Route Planner" />
-        <MapCanvas screenId="routePlanner" routes={routes} />
+        <MapCanvas screenId="routePlanner" />
 
-        <section className="absolute top-24 left-20 z-30 w-[380px] bg-surface/95 backdrop-blur border border-outline-variant rounded-xl shadow-md overflow-hidden">
+        {/* <section className="absolute top-24 left-20 z-30 w-[380px] bg-surface/95 backdrop-blur border border-outline-variant rounded-xl shadow-md overflow-hidden">
           <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
             <h3 className="font-headline-md text-headline-md text-on-surface">{t('common.routes')}</h3>
             <button
@@ -63,7 +63,7 @@ const RoutePlanner = () => {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         <MapControls />
 

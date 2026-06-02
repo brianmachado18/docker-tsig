@@ -34,7 +34,26 @@ const GuestPortal = () => {
   }, [routes, availabilityFilter, experienceFilter]);
 
   const featuredRoutes = filteredRoutes//.slice(0, 2);
-  const mapAttractions = attractions//.slice(0, 4);
+  const featuredAttractions = attractions.slice(0, 4);
+
+  const getAttractionCategoryLabel = (category) => {
+    switch (String(category || '').toUpperCase()) {
+      case 'MUSEO':
+      case 'MUSEUM':
+        return t('attractions.museum');
+      case 'PARQUE':
+      case 'PARK':
+        return t('attractions.park');
+      case 'MONUMENTO':
+      case 'MONUMENT':
+        return t('attractions.monument');
+      case 'LANDMARK':
+      case 'PUNTO_DE_REFERENCIA':
+        return t('attractions.landmark');
+      default:
+        return String(category || '').replace(/_/g, ' ') || t('attractions.category');
+    }
+  };
 
   const clearFilters = () => {
     setAvailabilityFilter('all');
@@ -47,7 +66,7 @@ const GuestPortal = () => {
         <TopAppBar title="GeoTravel GIS" variant="public" showGuestActions />
 
         <div className="absolute inset-0 z-0">
-          <MapCanvas screenId="guestPortal" routes={featuredRoutes} attractions={mapAttractions} />
+          <MapCanvas screenId="guestPortal" />
         </div>
 
         <aside className="absolute top-24 right-4 bottom-4 w-[380px] z-40 bg-surface/90 backdrop-blur-md border border-outline-variant rounded-2xl flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
@@ -136,6 +155,34 @@ const GuestPortal = () => {
                           {route.durationHours} {t('guest.hours')}
                         </span>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <hr className="border-outline-variant/30" />
+
+            <section className="flex flex-col gap-4 pb-4">
+              <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('common.attractions')}</h4>
+              {!isLoading && featuredAttractions.length === 0 && (
+                <div className="text-sm text-outline">{t('attractions.noAttractions')}</div>
+              )}
+              <div className="grid grid-cols-1 gap-3">
+                {featuredAttractions.map((attraction) => (
+                  <div key={attraction.id} className="bg-surface rounded-xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h5 className="font-headline-md text-[15px] leading-tight text-primary font-semibold">
+                          {attraction.title}
+                        </h5>
+                        <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1">
+                          {attraction.description}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full border border-outline-variant bg-surface-variant px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
+                        {getAttractionCategoryLabel(attraction.category)}
+                      </span>
                     </div>
                   </div>
                 ))}

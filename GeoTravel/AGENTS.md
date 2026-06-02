@@ -7,6 +7,7 @@ Use this file as the stable entry point for AI work in GeoTravel. Detailed docum
 | Agent | File | Owns | Use For |
 |---|---|---|---|
 | `@GeoTravel-FE` | `.github/agents/frontend-spa-architect.agent.md` | React SPA, OpenLayers client, Zustand, services, forms, UI/i18n | Any `frontend/` implementation or architecture task |
+| `@GeoTravel-MapOL` | `.github/agents/openlayers-geoserver-specialist.agent.md` | OpenLayers interactions, GeoServer WMS/WFS read-only, map-driven admin actions | Capturing coordinates, selecting map features, drawing/editing geometries, refreshing GeoServer layers |
 | `@GeoTravel-GIS` | `.github/agents/geo-platform-architect.agent.md` | GIS architecture, PostGIS, GeoServer, Spring Boot, Docker, Tomcat | Backend/GIS/infra tasks or frontend contracts that depend on them |
 
 ## Skill Map
@@ -18,7 +19,8 @@ Use this file as the stable entry point for AI work in GeoTravel. Detailed docum
 | Zustand stores, shared state, hooks | `@GeoTravel-FE` | `docs/skills/frontend/state-management.md` |
 | CRUD flows joining forms and stores | `@GeoTravel-FE` | `docs/skills/frontend/crud-state-forms.md` |
 | API clients, service adapters, mocks | `@GeoTravel-FE` | `docs/skills/frontend/services-apis.md` |
-| OpenLayers, WMS/WFS, map interactions | `@GeoTravel-FE` | `docs/skills/frontend/openlayers-geoserver.md` |
+| OpenLayers, WMS/WFS, map interactions | `@GeoTravel-MapOL` | `docs/skills/frontend/openlayers-geoserver.md` |
+| Map-driven admin actions and geometry editing | `@GeoTravel-MapOL` | `.github/agents/openlayers-geoserver-specialist.agent.md` |
 | Auth route guards and mock login | `@GeoTravel-FE` | `docs/skills/frontend/auth-patterns.md` |
 | Locales, copy, i18n audit | `@GeoTravel-FE` | `docs/skills/frontend/ui-localization.md` |
 | PostGIS schema, spatial SQL, SRID | `@GeoTravel-GIS` | Agent instructions |
@@ -30,5 +32,5 @@ Use this file as the stable entry point for AI work in GeoTravel. Detailed docum
 1. Read the current branch before acting: `docker-compose.yml`, `frontend/src`, `backend`, `postgres/init`, and the relevant docs.
 2. Use `docs/spec/TSIG-2026-Letra.md` as the source of product requirements.
 3. Keep `frontend/src` free of agent prompts and skills; it should contain runtime code and assets only.
-4. When a frontend change depends on backend/GIS behavior, ask `@GeoTravel-GIS` for the contract or document the assumption.
+4. For interactive map work, use `@GeoTravel-MapOL` with `@GeoTravel-FE` for React/state and `@GeoTravel-GIS` for CRS, layers and spatial contracts.
 5. Legacy prompts are archived in `docs/archive/frontend-prompts/` for reference only.

@@ -20,6 +20,7 @@ const Sidebar = ({ activeItem }) => {
   const items = [
     { id: 'zones', label: t('common.zones'), icon: 'map', href: '/zones' },
     { id: 'routes', label: t('common.routes'), icon: 'route', href: '/routes' },
+    { id: 'attractionsMap', label: t('common.attractionsMap'), icon: 'travel_explore', href: '/attractions/map' },
     { id: 'attractions', label: t('common.attractions'), icon: 'photo_library', href: '/attractions' },
   ];
 
