@@ -154,29 +154,6 @@ const AttractionForm = ({ attraction }) => {
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="font-label-md text-label-md text-on-surface-variant">{t('attractions.latitude')}</span>
-            <input
-              className="w-full px-3 py-2 border border-outline rounded bg-surface"
-              type="number"
-              step="any"
-              value={latitude}
-              onChange={(event) => setLatitude(event.target.value)}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="font-label-md text-label-md text-on-surface-variant">{t('attractions.longitude')}</span>
-            <input
-              className="w-full px-3 py-2 border border-outline rounded bg-surface"
-              type="number"
-              step="any"
-              value={longitude}
-              onChange={(event) => setLongitude(event.target.value)}
-            />
-          </label>
-        </div>
-
         {(validationError || apiError) && (
           <p className="text-sm text-error">{validationError || apiError}</p>
         )}

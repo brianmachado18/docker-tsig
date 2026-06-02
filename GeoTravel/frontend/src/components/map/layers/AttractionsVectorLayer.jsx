@@ -58,6 +58,7 @@ const AttractionsVectorLayer = ({ map, attractions = [], zIndex = 25 }) => {
       style: attractionStyle,
       zIndex,
       properties: {
+        entityKey: 'attractions',
         layerKey: 'attractions-vector',
         sourceType: 'vector',
       },

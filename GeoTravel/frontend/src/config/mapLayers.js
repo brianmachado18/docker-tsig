@@ -18,7 +18,7 @@ const MAP_LAYER_STRATEGIES = {
     routes: 'wms',
   },
   attractionMap: {
-    attractions: 'wms',
+    attractions: 'vector-primary',
   },
 };
 

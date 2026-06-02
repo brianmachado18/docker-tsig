@@ -10,8 +10,8 @@
     "error": "Error",
     "appTitle": "GeoTravel GIS",
     "english": "English",
-    "spanish": "Español"
-    ,"cancel": "Cancel",
+    "spanish": "Español",
+    "cancel": "Cancel",
     "description": "Description",
     "edit": "Edit",
     "savedSuccessfully": "Saved successfully",
@@ -75,7 +75,6 @@
     "loading": "Loading zones...",
     "offSeason": "Off-Season",
     "name": "Zone Name",
-    
     "attractionLevel": "Attraction Level",
     "internalNotes": "Internal Observations",
     "notesPlaceholder": "Enter notes for administrative staff only...",
@@ -85,7 +84,6 @@
     "active": "Active Zone",
     "offSeason": "Off-season Zone"
   },
-  
   "attractions": {
     "title": "Attraction Catalog",
     "mapTitle": "Attraction Map",
@@ -122,7 +120,7 @@
     "viewOnMap": "View on Map",
     "name": "Name",
     "namePlaceholder": "Enter attraction name",
-    "category": "Category",
+    "category": "Classication",
     "descriptionPlaceholder": "Enter description",
     "latitude": "Latitude",
     "longitude": "Longitude"
@@ -131,7 +129,7 @@
     "select": "Select",
     "selectEdit": "Select and adjust",
     "drawPolygon": "Draw Polygon",
-    
+    "placeAttraction": "Place attraction",
     "delete": "Delete"
   }
 }

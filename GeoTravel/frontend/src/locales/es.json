@@ -62,7 +62,6 @@
     "loading": "Cargando zonas...",
     "loadFailed": "Error al cargar zonas.",
     "name": "Nombre de Zona",
-    
     "attractionLevel": "Nivel de Atractivo",
     "internalNotes": "Observaciones Internas",
     "notesPlaceholder": "Ingrese notas solo para personal administrativo...",
@@ -80,7 +79,6 @@
     "offSeason": "Fuera de Temporada",
     "archived": "Archivado",
     "name": "Nombre del Recorrido",
-    
     "duration": "Duración Est.",
     "guide": "Guía Asignado",
     "stops": "Paradas del Recorrido",
@@ -122,7 +120,7 @@
     "viewOnMap": "Ver en el mapa",
     "name": "Nombre",
     "namePlaceholder": "Ingresa el nombre de la atracción",
-    "category": "Categoría",
+    "category": "Clasificación",
     "descriptionPlaceholder": "Ingresa una descripción",
     "latitude": "Latitud",
     "longitude": "Longitud"
@@ -131,7 +129,7 @@
     "select": "Seleccionar",
     "selectEdit": "Seleccionar y ajustar",
     "drawPolygon": "Dibujar Polígono",
-    
+    "placeAttraction": "Ubicar atracción",
     "delete": "Eliminar"
   }
 }

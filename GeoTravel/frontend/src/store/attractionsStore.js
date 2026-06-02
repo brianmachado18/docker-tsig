@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { attractionsService } from '../services/attractionsService';
+import useMapStore from './mapStore';
 
 const useAttractionsStore = create((set, get) => ({
   attractions: [],
@@ -30,6 +31,7 @@ const useAttractionsStore = create((set, get) => ({
     try {
       await attractionsService.save(attractionData);
       await get().fetchAttractions();
+      useMapStore.getState().refreshWmsLayer('attractions-wms');
       set({ isSaving: false, isFormOpen: false, selectedAttraction: null });
       return true;
     } catch (error) {
@@ -43,6 +45,7 @@ const useAttractionsStore = create((set, get) => ({
     try {
       await attractionsService.remove(attractionId);
       await get().fetchAttractions();
+      useMapStore.getState().refreshWmsLayer('attractions-wms');
       set({ isDeleting: false, selectedAttraction: null });
       return true;
     } catch (error) {
@@ -53,4 +56,3 @@ const useAttractionsStore = create((set, get) => ({
 }));
 
 export default useAttractionsStore;
-
