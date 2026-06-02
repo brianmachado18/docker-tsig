@@ -26,11 +26,13 @@ public class RecorridoService {
     @Autowired
     private ZonaRepository zonaRepository;
 
-    public void alta(DTRecorrido dtRecorrido){
+    public void alta(DTRecorrido dtRecorrido) throws Exception{
+        validarRecorrido(dtRecorrido);
         recorridoRepository.save(dtoToObj(dtRecorrido));
     }
 
-    public void actualizar(DTRecorrido dtRecorrido){
+    public void actualizar(DTRecorrido dtRecorrido) throws Exception{
+        validarRecorrido(dtRecorrido);
         recorridoRepository.save(dtoToObj(dtRecorrido));
     }
 
@@ -103,6 +105,31 @@ public class RecorridoService {
         dtRecorrido.setZonas(new ArrayList<>());
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
         return dtRecorrido;
+    }
+
+    public void validarRecorrido(DTRecorrido dtRecorrido) throws Exception{
+        if (dtRecorrido.getNombre() == null || dtRecorrido.getNombre().trim().isEmpty())
+            throw new Exception("Nombre requerido.");
+        if (dtRecorrido.getDescripcion() == null || dtRecorrido.getDescripcion().trim().isEmpty())
+            throw new Exception("Descripcion requerida.");
+        if (dtRecorrido.getDuracionEstimada()  <= 0)
+            throw new Exception("Duracion requerida.");
+        if (dtRecorrido.getGuiaResponsable() == null || dtRecorrido.getGuiaResponsable().trim().isEmpty())
+            throw new Exception("Guia responsable requerido.");
+        if (dtRecorrido.getIdEstacion() == null || dtRecorrido.getIdEstacion() <= 0)
+            throw new Exception("Estacion invalida.");
+        if (dtRecorrido.getTipoExperiencia() == null)
+            throw new Exception("Experiencia requerida.");
+        if (dtRecorrido.getEstado() == null)
+            throw new Exception("Estado requerido.");
+        if (dtRecorrido.getGeomWkt() == null || dtRecorrido.getGeomWkt().trim().isEmpty())
+            throw new Exception("Linea requerida.");
+        try {
+            WKTReader reader = new WKTReader();
+            LineString l = (LineString)reader.read(dtRecorrido.getGeomWkt());
+        } catch(ParseException e) {
+            throw new Exception("Linea invalida.");
+        }
     }
 
 }

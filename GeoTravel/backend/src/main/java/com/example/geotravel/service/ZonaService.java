@@ -23,11 +23,13 @@ public class ZonaService {
     @Autowired
     private RecorridoRepository recorridoRepository;
 
-    public void alta(DTZona dtZona){
+    public void alta(DTZona dtZona) throws Exception{
+        validarZona(dtZona);
         zonaRepository.save(dtoToObj(dtZona));
     }
 
-    public void actualizar(DTZona dtZona){
+    public void actualizar(DTZona dtZona) throws Exception{
+        validarZona(dtZona);
         zonaRepository.save(dtoToObj(dtZona));
     }
 
@@ -94,6 +96,25 @@ public class ZonaService {
         dtZona.setRecorridos(new ArrayList<>());
         dtZona.setGeomWkt(zona.getGeomWkt().toString());
         return dtZona;
+    }
+
+    public void validarZona(DTZona dtZona) throws Exception{
+        if (dtZona.getNombre() == null || dtZona.getNombre().trim().isEmpty())
+            throw new Exception("Nombre requerido.");
+        if (dtZona.getDescripcion() == null || dtZona.getDescripcion().trim().isEmpty())
+            throw new Exception("Descripcion requerida.");
+        if (dtZona.getNivelAtractivo()  <= 0)
+            throw new Exception("Nivel de atractivo requerido.");
+        if (dtZona.getObservaciones() == null || dtZona.getObservaciones().trim().isEmpty())
+            throw new Exception("Observaciones requeridas.");
+        if (dtZona.getGeomWkt() == null || dtZona.getGeomWkt().trim().isEmpty())
+            throw new Exception("Poligono requerido.");
+        try {
+            WKTReader reader = new WKTReader();
+            Polygon p = (Polygon) reader.read(dtZona.getGeomWkt());
+        } catch(ParseException e) {
+            throw new Exception("Poligono invalido.");
+        }
     }
 
 }
