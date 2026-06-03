@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
-import Sidebar from '../components/common/Sidebar';
-import TopAppBar from '../components/common/TopAppBar';
-import MapControls from '../components/map/MapControls';
-import MapCanvas from '../components/map/MapCanvas';
-import ZoneMapInteractions from '../components/map/interactions/ZoneMapInteractions';
-import ZoneForm from '../components/zones/ZoneForm';
-import useZonesStore from '../store/zonesStore';
-import useMapStore from '../store/mapStore';
+import MapCanvas from '@/features/map/MapCanvas';
+import MapControls from '@/features/map/MapControls';
+import ZoneMapInteractions from '@/features/map/interactions/ZoneMapInteractions';
+import useMapStore from '@/features/map/mapStore';
+import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import ZoneForm from '@/features/zones/ZoneForm';
+import useZonesStore from '@/features/zones/zonesStore';
+import Sidebar from '@/shared/components/Sidebar';
+import TopAppBar from '@/shared/components/TopAppBar';
 
 const ZoneManagement = () => {
   const {
@@ -15,6 +16,7 @@ const ZoneManagement = () => {
     closeForm,
   } = useZonesStore();
   const setActiveTool = useMapStore((state) => state.setActiveTool);
+  const refreshZoneLayers = useRefreshEntityLayer('zones');
 
   useEffect(() => {
     setActiveTool('select');
@@ -30,7 +32,14 @@ const ZoneManagement = () => {
         <ZoneMapInteractions />
         <MapControls />
 
-        {isFormOpen && <ZoneForm zone={selectedZone} onClose={closeForm} />}
+        {isFormOpen && (
+          <ZoneForm
+            zone={selectedZone}
+            onClose={closeForm}
+            onSaved={refreshZoneLayers}
+            onDeleted={refreshZoneLayers}
+          />
+        )}
       </main>
     </div>
   );

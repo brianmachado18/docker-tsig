@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import useAttractionsStore from '../store/attractionsStore';
-import useRoutesStore from '../store/routesStore';
-import MapCanvas from '../components/map/MapCanvas';
-import TopAppBar from '../components/common/TopAppBar';
-import useLangStore from '../store/langStore';
+import useAttractionsStore from '@/features/attractions/attractionsStore';
+import MapCanvas from '@/features/map/MapCanvas';
+import useRoutesStore from '@/features/routes/routesStore';
+import TopAppBar from '@/shared/components/TopAppBar';
+import useLangStore from '@/shared/i18n/langStore';
 
 const GuestPortal = () => {
   const { t } = useLangStore();

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Sidebar from '../components/common/Sidebar';
-import TopAppBar from '../components/common/TopAppBar';
-import AttractionCard from '../components/attractions/AttractionCard';
-import AttractionForm from '../components/attractions/AttractionForm';
-import useAttractionsStore from '../store/attractionsStore';
-import useLangStore from '../store/langStore';
+import AttractionCard from '@/features/attractions/AttractionCard';
+import AttractionForm from '@/features/attractions/AttractionForm';
+import useAttractionsStore from '@/features/attractions/attractionsStore';
+import Sidebar from '@/shared/components/Sidebar';
+import TopAppBar from '@/shared/components/TopAppBar';
+import useLangStore from '@/shared/i18n/langStore';
 
 const normalizeFilterValue = (value) => String(value || '').trim().toLowerCase();
 

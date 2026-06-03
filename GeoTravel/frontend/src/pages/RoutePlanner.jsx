@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import Sidebar from '../components/common/Sidebar';
-import TopAppBar from '../components/common/TopAppBar';
-import MapControls from '../components/map/MapControls';
-import MapCanvas from '../components/map/MapCanvas';
-import RouteForm from '../components/routes/RouteForm';
-import useRoutesStore from '../store/routesStore';
-import useLangStore from '../store/langStore';
+import MapCanvas from '@/features/map/MapCanvas';
+import MapControls from '@/features/map/MapControls';
+import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import RouteForm from '@/features/routes/RouteForm';
+import useRoutesStore from '@/features/routes/routesStore';
+import Sidebar from '@/shared/components/Sidebar';
+import TopAppBar from '@/shared/components/TopAppBar';
+import useLangStore from '@/shared/i18n/langStore';
 
 const RoutePlanner = () => {
   const {
@@ -19,6 +20,7 @@ const RoutePlanner = () => {
     fetchRoutes,
   } = useRoutesStore();
   const { t } = useLangStore();
+  const refreshRouteLayer = useRefreshEntityLayer('routes');
 
   useEffect(() => {
     fetchRoutes();
@@ -44,7 +46,14 @@ const RoutePlanner = () => {
           </button>
         )}
 
-        {isFormOpen && <RouteForm route={selectedRoute} onClose={closeForm} />}
+        {isFormOpen && (
+          <RouteForm
+            route={selectedRoute}
+            onClose={closeForm}
+            onSaved={refreshRouteLayer}
+            onDeleted={refreshRouteLayer}
+          />
+        )}
       </main>
     </div>
   );
