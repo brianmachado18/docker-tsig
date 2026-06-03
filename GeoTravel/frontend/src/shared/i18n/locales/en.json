@@ -129,6 +129,7 @@
     "select": "Select",
     "selectEdit": "Select and adjust",
     "drawPolygon": "Draw Polygon",
+    "drawRoute": "Draw route",
     "placeAttraction": "Place attraction",
     "delete": "Delete"
   }

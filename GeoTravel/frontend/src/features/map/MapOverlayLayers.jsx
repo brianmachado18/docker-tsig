@@ -1,6 +1,7 @@
 import AttractionsVectorLayer from '@/features/map/layers/AttractionsVectorLayer';
 import AttractionsWmsLayer from '@/features/map/layers/AttractionsWmsLayer';
 import RoutesVectorLayer from '@/features/map/layers/RoutesVectorLayer';
+import RoutesWfsLayer from '@/features/map/layers/RoutesWfsLayer';
 import RoutesWmsLayer from '@/features/map/layers/RoutesWmsLayer';
 import ZonesVectorLayer from '@/features/map/layers/ZonesVectorLayer';
 import ZonesWfsLayer from '@/features/map/layers/ZonesWfsLayer';
@@ -18,6 +19,7 @@ const MapOverlayLayers = ({ map, screenId, zones = [], routes = [], attractions 
       {showZonesWms && <ZonesWmsLayer map={map} />}
 
       {strategy.routes === 'vector-primary' && <RoutesVectorLayer map={map} routes={routes} />}
+      {strategy.routes === 'wfs' && <RoutesWfsLayer map={map} />}
       {strategy.routes === 'wms' && <RoutesWmsLayer map={map} />}
 
       {strategy.attractions === 'vector-primary' && (

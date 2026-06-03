@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { attractionsService } from '@/features/attractions/attractionsService';
+import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useRoutesStore from '@/features/routes/routesStore';
 import { validateRouteForm } from '@/features/routes/routeValidation';
 import { zonesService } from '@/features/zones/zonesService';
@@ -36,6 +37,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     error,
     clearError,
   } = useRoutesStore();
+  const refreshRouteLayers = useRefreshEntityLayer('routes');
 
   const [routeName, setRouteName] = useState('');
   const [routeDescription, setRouteDescription] = useState('');
@@ -53,6 +55,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const [validationError, setValidationError] = useState('');
 
   const handleClose = () => {
+    refreshRouteLayers();
     if (onClose) {
       onClose();
       return;
@@ -189,7 +192,9 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   return (
     <aside className="absolute top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col">
       <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
-        <h3 className="font-headline-lg text-headline-lg text-on-surface">{t('routes.design')}</h3>
+        <h3 className="font-headline-lg text-headline-lg text-on-surface">
+          {route?.id ? t('routes.design') : t('routes.newRoute')}
+        </h3>
         <button
           onClick={handleClose}
           className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container transition-colors"
@@ -287,17 +292,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="font-label-md text-label-md text-on-surface-variant">Geom WKT (LINESTRING)</span>
-          <textarea
-            className="w-full px-3 py-2 border border-outline rounded bg-surface resize-none font-mono text-xs"
-            rows="3"
-            value={geomWkt}
-            onChange={(event) => setGeomWkt(event.target.value)}
-            placeholder="LINESTRING(-56.2 -34.9, -56.1 -35.0)"
-          />
         </label>
 
         <div className="flex flex-col gap-2">
