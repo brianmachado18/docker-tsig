@@ -34,3 +34,20 @@ Use this file as the stable entry point for AI work in GeoTravel. Detailed docum
 3. Keep `frontend/src` free of agent prompts and skills; it should contain runtime code and assets only.
 4. For interactive map work, use `@GeoTravel-MapOL` with `@GeoTravel-FE` for React/state and `@GeoTravel-GIS` for CRS, layers and spatial contracts.
 5. Legacy prompts are archived in `docs/archive/frontend-prompts/` for reference only.
+
+## Current Frontend Layout
+
+The frontend was restructured in commit `d2a9291 Estructura fe`. Agents must use the current boundaries:
+
+| Path | Purpose |
+|---|---|
+| `frontend/src/app/` | SPA bootstrap and route definitions |
+| `frontend/src/pages/` | Route-level screen composition |
+| `frontend/src/features/<domain>/` | Domain components, Zustand stores, REST services and validation |
+| `frontend/src/features/map/` | OpenLayers canvas, controls, layers, interactions, map store and GeoServer client |
+| `frontend/src/shared/components/` | Shared shell/UI components |
+| `frontend/src/shared/config/` | Runtime config and map layer strategies |
+| `frontend/src/shared/i18n/` | Language store and locale JSON |
+| `frontend/src/shared/lib/` | Shared API, form and geometry helpers |
+
+Do not create new runtime code in the old root folders `frontend/src/components`, `frontend/src/services`, `frontend/src/store`, `frontend/src/config` or `frontend/src/locales`.
