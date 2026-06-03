@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import { validateAttractionForm } from '@/features/attractions/attractionValidation';
 import useLangStore from '@/shared/i18n/langStore';
@@ -17,6 +18,7 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
     error,
     clearError,
   } = useAttractionsStore();
+  const refreshAttractionLayers = useRefreshEntityLayer('attractions');
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -73,6 +75,11 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
     }
   };
 
+  const handleClose = () => {
+    refreshAttractionLayers();
+    closeForm();
+  };
+
   const handleDelete = async () => {
     if (!attraction?.id) {
       return;
@@ -95,7 +102,7 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
           {attraction?.id ? t('attractions.edit') : t('attractions.addNew')}
         </h3>
         <button
-          onClick={closeForm}
+          onClick={handleClose}
           className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container transition-colors"
           type="button"
         >
@@ -165,7 +172,7 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={closeForm}
+              onClick={handleClose}
               className="px-4 py-2 rounded-lg border border-outline text-on-surface"
               disabled={isSaving || isDeleting}
             >

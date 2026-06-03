@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -14,37 +14,50 @@ const attractionStyle = new Style({
   }),
 });
 
+const buildAttractionFeatures = (attractions) => {
+  if (!attractions.length) {
+    return [];
+  }
+
+  const collection = {
+    type: 'FeatureCollection',
+    features: attractions
+      .filter((attraction) => attraction.coordinates)
+      .map((attraction) => ({
+        type: 'Feature',
+        properties: {
+          id: attraction.id,
+          name: attraction.title || attraction.name,
+          status: attraction.status,
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [...attraction.coordinates],
+        },
+      })),
+  };
+
+  return geojson.readFeatures(collection, {
+    dataProjection: 'EPSG:4326',
+    featureProjection: 'EPSG:3857',
+  });
+};
+
 const AttractionsVectorLayer = ({ map, attractions = [], zIndex = 25 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
 
-  const attractionFeatures = useMemo(() => {
-    if (!attractions.length) {
-      return [];
+  const reloadAttractionFeatures = useCallback(() => {
+    if (!sourceRef.current) {
+      return false;
     }
 
-    const collection = {
-      type: 'FeatureCollection',
-      features: attractions
-        .filter((attraction) => attraction.coordinates)
-        .map((attraction) => ({
-          type: 'Feature',
-          properties: {
-            id: attraction.id,
-            name: attraction.title || attraction.name,
-            status: attraction.status,
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: attraction.coordinates,
-          },
-        })),
-    };
-
-    return geojson.readFeatures(collection, {
-      dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857',
-    });
+    const attractionFeatures = buildAttractionFeatures(attractions);
+    sourceRef.current.clear(true);
+    if (attractionFeatures.length) {
+      sourceRef.current.addFeatures(attractionFeatures);
+    }
+    return true;
   }, [attractions]);
 
   useEffect(() => {
@@ -85,11 +98,9 @@ const AttractionsVectorLayer = ({ map, attractions = [], zIndex = 25 }) => {
       return;
     }
 
-    sourceRef.current.clear(true);
-    if (attractionFeatures.length) {
-      sourceRef.current.addFeatures(attractionFeatures);
-    }
-  }, [attractionFeatures]);
+    sourceRef.current.set('reload', reloadAttractionFeatures);
+    reloadAttractionFeatures();
+  }, [reloadAttractionFeatures]);
 
   return null;
 };

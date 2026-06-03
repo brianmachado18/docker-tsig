@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import useMapStore from '@/features/map/mapStore';
 
 const entityLayerKeys = {
-  attractions: ['attractions-wms'],
+  attractions: ['attractions-vector', 'attractions-wms'],
   routes: ['routes-wms'],
   zones: ['zones-wfs', 'zones-wms'],
 };

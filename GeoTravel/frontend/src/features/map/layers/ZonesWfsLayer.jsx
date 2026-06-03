@@ -10,8 +10,8 @@ const geojsonFormat = new GeoJSON();
 const wktFormat = new WKT();
 
 const zoneStyle = new Style({
-  fill: new Fill({ color: 'rgba(10, 108, 68, 0.2)' }),
-  stroke: new Stroke({ color: '#0a6c44', width: 2 }),
+  fill: new Fill({ color: 'rgba(23, 176, 237, 0.28)' }),
+  stroke: new Stroke({ color: '#0e85e696', width: 2 }),
 });
 
 const getFeatureNumericId = (feature) => {

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useRoutesStore from '@/features/routes/routesStore';
 import { validateZoneForm } from '@/features/zones/zoneValidation';
 import useZonesStore from '@/features/zones/zonesStore';
@@ -17,6 +18,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     clearError,
   } = useZonesStore();
   const { routes, fetchRoutes } = useRoutesStore();
+  const refreshZoneLayers = useRefreshEntityLayer('zones');
 
   const [zoneName, setZoneName] = useState('');
   const [zoneDescription, setZoneDescription] = useState('');
@@ -46,6 +48,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
   }, [error, t]);
 
   const handleClose = () => {
+    refreshZoneLayers();
     if (onClose) {
       onClose();
       return;
