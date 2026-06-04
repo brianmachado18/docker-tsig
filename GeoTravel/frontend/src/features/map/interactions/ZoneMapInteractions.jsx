@@ -26,6 +26,14 @@ const getGeometryWkt = (feature) => {
   return wktFormat.writeGeometry(geometry4326, { decimals: 6 });
 };
 
+const ensurePersistedGeometryWkt = (feature) => {
+  if (!feature || feature.get('isDraftZone') || feature.get('persistedGeomWkt')) {
+    return;
+  }
+
+  feature.set('persistedGeomWkt', feature.get('geomWkt') || getGeometryWkt(feature));
+};
+
 const getZoneByFeature = (feature, zones) => {
   const zoneId = feature?.get?.('id');
   if (zoneId === undefined || zoneId === null) {
@@ -159,10 +167,21 @@ const ZoneMapInteractions = ({ zones = [] }) => {
         source,
       });
 
+      modify.on('modifystart', (event) => {
+        event.features?.forEach?.((feature) => {
+          ensurePersistedGeometryWkt(feature);
+        });
+      });
+
       modify.on('modifyend', (event) => {
         const feature = event.features.item(0);
         const geomWkt = getGeometryWkt(feature);
         feature.set('geomWkt', geomWkt);
+        if (!feature.get('isDraftZone')) {
+          ensurePersistedGeometryWkt(feature);
+          feature.set('draftGeomWkt', geomWkt);
+          feature.set('hasDraftGeometry', true);
+        }
 
         const zone = getZoneFromFeature(feature, zones);
         if (zone) {

@@ -36,6 +36,7 @@ const getFeatureWkt = (feature) => {
 
 const normalizeZoneFeature = (feature) => {
   const id = getFeatureNumericId(feature);
+  const geomWkt = getFeatureWkt(feature);
 
   feature.setProperties({
     id,

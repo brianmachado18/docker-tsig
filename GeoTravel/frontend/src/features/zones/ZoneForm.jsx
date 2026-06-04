@@ -89,7 +89,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
       routeIds,
     });
     if (ok) {
-      onSaved?.();
+      onSaved?.({ commitDrafts: true, discardDrafts: false });
     }
   };
 
