@@ -11,7 +11,6 @@ const useRoutesStore = create((set, get) => ({
   isDeleting: false,
   error: null,
 
-  setSelectedRoute: (route) => set({ selectedRoute: route }),
   openForm: (route = null) => set({ isFormOpen: true, selectedRoute: route, error: null }),
   closeForm: () => set({ isFormOpen: false, selectedRoute: null, error: null }),
   clearError: () => set({ error: null }),

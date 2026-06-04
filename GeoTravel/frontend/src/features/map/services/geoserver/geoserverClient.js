@@ -45,29 +45,12 @@ export const geoserverClient = {
     return ENV.geoserverUrl;
   },
 
-  get workspace() {
-    return ENV.geoserverWorkspace;
-  },
-
-  getQualifiedName,
-  buildQueryString,
-
   buildWmsEndpoint(workspace) {
     return `${this.baseUrl}/${getWorkspace(workspace)}/wms`;
   },
 
   buildWfsEndpoint(workspace) {
     return `${this.baseUrl}/${getWorkspace(workspace)}/ows`;
-  },
-
-  buildWmsUrl(layerName, options = {}) {
-    const workspace = getWorkspace(options.workspace);
-    const query = buildQueryString({
-      ...DEFAULT_WMS_PARAMS,
-      ...options.params,
-      LAYERS: getQualifiedName(layerName, workspace),
-    });
-    return `${this.buildWmsEndpoint(workspace)}?${query}`;
   },
 
   buildWfsUrl(typeName, options = {}) {
@@ -86,15 +69,6 @@ export const geoserverClient = {
       ...DEFAULT_WMS_PARAMS,
       ...options.params,
       LAYERS: getQualifiedName(layerName, workspace),
-    };
-  },
-
-  getDefaultWfsParams(typeName, options = {}) {
-    const workspace = getWorkspace(options.workspace);
-    return {
-      ...DEFAULT_WFS_PARAMS,
-      ...options.params,
-      typeName: getQualifiedName(typeName, workspace),
     };
   },
 };

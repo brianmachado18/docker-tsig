@@ -4,7 +4,7 @@ import WKT from 'ol/format/WKT';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Fill, Stroke, Style } from 'ol/style';
-import { geoserverClient, getGeoServerLayer } from '@/features/map/services/geoserver';
+import { fetchWfsFeatureCollection } from '@/features/map/services/geoserver';
 
 const geojsonFormat = new GeoJSON();
 const wktFormat = new WKT();
@@ -58,24 +58,13 @@ const ZonesWfsLayer = ({ map, zIndex = 30 }) => {
       return undefined;
     }
 
-    const layerDefinition = getGeoServerLayer('zones');
     const source = new VectorSource();
 
     const loadFeatures = async () => {
-      const url = geoserverClient.buildWfsUrl(layerDefinition.typeName, {
-        workspace: layerDefinition.workspace,
-        params: {
-          srsName: 'EPSG:4326',
-          _ts: Date.now(),
-        },
+      const featureCollection = await fetchWfsFeatureCollection('zones', {
+        srsName: 'EPSG:4326',
+        _ts: Date.now(),
       });
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`GeoServer WFS zones failed with ${response.status}`);
-      }
-
-      const featureCollection = await response.json();
       const features = geojsonFormat.readFeatures(featureCollection, {
         dataProjection: 'EPSG:4326',
         featureProjection: 'EPSG:3857',

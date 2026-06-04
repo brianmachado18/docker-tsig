@@ -26,5 +26,3 @@ export const getMapLayerStrategy = (screenId) => ({
   ...DEFAULT_STRATEGY,
   ...(screenId ? MAP_LAYER_STRATEGIES[screenId] : null),
 });
-
-export { MAP_LAYER_STRATEGIES };

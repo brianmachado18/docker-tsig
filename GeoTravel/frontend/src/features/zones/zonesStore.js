@@ -10,7 +10,6 @@ const useZonesStore = create((set, get) => ({
   isDeleting: false,
   error: null,
 
-  setSelectedZone: (zone) => set({ selectedZone: zone }),
   openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone, error: null }),
   closeForm: () => set({ isFormOpen: false, selectedZone: null, error: null }),
   clearError: () => set({ error: null }),

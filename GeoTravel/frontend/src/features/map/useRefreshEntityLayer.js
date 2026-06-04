@@ -8,12 +8,12 @@ const entityLayerKeys = {
 };
 
 const useRefreshEntityLayer = (entity) => {
-  const refreshWmsLayer = useMapStore((state) => state.refreshWmsLayer);
+  const refreshMapLayer = useMapStore((state) => state.refreshMapLayer);
 
   return useCallback(() => {
     const layerKeys = entityLayerKeys[entity] || [];
-    return layerKeys.some((layerKey) => refreshWmsLayer(layerKey));
-  }, [entity, refreshWmsLayer]);
+    return layerKeys.some((layerKey) => refreshMapLayer(layerKey));
+  }, [entity, refreshMapLayer]);
 };
 
 export default useRefreshEntityLayer;

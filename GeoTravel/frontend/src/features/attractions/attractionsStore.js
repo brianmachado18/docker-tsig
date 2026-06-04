@@ -10,7 +10,6 @@ const useAttractionsStore = create((set, get) => ({
   isDeleting: false,
   error: null,
 
-  setSelectedAttraction: (attraction) => set({ selectedAttraction: attraction }),
   openForm: (attraction = null) => set({ isFormOpen: true, selectedAttraction: attraction, error: null }),
   closeForm: () => set({ isFormOpen: false, selectedAttraction: null, error: null }),
   clearError: () => set({ error: null }),

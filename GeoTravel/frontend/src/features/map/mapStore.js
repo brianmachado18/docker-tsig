@@ -2,18 +2,16 @@ import { create } from 'zustand';
 
 const useMapStore = create((set, get) => ({
   mapInstance: null,
-  activeLayer: 'zones', // 'zones', 'routes', 'attractions'
-  activeTool: null, // 'draw', 'edit'
+  activeTool: null, // 'draw', 'select'
   center: [-56, -33], // Default center (Uruguay)
   zoom: 7,
   
   // Acciones
   setMapInstance: (instance) => set({ mapInstance: instance }),
-  setActiveLayer: (layer) => set({ activeLayer: layer }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setViewport: (center, zoom) => set({ center, zoom }),
 
-  refreshWmsLayer: (layerKey) => {
+  refreshMapLayer: (layerKey) => {
     const map = get().mapInstance;
     if (!map || !layerKey) {
       return false;
