@@ -1,6 +1,5 @@
 const DEFAULT_STRATEGY = {
   zones: 'off',
-  zonesSupport: 'off',
   routes: 'off',
   attractions: 'off',
 };

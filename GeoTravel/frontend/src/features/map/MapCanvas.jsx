@@ -6,7 +6,7 @@ import MapBaseLayer from '@/features/map/MapBaseLayer';
 import MapOverlayLayers from '@/features/map/MapOverlayLayers';
 import useMapStore from '@/features/map/mapStore';
 
-const MapCanvas = ({ screenId, zones = [], routes = [], attractions = [], className = '' }) => {
+const MapCanvas = ({ screenId, attractions = [], className = '' }) => {
   const mapElementRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [mapInstance, setMapInstanceState] = useState(null);
@@ -55,8 +55,6 @@ const MapCanvas = ({ screenId, zones = [], routes = [], attractions = [], classN
         <MapOverlayLayers
           map={mapInstance}
           screenId={screenId}
-          zones={zones}
-          routes={routes}
           attractions={attractions}
         />
       )}

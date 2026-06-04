@@ -224,14 +224,11 @@ Capas WFS actuales:
 
 Capas WMS actuales:
 
-- `ZonesWmsLayer.jsx`
 - `RoutesWmsLayer.jsx`
 - `AttractionsWmsLayer.jsx`
 
 Capas vectoriales locales:
 
-- `ZonesVectorLayer.jsx`
-- `RoutesVectorLayer.jsx`
 - `AttractionsVectorLayer.jsx`
 
 ## Backend REST Consumido por Frontend
