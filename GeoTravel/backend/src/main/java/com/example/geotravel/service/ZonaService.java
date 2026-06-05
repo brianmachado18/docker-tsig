@@ -29,12 +29,16 @@ public class ZonaService {
     }
 
     public void actualizar(DTZona dtZona) throws Exception{
+        existeZona(dtZona.getIdZona());
         validarZona(dtZona);
         zonaRepository.save(dtoToObj(dtZona));
     }
 
-    public void eliminar(Long idZona){
-        zonaRepository.delete(zonaRepository.findByIdZona(idZona));
+    public void eliminar(Long idZona) throws Exception{
+        existeZona(idZona);
+        Zona z = zonaRepository.findByIdZona(idZona);
+        validarUsoEnRecorrido(z);
+        zonaRepository.delete(z);
     }
 
     public Boolean existe(Long idZona){
@@ -98,6 +102,11 @@ public class ZonaService {
         return dtZona;
     }
 
+    public void existeZona(Long idZona) throws Exception{
+        if (!zonaRepository.existsByIdZona(idZona))
+            throw new Exception("Zona no encontrada.");
+    }
+
     public void validarZona(DTZona dtZona) throws Exception{
         if (dtZona.getNombre() == null || dtZona.getNombre().trim().isEmpty())
             throw new Exception("Nombre requerido.");
@@ -115,6 +124,11 @@ public class ZonaService {
         } catch(ParseException e) {
             throw new Exception("Poligono invalido.");
         }
+    }
+
+    public void validarUsoEnRecorrido(Zona z) throws Exception{
+        if (recorridoRepository.existsByZonas(z))
+            throw new Exception("Zona presente en recorrido.");
     }
 
 }

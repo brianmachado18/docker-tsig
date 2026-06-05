@@ -29,12 +29,8 @@ public class HistoricoController {
     @PutMapping("/actualizar")
     public ResponseEntity<String> actualizarHistorico(@RequestBody DTHistorico dtHistorico){
         try{
-            if (historicoService.existe(dtHistorico.getIdHistorico())) {
-                historicoService.actualizar(dtHistorico);
-                return ResponseEntity.ok().body("Actualizacion completada.");
-            } else {
-                return ResponseEntity.ok().body("Historico no encontrado.");
-            }
+            historicoService.actualizar(dtHistorico);
+            return ResponseEntity.ok().body("Actualizacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -43,12 +39,8 @@ public class HistoricoController {
     @DeleteMapping("/eliminar")
     public ResponseEntity<String> eliminarHistorico(@RequestParam Long idHistorico){
         try{
-            if (historicoService.existe(idHistorico)){
-                historicoService.eliminar(idHistorico);
-                return ResponseEntity.ok().body("Eliminacion completada.");
-            } else {
-                return ResponseEntity.ok().body("Historico no encontrado.");
-            }
+            historicoService.eliminar(idHistorico);
+            return ResponseEntity.ok().body("Eliminacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

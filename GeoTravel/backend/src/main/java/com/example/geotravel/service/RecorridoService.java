@@ -1,7 +1,6 @@
 package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
-import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.RecorridoAtracciones;
 import com.example.geotravel.model.Zona;
@@ -51,6 +50,7 @@ public class RecorridoService {
     }
 
     public void actualizar(DTRecorrido dtRecorrido) throws Exception{
+        existeRecorrido(dtRecorrido.getIdRecorrido());
         validarRecorrido(dtRecorrido);
         validarAtracciones(dtRecorrido.getAtracciones());
         Recorrido r = dtoToObj(dtRecorrido);
@@ -80,16 +80,13 @@ public class RecorridoService {
         }
     }
 
-    public void eliminar(Long idRecorrido){
+    public void eliminar(Long idRecorrido) throws Exception{
+        existeRecorrido(idRecorrido);
         Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido); // Obtener recorrido
         List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r); // Obtener lista recorrido-atracciones
         for (RecorridoAtracciones ra : recorridoAtraccionesList) // Eliminar todos los recorrido-atracciones
             recorridoAtraccionesRepository.delete(ra);
         recorridoRepository.delete(r); // Elimianr recorriod
-    }
-
-    public Boolean existe(Long idRecorrido){
-        return recorridoRepository.existsByIdRecorrido(idRecorrido);
     }
 
     public List<DTRecorrido> obtenerTodos(){
@@ -153,6 +150,11 @@ public class RecorridoService {
         dtRecorrido.setZonas(new ArrayList<>());
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
         return dtRecorrido;
+    }
+
+    public void existeRecorrido(Long idRecorrido) throws Exception{
+        if (!recorridoRepository.existsByIdRecorrido(idRecorrido))
+            throw new Exception("Recorrido no encontrado.");
     }
 
     public void validarRecorrido(DTRecorrido dtRecorrido) throws Exception{
