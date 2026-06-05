@@ -12,5 +12,5 @@ public interface RecorridoAtraccionesRepository extends JpaRepository<RecorridoA
     Boolean existsByRecorridoAndAtraccion(Recorrido recorrido, Atraccion atraccion);
     Boolean existsByRecorridoAndOrden(Recorrido recorrido, int orden);
     RecorridoAtracciones findByIdRecorridoAtracciones(Long idRecorridoAtracciones);
-    List<RecorridoAtracciones> findByRecorrido(Recorrido recorrido);
+    List<RecorridoAtracciones> findByRecorridoOrderByOrden(Recorrido recorrido);
 }

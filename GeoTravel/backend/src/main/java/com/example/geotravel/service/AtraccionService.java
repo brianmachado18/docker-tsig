@@ -86,7 +86,7 @@ public class AtraccionService {
     public void validarAtraccion(DTAtraccion dtAtraccion) throws Exception{
         if (dtAtraccion.getNombre() == null || dtAtraccion.getNombre().trim().isEmpty())
             throw new Exception("Nombre requerido.");
-        if (dtAtraccion.getClasificacion() == null || dtAtraccion.getClasificacion().trim().isEmpty())
+        if (dtAtraccion.getClasificacion() == null)
             throw new Exception("Clasificacion requerida.");
         if (dtAtraccion.getDescripcion() == null || dtAtraccion.getDescripcion().trim().isEmpty())
             throw new Exception("Descripcion requerida.");

@@ -1,8 +1,12 @@
 package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
+import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.model.Recorrido;
+import com.example.geotravel.model.RecorridoAtracciones;
 import com.example.geotravel.model.Zona;
+import com.example.geotravel.repository.AtraccionRepository;
+import com.example.geotravel.repository.RecorridoAtraccionesRepository;
 import com.example.geotravel.repository.RecorridoRepository;
 import com.example.geotravel.repository.ZonaRepository;
 import org.locationtech.jts.geom.LineString;
@@ -26,18 +30,62 @@ public class RecorridoService {
     @Autowired
     private ZonaRepository zonaRepository;
 
+    @Autowired
+    private AtraccionRepository atraccionRepository;
+
+    @Autowired
+    private RecorridoAtraccionesRepository recorridoAtraccionesRepository;
+
     public void alta(DTRecorrido dtRecorrido) throws Exception{
-        validarRecorrido(dtRecorrido);
-        recorridoRepository.save(dtoToObj(dtRecorrido));
+        validarRecorrido(dtRecorrido); // Validar los datos del recorrido
+        validarAtracciones(dtRecorrido.getAtracciones()); // Validar las atracciones relacionadas
+        Recorrido r = recorridoRepository.save(dtoToObj(dtRecorrido)); //Guardar el recorrido
+        int cont = 1;
+        for (Long idAtraccion : dtRecorrido.getAtracciones()){ //Guardar las relaciones recorrido-atraccion
+            RecorridoAtracciones recorridoAtracciones = new RecorridoAtracciones();
+            recorridoAtracciones.setRecorrido(r);
+            recorridoAtracciones.setAtraccion(atraccionRepository.findByIdAtraccion(idAtraccion));
+            recorridoAtracciones.setOrden(cont++);
+            recorridoAtraccionesRepository.save(recorridoAtracciones);
+        }
     }
 
     public void actualizar(DTRecorrido dtRecorrido) throws Exception{
         validarRecorrido(dtRecorrido);
-        recorridoRepository.save(dtoToObj(dtRecorrido));
+        validarAtracciones(dtRecorrido.getAtracciones());
+        Recorrido r = dtoToObj(dtRecorrido);
+        recorridoRepository.save(r);
+        List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r);
+        int cont = 1;
+        for (Long idAtraccion : dtRecorrido.getAtracciones()){
+            if (recorridoAtraccionesList.isEmpty()){
+                RecorridoAtracciones recorridoAtracciones = new RecorridoAtracciones();
+                recorridoAtracciones.setRecorrido(r);
+                recorridoAtracciones.setAtraccion(atraccionRepository.findByIdAtraccion(idAtraccion));
+                recorridoAtracciones.setOrden(cont);
+                recorridoAtraccionesRepository.save(recorridoAtracciones);
+            } else {
+                RecorridoAtracciones re = recorridoAtraccionesList.get(0);
+                if (re.getAtraccion().getIdAtraccion() != idAtraccion){
+                    re.setAtraccion(atraccionRepository.findByIdAtraccion(idAtraccion));
+                    recorridoAtraccionesRepository.save(re);
+                }
+                recorridoAtraccionesList.remove(0);
+            }
+            cont++;
+        }
+        if (!recorridoAtraccionesList.isEmpty()){
+            for (RecorridoAtracciones ra : recorridoAtraccionesList)
+                recorridoAtraccionesRepository.delete(ra);
+        }
     }
 
     public void eliminar(Long idRecorrido){
-        recorridoRepository.delete(recorridoRepository.findByIdRecorrido(idRecorrido));
+        Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido); // Obtener recorrido
+        List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r); // Obtener lista recorrido-atracciones
+        for (RecorridoAtracciones ra : recorridoAtraccionesList) // Eliminar todos los recorrido-atracciones
+            recorridoAtraccionesRepository.delete(ra);
+        recorridoRepository.delete(r); // Elimianr recorriod
     }
 
     public Boolean existe(Long idRecorrido){
@@ -129,6 +177,13 @@ public class RecorridoService {
             LineString l = (LineString)reader.read(dtRecorrido.getGeomWkt());
         } catch(ParseException e) {
             throw new Exception("Linea invalida.");
+        }
+    }
+
+    public void validarAtracciones(List<Long> atraccionesList) throws Exception{
+        for (Long id : atraccionesList){
+            if (!atraccionRepository.existsByIdAtraccion(id))
+                throw new Exception("Una de las atracciones es invalida");
         }
     }
 
