@@ -18,6 +18,7 @@ const RoutePlanner = () => {
     routes,
     selectedRoute,
     isFormOpen,
+    openForm,
     closeForm,
     fetchRoutes,
   } = useRoutesStore();
@@ -41,6 +42,16 @@ const RoutePlanner = () => {
         <MapCanvas screenId="routePlanner" />
         <RouteMapInteractions routes={routes} />
         <MapControls drawIcon="route" drawLabelKey="map.drawRoute" />
+
+        {/* Crear un recorrido sin dibujar: la línea se arma desde las paradas. */}
+        <button
+          type="button"
+          onClick={() => openForm()}
+          className="absolute top-20 right-4 z-40 px-4 py-2 rounded-lg bg-primary text-on-primary shadow-md flex items-center gap-1 hover:opacity-90 transition-opacity"
+        >
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          Nuevo recorrido
+        </button>
 
         {isFormOpen && (
           <RouteForm

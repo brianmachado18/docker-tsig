@@ -14,6 +14,7 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +93,7 @@ public class RecorridoService {
         return recorridoRepository.existsByIdRecorrido(idRecorrido);
     }
 
+    @Transactional(readOnly = true)
     public List<DTRecorrido> obtenerTodos(){
         List<DTRecorrido> listDto = new ArrayList<>();
         for (Recorrido r : recorridoRepository.findAll()){
@@ -100,6 +102,7 @@ public class RecorridoService {
         return listDto;
     }
 
+    @Transactional(readOnly = true)
     public DTRecorrido obtenerPorId(Long id){
         return objToDto(recorridoRepository.findByIdRecorrido(id));
     }
@@ -150,7 +153,23 @@ public class RecorridoService {
         dtRecorrido.setGuiaResponsable(recorrido.getGuiaResponsable());
         dtRecorrido.setTipoExperiencia(recorrido.getTipoExperiencia());
         dtRecorrido.setEstado(recorrido.getEstado());
-        dtRecorrido.setZonas(new ArrayList<>());
+
+        // Zonas por las que pasa el recorrido
+        List<Long> zonasIds = new ArrayList<>();
+        if (recorrido.getZonas() != null) {
+            for (Zona z : recorrido.getZonas()) {
+                zonasIds.add(z.getIdZona());
+            }
+        }
+        dtRecorrido.setZonas(zonasIds);
+
+        // Atracciones (paradas) ordenadas por su orden en el recorrido
+        List<Long> atraccionesIds = new ArrayList<>();
+        for (RecorridoAtracciones ra : recorridoAtraccionesRepository.findByRecorridoOrderByOrden(recorrido)) {
+            atraccionesIds.add(ra.getAtraccion().getIdAtraccion());
+        }
+        dtRecorrido.setAtracciones(atraccionesIds);
+
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
         return dtRecorrido;
     }

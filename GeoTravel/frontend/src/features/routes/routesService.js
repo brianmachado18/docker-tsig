@@ -73,7 +73,8 @@ const normalizeRoute = (route) => ({
   geomWkt: route.geomWkt ?? '',
   geometry: route.geometry ?? parseLineStringWkt(route.geomWkt),
   zoneIds: route.zoneIds ?? route.zonas ?? [],
-  attractionIds: Array.isArray(route.attractionIds) ? route.attractionIds : [],
+  // El backend (mauri) ya devuelve las paradas en `atracciones`, ordenadas.
+  attractionIds: route.attractionIds ?? route.atracciones ?? [],
 });
 
 const toDto = (route) => ({
@@ -86,57 +87,11 @@ const toDto = (route) => ({
   tipoExperiencia: experienceToBackend(route.experienceType),
   estado: statusToBackend(route.status),
   geomWkt: String(route.geomWkt || '').trim(),
+  // Zonas por las que pasa y paradas (en orden) viajan en el mismo body:
+  // el endpoint /recorrido/alta y /recorrido/actualizar las sincroniza.
   zonas: Array.isArray(route.zoneIds) ? route.zoneIds : [],
+  atracciones: Array.isArray(route.attractionIds) ? route.attractionIds : [],
 });
-
-const resolveCreatedRouteId = async (dto) => {
-  const routes = await apiClient.get('/recorrido/buscar/todos');
-  if (!Array.isArray(routes) || !routes.length) {
-    return null;
-  }
-
-  const exactMatch = routes.find(
-    (item) =>
-      item.nombre === dto.nombre &&
-      item.guiaResponsable === dto.guiaResponsable &&
-      Number(item.idEstacion) === Number(dto.idEstacion)
-  );
-
-  if (exactMatch?.idRecorrido) {
-    return exactMatch.idRecorrido;
-  }
-
-  const sorted = [...routes].sort((a, b) => Number(b.idRecorrido) - Number(a.idRecorrido));
-  return sorted[0]?.idRecorrido ?? null;
-};
-
-const syncRouteAttractions = async (routeId, attractionIds) => {
-  const existing = await apiClient.get(`/recorrido-atracciones/buscar/recorrido?idRecorrido=${routeId}`);
-  if (Array.isArray(existing)) {
-    await Promise.all(
-      existing
-        .filter((item) => item?.idRecorridoAtracciones)
-        .map((item) =>
-          apiClient.delete(
-            `/recorrido-atracciones/eliminar?idRecorridoAtracciones=${item.idRecorridoAtracciones}`
-          )
-        )
-    );
-  }
-
-  for (let index = 0; index < attractionIds.length; index += 1) {
-    const attractionId = Number(attractionIds[index]);
-    if (!Number.isFinite(attractionId)) {
-      continue;
-    }
-    await apiClient.post('/recorrido-atracciones/alta', {
-      idRecorridoAtracciones: null,
-      idRecorrido: Number(routeId),
-      idAtraccion: attractionId,
-      orden: index + 1,
-    });
-  }
-};
 
 export const routesService = {
   async list() {
@@ -149,42 +104,18 @@ export const routesService = {
     return Array.isArray(stations) ? stations : [];
   },
 
-  async listRouteAttractions(routeId) {
-    const relations = await apiClient.get(`/recorrido-atracciones/buscar/recorrido?idRecorrido=${routeId}`);
-    return Array.isArray(relations) ? relations : [];
-  },
-
   async save(route) {
     const dto = toDto(route);
-    let routeId = route.id ?? null;
-
     if (route.id) {
       await apiClient.put('/recorrido/actualizar', dto);
     } else {
       await apiClient.post('/recorrido/alta', dto);
-      routeId = await resolveCreatedRouteId(dto);
     }
-
-    if (routeId && Array.isArray(route.attractionIds)) {
-      await syncRouteAttractions(routeId, route.attractionIds);
-    }
-
-    return normalizeRoute({ ...dto, idRecorrido: routeId });
+    return normalizeRoute({ ...dto, idRecorrido: route.id ?? null });
   },
 
   async remove(routeId) {
-    const relations = await apiClient.get(`/recorrido-atracciones/buscar/recorrido?idRecorrido=${routeId}`);
-    if (Array.isArray(relations)) {
-      await Promise.all(
-        relations
-          .filter((item) => item?.idRecorridoAtracciones)
-          .map((item) =>
-            apiClient.delete(
-              `/recorrido-atracciones/eliminar?idRecorridoAtracciones=${item.idRecorridoAtracciones}`
-            )
-          )
-      );
-    }
+    // El backend elimina primero las relaciones recorrido-atraccion.
     return apiClient.delete(`/recorrido/eliminar?idRecorrido=${routeId}`);
   },
 };

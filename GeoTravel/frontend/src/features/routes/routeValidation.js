@@ -7,7 +7,7 @@ export const validateRouteForm = ({ name, description, stationId, durationHours,
   if (!stationId) return 'Estación obligatoria.';
   if (!minimumNumber(durationHours, 1)) return t('validation.durationMin');
   if (!required(guide)) return 'Guía responsable obligatoria.';
-  if (!required(geomWkt)) return 'Dibujá el recorrido en el mapa antes de guardar.';
+  if (!required(geomWkt)) return 'Dibujá el recorrido en el mapa o agregá al menos 2 paradas para generarlo.';
   if (!parseLineStringWkt(String(geomWkt).trim())) {
     return 'La geometría del recorrido no es válida.';
   }
