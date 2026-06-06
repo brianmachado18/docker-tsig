@@ -7,7 +7,7 @@ const DEFAULT_STRATEGY = {
 
 const MAP_LAYER_STRATEGIES = {
   guestPortal: {
-    routes: 'wms',
+    routes: 'wfs',
     attractions: 'wms',
     zones: 'off',
   },
