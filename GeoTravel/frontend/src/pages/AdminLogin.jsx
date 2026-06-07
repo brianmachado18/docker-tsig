@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import AdminLoginForm from '../components/auth/AdminLoginForm';
+import AdminLoginForm from '@/features/auth/AdminLoginForm';
 
 const AdminLogin = () => {
   return (

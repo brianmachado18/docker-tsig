@@ -12,5 +12,7 @@ This directory contains project documentation, agent support material, and imple
 | File | Purpose |
 |---|---|
 | `INDEX.md` | Quick documentation index |
+| `../.github/agents/openlayers-geoserver-specialist.agent.md` | Specialized OpenLayers/GeoServer map interaction agent |
+| `geoserver-configuration.md` | GeoServer workspace, datastore, layers and validation commands |
 | `documentation-guide.md` | Documentation usage guide |
 | `backlog.md` | Documentation backlog and pending cleanup |

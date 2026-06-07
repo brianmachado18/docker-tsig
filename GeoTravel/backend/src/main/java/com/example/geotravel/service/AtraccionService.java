@@ -21,11 +21,13 @@ public class AtraccionService {
     @Autowired
     private ZonaService zonaService;
 
-    public void alta(DTAtraccion dtAtraccion){
+    public void alta(DTAtraccion dtAtraccion) throws Exception{
+        validarAtraccion(dtAtraccion);
         atraccionRepository.save(dtoToObj(dtAtraccion));
     }
 
-    public void actualizar(DTAtraccion dtAtraccion){
+    public void actualizar(DTAtraccion dtAtraccion) throws Exception{
+        validarAtraccion(dtAtraccion);
         atraccionRepository.save(dtoToObj(dtAtraccion));
     }
 
@@ -79,6 +81,23 @@ public class AtraccionService {
         dtAtraccion.setFotoUrl(atraccion.getFotoUrl());
         dtAtraccion.setGeomWkt(atraccion.getGeomWkt().toString());
         return dtAtraccion;
+    }
+
+    public void validarAtraccion(DTAtraccion dtAtraccion) throws Exception{
+        if (dtAtraccion.getNombre() == null || dtAtraccion.getNombre().trim().isEmpty())
+            throw new Exception("Nombre requerido.");
+        if (dtAtraccion.getClasificacion() == null)
+            throw new Exception("Clasificacion requerida.");
+        if (dtAtraccion.getDescripcion() == null || dtAtraccion.getDescripcion().trim().isEmpty())
+            throw new Exception("Descripcion requerida.");
+        if (dtAtraccion.getGeomWkt() == null || dtAtraccion.getGeomWkt().trim().isEmpty())
+            throw new Exception("Punto requerido.");
+        try {
+            WKTReader reader = new WKTReader();
+            Point p = (Point)reader.read(dtAtraccion.getGeomWkt());
+        } catch(ParseException e) {
+            throw new Exception("Punto invalido.");
+        }
     }
 
 }

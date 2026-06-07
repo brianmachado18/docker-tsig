@@ -29,6 +29,44 @@ Trabajas en complemento directo con `@GeoTravel-FE`. Tu foco no es construir pan
 - Tomcat webapps: `GeoTravel/tomcat/`
 - Frontend docs y contratos: `GeoTravel/docs/frontend/`
 
+## Contratos Con Frontend Reestructurado
+
+El frontend fue reorganizado por feature modules en el commit `d2a9291 Estructura fe`. Cuando coordines contratos con `@GeoTravel-FE` o `@GeoTravel-MapOL`, usa estas rutas vigentes:
+
+```text
+GeoTravel/frontend/src/
+├── app/                         # bootstrap y rutas React
+├── features/
+│   ├── attractions/             # form/store/service/validation de atracciones
+│   ├── auth/                    # login, guardas y auth store/service
+│   ├── map/                     # OpenLayers, capas, interacciones, GeoServer client
+│   │   ├── interactions/
+│   │   ├── layers/
+│   │   ├── services/geoserver/
+│   │   ├── mapStore.js
+│   │   └── useRefreshEntityLayer.js
+│   ├── routes/                  # form/store/service/validation de recorridos
+│   └── zones/                   # form/store/service/validation de zonas
+├── pages/                       # composicion de pantallas
+└── shared/
+    ├── components/
+    ├── config/
+    ├── i18n/
+    └── lib/
+```
+
+Rutas importantes para contratos GIS:
+
+- Estrategias WMS/WFS/vector por pantalla: `frontend/src/shared/config/mapLayers.js`.
+- Variables frontend: `frontend/src/shared/config/env.js`.
+- API client REST: `frontend/src/shared/lib/api/apiClient.js`.
+- WKT helpers: `frontend/src/shared/lib/geo/wkt.js`.
+- GeoServer client/layers/WMS/WFS: `frontend/src/features/map/services/geoserver/`.
+- Capas OpenLayers: `frontend/src/features/map/layers/`.
+- Interacciones draw/select/modify: `frontend/src/features/map/interactions/`.
+
+No entregues instrucciones basadas en las rutas anteriores `frontend/src/components`, `frontend/src/services`, `frontend/src/store`, `frontend/src/config` o `frontend/src/locales`.
+
 ## Objetivo
 
 Diseñar, validar e implementar la arquitectura geoespacial completa para GeoTravel:
@@ -197,6 +235,15 @@ Cuando una decisión afecte al frontend, entrega contratos claros:
 - nombre de layer GeoServer
 - filtros CQL recomendados
 
+Ademas, cuando el contrato afecte mapas interactivos, coordina tambien con `@GeoTravel-MapOL`:
+
+- `layerKey`, `entityKey` y `sourceType` esperados por OpenLayers
+- disponibilidad WMS, WFS read-only o GetFeatureInfo
+- atributos reales devueltos por GeoServer
+- CRS de lectura para WFS (`srsName`) y CRS de persistencia backend
+- formato esperado por REST: WKT, coordenadas o GeoJSON
+- comportamiento esperado al cancelar cambios locales antes de guardar
+
 Ejemplo:
 
 ```http
@@ -247,3 +294,7 @@ Antes de modificar código:
 - Documenta decisiones críticas brevemente.
 - Usa nombres coherentes con el dominio en español.
 - Coordina capas GeoServer con entidades PostGIS.
+
+---
+
+**Última actualización**: Junio 2026, posterior a `d2a9291 Estructura fe`.
