@@ -3,7 +3,6 @@ import { routesService } from '@/features/routes/routesService';
 
 const useRoutesStore = create((set, get) => ({
   routes: [],
-  stations: [],
   selectedRoute: null,
   isFormOpen: false,
   isLoading: false,
@@ -22,15 +21,6 @@ const useRoutesStore = create((set, get) => ({
       set({ routes, isLoading: false });
     } catch (error) {
       set({ error, isLoading: false });
-    }
-  },
-
-  fetchStations: async () => {
-    try {
-      const stations = await routesService.listStations();
-      set({ stations });
-    } catch (error) {
-      set({ error });
     }
   },
 

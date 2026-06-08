@@ -96,8 +96,8 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
   };
 
   return (
-    <aside className="absolute top-0 right-0 h-full w-[380px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col">
-      <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-bright shrink-0">
         <h3 className="font-headline-lg text-headline-lg text-on-surface">
           {attraction?.id ? t('attractions.edit') : t('attractions.addNew')}
         </h3>
@@ -106,11 +106,11 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
           className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container transition-colors"
           type="button"
         >
-          <span className="material-symbols-outlined">chevron_right</span>
+          <span className="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <form className="p-6 flex-grow overflow-y-auto flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form className="p-6 flex-1 min-h-0 overflow-y-auto flex flex-col gap-4" onSubmit={handleSubmit}>
         <label className="flex flex-col gap-1">
           <span className="font-label-md text-label-md text-on-surface-variant">{t('attractions.name')}</span>
           <input
@@ -188,7 +188,7 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
           </div>
         </div>
       </form>
-    </aside>
+    </div>
   );
 };
 

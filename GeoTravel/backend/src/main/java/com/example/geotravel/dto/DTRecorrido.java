@@ -11,7 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class DTRecorrido {
     private Long idRecorrido;
-    private Long idEstacion;
+    private Integer mesInicio;
+    private Integer mesFin;
     private String nombre;
     private String descripcion;
     private int duracionEstimada;

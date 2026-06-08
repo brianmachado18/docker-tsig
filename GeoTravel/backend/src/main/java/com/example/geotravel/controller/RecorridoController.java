@@ -1,6 +1,7 @@
 package com.example.geotravel.controller;
 
 import com.example.geotravel.dto.DTRecorrido;
+import com.example.geotravel.enums.Estado;
 import com.example.geotravel.service.RecorridoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,16 @@ public class RecorridoController {
             return ResponseEntity.ok().body(recorridoService.obtenerPorId(id));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PutMapping("/cambiarEstado")
+    public ResponseEntity<String> cambiarEstado(@RequestParam Long idRecorrido, @RequestParam Estado estado){
+        try{
+            recorridoService.cambiarEstado(idRecorrido, estado);
+            return ResponseEntity.ok().body("Estado actualizado.");
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

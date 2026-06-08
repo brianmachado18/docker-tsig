@@ -63,7 +63,8 @@ const experienceToBackend = (type) => {
 
 const normalizeRoute = (route) => ({
   id: route.id ?? route.idRecorrido,
-  stationId: route.stationId ?? route.idEstacion ?? null,
+  mesInicio: route.mesInicio ?? null,
+  mesFin: route.mesFin ?? null,
   name: route.name ?? route.nombre ?? '',
   description: route.description ?? route.descripcion ?? '',
   durationHours: route.durationHours ?? route.duracionEstimada ?? 0,
@@ -79,7 +80,8 @@ const normalizeRoute = (route) => ({
 
 const toDto = (route) => ({
   idRecorrido: route.id ?? null,
-  idEstacion: Number(route.stationId),
+  mesInicio: Number(route.mesInicio),
+  mesFin: Number(route.mesFin),
   nombre: String(route.name || '').trim(),
   descripcion: String(route.description || '').trim(),
   duracionEstimada: Number(route.durationHours),
@@ -99,11 +101,6 @@ export const routesService = {
     return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
   },
 
-  async listStations() {
-    const stations = await apiClient.get('/estacion/buscar/todos');
-    return Array.isArray(stations) ? stations : [];
-  },
-
   async save(route) {
     const dto = toDto(route);
     if (route.id) {
@@ -115,7 +112,23 @@ export const routesService = {
   },
 
   async remove(routeId) {
-    // El backend elimina primero las relaciones recorrido-atraccion.
     return apiClient.delete(`/recorrido/eliminar?idRecorrido=${routeId}`);
+  },
+
+  async changeStatus(routeId, status) {
+    const backendStatus = statusToBackend(status);
+    await apiClient.put(`/recorrido/cambiarEstado?idRecorrido=${routeId}&estado=${backendStatus}`);
+  },
+
+  async getHistory(routeId) {
+    const entries = await apiClient.get(`/historico/buscar/porRecorrido?idRecorrido=${routeId}`);
+    if (!Array.isArray(entries)) return [];
+    return entries
+      .map((e) => ({
+        id: e.idHistorico,
+        status: statusFromBackend(e.estado),
+        date: e.fechaCambio,
+      }))
+      .reverse();
   },
 };

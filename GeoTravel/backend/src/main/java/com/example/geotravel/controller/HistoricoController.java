@@ -72,4 +72,13 @@ public class HistoricoController {
         }
     }
 
+    @GetMapping("/buscar/porRecorrido")
+    public ResponseEntity<List<DTHistorico>> obtenerPorRecorrido(@RequestParam Long idRecorrido){
+        try{
+            return ResponseEntity.ok().body(historicoService.obtenerPorRecorrido(idRecorrido));
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+    }
+
 }

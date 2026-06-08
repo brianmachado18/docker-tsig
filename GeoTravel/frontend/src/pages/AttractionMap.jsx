@@ -3,9 +3,11 @@ import AttractionForm from '@/features/attractions/AttractionForm';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
 import MapControls from '@/features/map/MapControls';
+import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import AttractionMapInteractions from '@/features/map/interactions/AttractionMapInteractions';
 import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import Modal from '@/shared/components/Modal';
 import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
@@ -23,6 +25,7 @@ const AttractionMap = () => {
     fetchAttractions,
     isFormOpen,
     selectedAttraction,
+    closeForm,
   } = useAttractionsStore();
 
   useEffect(() => {
@@ -40,13 +43,14 @@ const AttractionMap = () => {
         <MapCanvas screenId="attractionMap" attractions={attractions} />
         <AttractionMapInteractions attractions={attractions} />
         <MapControls drawIcon="add_location_alt" drawLabelKey="map.placeAttraction" />
-        {isFormOpen && (
+        <MapFeaturePopup />
+        <Modal isOpen={isFormOpen} onClose={closeForm}>
           <AttractionForm
             attraction={selectedAttraction}
             onSaved={refreshAttractionLayer}
             onDeleted={refreshAttractionLayer}
           />
-        )}
+        </Modal>
       </main>
     </div>
   );

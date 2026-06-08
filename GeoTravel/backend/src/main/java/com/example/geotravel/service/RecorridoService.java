@@ -1,6 +1,7 @@
 package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
+import com.example.geotravel.enums.Estado;
 import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.RecorridoAtracciones;
@@ -26,9 +27,6 @@ public class RecorridoService {
     private RecorridoRepository recorridoRepository;
 
     @Autowired
-    private EstacionService estacionService;
-
-    @Autowired
     private ZonaRepository zonaRepository;
 
     @Autowired
@@ -37,25 +35,34 @@ public class RecorridoService {
     @Autowired
     private RecorridoAtraccionesRepository recorridoAtraccionesRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public void alta(DTRecorrido dtRecorrido) throws Exception{
-        validarRecorrido(dtRecorrido); // Validar los datos del recorrido
-        validarAtracciones(dtRecorrido.getAtracciones()); // Validar las atracciones relacionadas
-        Recorrido r = recorridoRepository.save(dtoToObj(dtRecorrido)); //Guardar el recorrido
+        validarRecorrido(dtRecorrido);
+        validarAtracciones(dtRecorrido.getAtracciones());
+        Recorrido r = recorridoRepository.save(dtoToObj(dtRecorrido));
         int cont = 1;
-        for (Long idAtraccion : dtRecorrido.getAtracciones()){ //Guardar las relaciones recorrido-atraccion
+        for (Long idAtraccion : dtRecorrido.getAtracciones()){
             RecorridoAtracciones recorridoAtracciones = new RecorridoAtracciones();
             recorridoAtracciones.setRecorrido(r);
             recorridoAtracciones.setAtraccion(atraccionRepository.findByIdAtraccion(idAtraccion));
             recorridoAtracciones.setOrden(cont++);
             recorridoAtraccionesRepository.save(recorridoAtracciones);
         }
+        historicoService.registrarCambioEstado(r, r.getEstado());
     }
 
     public void actualizar(DTRecorrido dtRecorrido) throws Exception{
         validarRecorrido(dtRecorrido);
         validarAtracciones(dtRecorrido.getAtracciones());
+        Recorrido anterior = recorridoRepository.findByIdRecorrido(dtRecorrido.getIdRecorrido());
+        Estado estadoAnterior = anterior != null ? anterior.getEstado() : null;
         Recorrido r = dtoToObj(dtRecorrido);
         recorridoRepository.save(r);
+        if (estadoAnterior != null && dtRecorrido.getEstado() != null && !dtRecorrido.getEstado().equals(estadoAnterior)) {
+            historicoService.registrarCambioEstado(r, r.getEstado());
+        }
         List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r);
         int cont = 1;
         for (Long idAtraccion : dtRecorrido.getAtracciones()){
@@ -82,11 +89,23 @@ public class RecorridoService {
     }
 
     public void eliminar(Long idRecorrido){
-        Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido); // Obtener recorrido
-        List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r); // Obtener lista recorrido-atracciones
-        for (RecorridoAtracciones ra : recorridoAtraccionesList) // Eliminar todos los recorrido-atracciones
+        Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido);
+        // Eliminar historicos primero (FK constraint)
+        historicoService.eliminarPorRecorrido(idRecorrido);
+        // Eliminar relaciones recorrido-atraccion
+        List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r);
+        for (RecorridoAtracciones ra : recorridoAtraccionesList)
             recorridoAtraccionesRepository.delete(ra);
-        recorridoRepository.delete(r); // Elimianr recorriod
+        recorridoRepository.delete(r);
+    }
+
+    public void cambiarEstado(Long idRecorrido, Estado nuevoEstado) throws Exception{
+        Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido);
+        if (r == null) throw new Exception("Recorrido no encontrado.");
+        if (nuevoEstado.equals(r.getEstado())) return;
+        r.setEstado(nuevoEstado);
+        recorridoRepository.save(r);
+        historicoService.registrarCambioEstado(r, nuevoEstado);
     }
 
     public Boolean existe(Long idRecorrido){
@@ -114,7 +133,8 @@ public class RecorridoService {
     public Recorrido dtoToObj(DTRecorrido dtRecorrido){
         Recorrido recorrido = new Recorrido();
         recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
-        recorrido.setEstacion(estacionService.obtenerPorId(dtRecorrido.getIdEstacion()));
+        recorrido.setMesInicio(dtRecorrido.getMesInicio());
+        recorrido.setMesFin(dtRecorrido.getMesFin());
         recorrido.setNombre(dtRecorrido.getNombre());
         recorrido.setDescripcion(dtRecorrido.getDescripcion());
         recorrido.setDuracionEstimada(dtRecorrido.getDuracionEstimada());
@@ -146,7 +166,8 @@ public class RecorridoService {
     public DTRecorrido objToDto(Recorrido recorrido){
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
-        dtRecorrido.setIdEstacion(recorrido.getEstacion().getIdEstacion());
+        dtRecorrido.setMesInicio(recorrido.getMesInicio());
+        dtRecorrido.setMesFin(recorrido.getMesFin());
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
@@ -183,8 +204,10 @@ public class RecorridoService {
             throw new Exception("Duracion requerida.");
         if (dtRecorrido.getGuiaResponsable() == null || dtRecorrido.getGuiaResponsable().trim().isEmpty())
             throw new Exception("Guia responsable requerido.");
-        if (dtRecorrido.getIdEstacion() == null || dtRecorrido.getIdEstacion() <= 0)
-            throw new Exception("Estacion invalida.");
+        if (dtRecorrido.getMesInicio() == null || dtRecorrido.getMesInicio() < 1 || dtRecorrido.getMesInicio() > 12)
+            throw new Exception("Mes de inicio inválido.");
+        if (dtRecorrido.getMesFin() == null || dtRecorrido.getMesFin() < 1 || dtRecorrido.getMesFin() > 12)
+            throw new Exception("Mes de fin inválido.");
         if (dtRecorrido.getTipoExperiencia() == null)
             throw new Exception("Experiencia requerida.");
         if (dtRecorrido.getEstado() == null)

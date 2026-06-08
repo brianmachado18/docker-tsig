@@ -6,6 +6,7 @@ import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import ZoneForm from '@/features/zones/ZoneForm';
 import useZonesStore from '@/features/zones/zonesStore';
+import Modal from '@/shared/components/Modal';
 import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 
@@ -32,14 +33,14 @@ const ZoneManagement = () => {
         <ZoneMapInteractions />
         <MapControls />
 
-        {isFormOpen && (
+        <Modal isOpen={isFormOpen} onClose={closeForm}>
           <ZoneForm
             zone={selectedZone}
             onClose={closeForm}
             onSaved={refreshZoneLayers}
             onDeleted={refreshZoneLayers}
           />
-        )}
+        </Modal>
       </main>
     </div>
   );
