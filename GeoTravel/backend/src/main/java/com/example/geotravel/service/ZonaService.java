@@ -25,12 +25,14 @@ public class ZonaService {
 
     public void alta(DTZona dtZona) throws Exception{
         validarZona(dtZona);
+        validarInterseccion(dtZona.getGeomWkt());
         zonaRepository.save(dtoToObj(dtZona));
     }
 
     public void actualizar(DTZona dtZona) throws Exception{
         existeZona(dtZona.getIdZona());
         validarZona(dtZona);
+        validarInterseccion(dtZona.getGeomWkt());
         zonaRepository.save(dtoToObj(dtZona));
     }
 
@@ -129,6 +131,12 @@ public class ZonaService {
     public void validarUsoEnRecorrido(Zona z) throws Exception{
         if (recorridoRepository.existsByZonas(z))
             throw new Exception("Zona presente en recorrido.");
+    }
+
+    public void validarInterseccion(String geomWkt) throws Exception{
+        if (zonaRepository.countInterseccion(geomWkt) > 0){
+            throw new Exception("Una zona no puede superponerse con otra.");
+        }
     }
 
 }

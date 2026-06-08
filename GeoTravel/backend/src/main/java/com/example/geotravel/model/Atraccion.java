@@ -21,6 +21,6 @@ public class Atraccion {
     private Clasificacion clasificacion;
     private String fotoUrl;
 
-    @Column(columnDefinition = "geography(Point,4326)")
+    @Column(columnDefinition = "geometry(Point,4326)")
     private Point geomWkt;
 }
