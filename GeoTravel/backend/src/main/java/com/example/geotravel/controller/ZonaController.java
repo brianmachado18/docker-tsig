@@ -29,12 +29,8 @@ public class ZonaController {
     @PutMapping("/actualizar")
     public ResponseEntity<String> actualizarZona(@RequestBody DTZona dtZona){
         try{
-            if (zonaService.existe(dtZona.getIdZona())){
-                zonaService.actualizar(dtZona);
-                return ResponseEntity.ok().body("Actualizacion completada.");
-            } else {
-                return ResponseEntity.ok().body("Zona no encontrada.");
-            }
+            zonaService.actualizar(dtZona);
+            return ResponseEntity.ok().body("Actualizacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -43,12 +39,8 @@ public class ZonaController {
     @DeleteMapping("/eliminar")
     public ResponseEntity<String> eliminarZona(@RequestParam Long idZona){
         try{
-            if (zonaService.existe(idZona)){
-                zonaService.eliminar(idZona);
-                return ResponseEntity.ok().body("Eliminacion completada.");
-            } else {
-                return ResponseEntity.ok().body("Zona no encontrada.");
-            }
+            zonaService.eliminar(idZona);
+            return ResponseEntity.ok().body("Eliminacion completada.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }

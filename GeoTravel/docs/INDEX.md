@@ -5,9 +5,12 @@ This index points to the current documentation layout. Prefer these paths over l
 | Need | Read |
 |---|---|
 | Agent selection | `AGENTS.md` |
+| OpenLayers/GeoServer agent | `.github/agents/openlayers-geoserver-specialist.agent.md` |
 | Project requirements | `docs/spec/TSIG-2026-Letra.md` |
+| Project technical wiki | `docs/project-technical-wiki.md` |
 | Frontend architecture | `docs/frontend/architecture.md` |
 | GeoServer/OpenLayers flow | `docs/frontend/geoserver-openlayers-flow.md` |
+| GeoServer runtime configuration | `docs/geoserver-configuration.md` |
 | Frontend design system | `docs/frontend/design-system.md` |
 | API/GIS integration contracts | `docs/frontend/integration-contracts.md` |
 | Frontend skills | `docs/skills/frontend/` |

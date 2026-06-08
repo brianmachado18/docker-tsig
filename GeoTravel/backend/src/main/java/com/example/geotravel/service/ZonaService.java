@@ -23,16 +23,24 @@ public class ZonaService {
     @Autowired
     private RecorridoRepository recorridoRepository;
 
-    public void alta(DTZona dtZona){
+    public void alta(DTZona dtZona) throws Exception{
+        validarZona(dtZona);
+        validarInterseccion(dtZona.getGeomWkt());
         zonaRepository.save(dtoToObj(dtZona));
     }
 
-    public void actualizar(DTZona dtZona){
+    public void actualizar(DTZona dtZona) throws Exception{
+        existeZona(dtZona.getIdZona());
+        validarZona(dtZona);
+        validarInterseccion(dtZona.getGeomWkt());
         zonaRepository.save(dtoToObj(dtZona));
     }
 
-    public void eliminar(Long idZona){
-        zonaRepository.delete(zonaRepository.findByIdZona(idZona));
+    public void eliminar(Long idZona) throws Exception{
+        existeZona(idZona);
+        Zona z = zonaRepository.findByIdZona(idZona);
+        validarUsoEnRecorrido(z);
+        zonaRepository.delete(z);
     }
 
     public Boolean existe(Long idZona){
@@ -94,6 +102,41 @@ public class ZonaService {
         dtZona.setRecorridos(new ArrayList<>());
         dtZona.setGeomWkt(zona.getGeomWkt().toString());
         return dtZona;
+    }
+
+    public void existeZona(Long idZona) throws Exception{
+        if (!zonaRepository.existsByIdZona(idZona))
+            throw new Exception("Zona no encontrada.");
+    }
+
+    public void validarZona(DTZona dtZona) throws Exception{
+        if (dtZona.getNombre() == null || dtZona.getNombre().trim().isEmpty())
+            throw new Exception("Nombre requerido.");
+        if (dtZona.getDescripcion() == null || dtZona.getDescripcion().trim().isEmpty())
+            throw new Exception("Descripcion requerida.");
+        if (dtZona.getNivelAtractivo()  <= 0)
+            throw new Exception("Nivel de atractivo requerido.");
+        if (dtZona.getObservaciones() == null || dtZona.getObservaciones().trim().isEmpty())
+            throw new Exception("Observaciones requeridas.");
+        if (dtZona.getGeomWkt() == null || dtZona.getGeomWkt().trim().isEmpty())
+            throw new Exception("Poligono requerido.");
+        try {
+            WKTReader reader = new WKTReader();
+            Polygon p = (Polygon) reader.read(dtZona.getGeomWkt());
+        } catch(ParseException e) {
+            throw new Exception("Poligono invalido.");
+        }
+    }
+
+    public void validarUsoEnRecorrido(Zona z) throws Exception{
+        if (recorridoRepository.existsByZonas(z))
+            throw new Exception("Zona presente en recorrido.");
+    }
+
+    public void validarInterseccion(String geomWkt) throws Exception{
+        if (zonaRepository.countInterseccion(geomWkt) > 0){
+            throw new Exception("Una zona no puede superponerse con otra.");
+        }
     }
 
 }

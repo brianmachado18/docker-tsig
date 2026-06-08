@@ -72,6 +72,30 @@ Frontend services currently normalize these DTOs to FE view-model fields (e.g. `
 - WFS template:
   - `/geoserver/{workspace}/ows?service=WFS&version=2.0.0&request=GetFeature&typeName={workspace}:{layer}&outputFormat=application/json`
 
+## Map Render Strategy by Screen
+
+- `guestPortal`
+  - `routes: wms`
+  - `attractions: wms`
+- `zoneManagement`
+  - `zones: wms`
+- `routePlanner`
+  - `routes: wms`
+
+REST services remain active for ABM/list/form workflows:
+
+- `GET /zona/buscar/todos`
+- `GET /recorrido/buscar/todos`
+- `GET /atraccion/buscar/todos`
+
+Those REST responses are not the primary map render source when a WMS layer exists for the same entity.
+
+## GeoServer Write Policy
+
+- WMS is the default render channel for published layers.
+- WFS, if used, is read-only for inspection/identification.
+- WFS-T is not allowed.
+
 ## Migration Notes (Post-Merge)
 
 - `VITE_USE_MOCKS=false` uses live API for list flows (zonas, atracciones, recorridos).

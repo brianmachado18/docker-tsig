@@ -62,7 +62,7 @@ services:
       VITE_API_URL: ${VITE_API_URL:-/tsig-backend}
       VITE_GEOSERVER_URL: ${VITE_GEOSERVER_URL:-/geoserver}
       VITE_GEOSERVER_WORKSPACE: ${VITE_GEOSERVER_WORKSPACE:-geotravel}
-      VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
+      # VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
       VITE_API_PROXY_TARGET: ${VITE_API_PROXY_TARGET:-http://tomcat:8080}
       VITE_GEOSERVER_PROXY_TARGET: ${VITE_GEOSERVER_PROXY_TARGET:-http://geoserver:8080}
     working_dir: /app

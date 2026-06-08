@@ -3,6 +3,7 @@ package com.example.geotravel.service;
 import com.example.geotravel.dto.DTAtraccion;
 import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.repository.AtraccionRepository;
+import com.example.geotravel.repository.RecorridoAtraccionesRepository;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -21,20 +22,25 @@ public class AtraccionService {
     @Autowired
     private ZonaService zonaService;
 
-    public void alta(DTAtraccion dtAtraccion){
+    @Autowired
+    private RecorridoAtraccionesRepository recorridoAtraccionesRepository;
+
+    public void alta(DTAtraccion dtAtraccion) throws Exception{
+        validarAtraccion(dtAtraccion);
         atraccionRepository.save(dtoToObj(dtAtraccion));
     }
 
-    public void actualizar(DTAtraccion dtAtraccion){
+    public void actualizar(DTAtraccion dtAtraccion) throws Exception{
+        existeAtraccion(dtAtraccion.getIdAtraccion());
+        validarAtraccion(dtAtraccion);
         atraccionRepository.save(dtoToObj(dtAtraccion));
     }
 
-    public void eliminar(Long idAtraccion){
-        atraccionRepository.delete(atraccionRepository.findByIdAtraccion(idAtraccion));
-    }
-
-    public Boolean existe(Long idAtraccion){
-        return atraccionRepository.existsByIdAtraccion(idAtraccion);
+    public void eliminar(Long idAtraccion) throws Exception{
+        existeAtraccion(idAtraccion);
+        Atraccion a = atraccionRepository.findByIdAtraccion(idAtraccion);
+        validarUsoEnRecorrido(a);
+        atraccionRepository.delete(a);
     }
 
     public List<DTAtraccion> obtenerTodos(){
@@ -79,6 +85,33 @@ public class AtraccionService {
         dtAtraccion.setFotoUrl(atraccion.getFotoUrl());
         dtAtraccion.setGeomWkt(atraccion.getGeomWkt().toString());
         return dtAtraccion;
+    }
+
+    public void existeAtraccion(Long idAtraccion) throws Exception{
+        if (!atraccionRepository.existsByIdAtraccion(idAtraccion))
+            throw new Exception("Atraccion no encontrada.");
+    }
+
+    public void validarAtraccion(DTAtraccion dtAtraccion) throws Exception{
+        if (dtAtraccion.getNombre() == null || dtAtraccion.getNombre().trim().isEmpty())
+            throw new Exception("Nombre requerido.");
+        if (dtAtraccion.getClasificacion() == null)
+            throw new Exception("Clasificacion requerida.");
+        if (dtAtraccion.getDescripcion() == null || dtAtraccion.getDescripcion().trim().isEmpty())
+            throw new Exception("Descripcion requerida.");
+        if (dtAtraccion.getGeomWkt() == null || dtAtraccion.getGeomWkt().trim().isEmpty())
+            throw new Exception("Punto requerido.");
+        try {
+            WKTReader reader = new WKTReader();
+            Point p = (Point)reader.read(dtAtraccion.getGeomWkt());
+        } catch(ParseException e) {
+            throw new Exception("Punto invalido.");
+        }
+    }
+
+    public void validarUsoEnRecorrido(Atraccion a) throws Exception{
+        if (recorridoAtraccionesRepository.existsByAtraccion(a))
+            throw new Exception("Atraccion presente en recorrido.");
     }
 
 }

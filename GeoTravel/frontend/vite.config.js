@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import path from 'node:path'
 
 export default defineConfig(() => {
   const apiProxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://tomcat:8080'
@@ -11,6 +12,11 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
     ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
+    },
     server: {
       proxy: {
         '/tsig-backend': {

@@ -22,16 +22,14 @@ public class HistoricoService {
         historicoRepository.save(dtoToObj(dtHistorico));
     }
 
-    public void actualizar(DTHistorico dtHistorico){
+    public void actualizar(DTHistorico dtHistorico) throws Exception{
+        existeHistorico(dtHistorico.getIdHistorico());
         historicoRepository.save(dtoToObj(dtHistorico));
     }
 
-    public void eliminar(Long idHistorico){
+    public void eliminar(Long idHistorico)throws Exception{
+        existeHistorico(idHistorico);
         historicoRepository.delete(historicoRepository.findByIdHistorico(idHistorico));
-    }
-
-    public Boolean existe(Long idHistorico){
-        return historicoRepository.existsByIdHistorico(idHistorico);
     }
 
     public List<DTHistorico> obtenerTodos(){
@@ -62,6 +60,11 @@ public class HistoricoService {
         dtHistorico.setFechaCambio(historico.getFechaCambio());
         dtHistorico.setEstado(historico.getEstado());
         return dtHistorico;
+    }
+
+    public void existeHistorico(Long idHistorico) throws Exception{
+        if (!historicoRepository.existsByIdHistorico(idHistorico))
+            throw new Exception("Historico no encontrado.");
     }
 
 }

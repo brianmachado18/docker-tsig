@@ -1,225 +1,29 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import MapCanvas from '../components/map/MapCanvas';
-import MapControls from '../components/map/MapControls';
-import TopAppBar from '../components/common/TopAppBar';
-import useLangStore from '../store/langStore';
-import { fetchFeatures } from '../services/geoserver';
-import { parseLineStringWkt, parsePointWkt, toPointWkt } from '../services/wkt';
-
-const normalizeKey = (key) => String(key).toLowerCase().replace(/[_-]/g, '');
-
-const getFeatureProperty = (properties = {}, ...keys) => {
-  for (const key of keys) {
-    if (Object.prototype.hasOwnProperty.call(properties, key) && properties[key] != null) {
-      return properties[key];
-    }
-  }
-
-  const normalizedProperties = Object.entries(properties).reduce((result, [key, value]) => {
-    result[normalizeKey(key)] = value;
-    return result;
-  }, {});
-
-  for (const key of keys) {
-    const value = normalizedProperties[normalizeKey(key)];
-    if (value != null) {
-      return value;
-    }
-  }
-
-  return undefined;
-};
-
-const toMaybeNumber = (value) => {
-  if (value === undefined || value === null || value === '') {
-    return null;
-  }
-
-  const numberValue = Number(value);
-  return Number.isNaN(numberValue) ? value : numberValue;
-};
-
-const getFeatureId = (featureId, properties, ...propertyKeys) => {
-  const propertyId = getFeatureProperty(properties, ...propertyKeys, 'id', 'gid');
-  if (propertyId != null) {
-    return toMaybeNumber(propertyId);
-  }
-
-  if (typeof featureId === 'string') {
-    const numericSuffix = featureId.match(/(?:\.|_)(\d+)$/);
-    return numericSuffix ? Number(numericSuffix[1]) : featureId;
-  }
-
-  return featureId;
-};
-
-const toIdArray = (value) => {
-  if (Array.isArray(value)) {
-    return value.map(toMaybeNumber).filter((item) => item != null);
-  }
-
-  if (typeof value === 'string') {
-    return value
-      .split(',')
-      .map((item) => toMaybeNumber(item.trim()))
-      .filter((item) => item != null);
-  }
-
-  const id = toMaybeNumber(value);
-  return id == null ? [] : [id];
-};
-
-const statusFromGeoServer = (status) => {
-  const normalized = String(status || '').trim();
-  if (['available', 'pending', 'off-season', 'cancelled'].includes(normalized)) {
-    return normalized;
-  }
-
-  switch (normalized.toUpperCase()) {
-    case 'FUERA_DE_ESTACION':
-      return 'off-season';
-    case 'PENDIENTE':
-      return 'pending';
-    case 'CANCELADO':
-      return 'cancelled';
-    default:
-      return 'available';
-  }
-};
-
-const experienceFromGeoServer = (type) => {
-  const normalized = String(type || '').trim();
-  if (['cultural', 'gastronomic', 'natural', 'historical', 'adventure', 'other'].includes(normalized)) {
-    return normalized;
-  }
-
-  switch (normalized.toUpperCase()) {
-    case 'GASTRONOMICO':
-      return 'gastronomic';
-    case 'NATURAL':
-      return 'natural';
-    case 'HITORICA':
-    case 'HISTORICA':
-      return 'historical';
-    case 'AVENTURA':
-      return 'adventure';
-    case 'OTRO':
-      return 'other';
-    default:
-      return 'cultural';
-  }
-};
-
-const lineStringToWkt = (geometry) => {
-  if (!geometry || geometry.type !== 'LineString' || !Array.isArray(geometry.coordinates)) {
-    return '';
-  }
-
-  const coordinates = geometry.coordinates
-    .map((coordinate) => `${coordinate[0]} ${coordinate[1]}`)
-    .join(', ');
-
-  return `LINESTRING(${coordinates})`;
-};
-
-const getPointCoordinates = (geometry, geomWkt) => {
-  if (geometry?.type === 'Point' && Array.isArray(geometry.coordinates)) {
-    return geometry.coordinates;
-  }
-
-  return parsePointWkt(geomWkt);
-};
-
-const mapGeoServerRoute = (feature) => {
-  const properties = feature.properties || {};
-  const geomWkt = getFeatureProperty(properties, 'geomWkt', 'geom_wkt') || lineStringToWkt(feature.geometry);
-  const stationId = getFeatureProperty(properties, 'stationId', 'idEstacion', 'id_estacion');
-  const zoneIds = getFeatureProperty(properties, 'zoneIds', 'zonas');
-  const attractionIds = getFeatureProperty(properties, 'attractionIds', 'atracciones');
-
-  return {
-    id: getFeatureId(feature.id, properties, 'idRecorrido', 'id_recorrido'),
-    stationId: toMaybeNumber(stationId),
-    name: getFeatureProperty(properties, 'name', 'nombre') || '',
-    description: getFeatureProperty(properties, 'description', 'descripcion') || '',
-    durationHours: Number(getFeatureProperty(properties, 'durationHours', 'duracionEstimada', 'duracion_estimada')) || 0,
-    guide: getFeatureProperty(properties, 'guide', 'guiaResponsable', 'guia_responsable') || '',
-    experienceType: experienceFromGeoServer(
-      getFeatureProperty(properties, 'experienceType', 'tipoExperiencia', 'tipo_experiencia')
-    ),
-    status: statusFromGeoServer(getFeatureProperty(properties, 'status', 'estado')),
-    geomWkt,
-    geometry: feature.geometry || parseLineStringWkt(geomWkt),
-    zoneIds: toIdArray(zoneIds),
-    attractionIds: toIdArray(attractionIds),
-  };
-};
-
-const mapGeoServerAttraction = (feature) => {
-  const properties = feature.properties || {};
-  const geomWkt = getFeatureProperty(properties, 'geomWkt', 'geom_wkt') || '';
-  const coordinates = getPointCoordinates(feature.geometry, geomWkt);
-
-  return {
-    id: getFeatureId(feature.id, properties, 'idAtraccion', 'id_atraccion'),
-    title: getFeatureProperty(properties, 'title', 'name', 'nombre') || '',
-    description: getFeatureProperty(properties, 'description', 'descripcion') || '',
-    category: getFeatureProperty(properties, 'category', 'clasificacion') || 'OTRO',
-    imageUrl: getFeatureProperty(properties, 'imageUrl', 'fotoUrl', 'foto_url') || '',
-    coordinates,
-    longitude: coordinates?.[0] ?? '',
-    latitude: coordinates?.[1] ?? '',
-    geomWkt: geomWkt || (coordinates ? toPointWkt(coordinates[0], coordinates[1]) : ''),
-    status: getFeatureProperty(properties, 'status', 'estado') || 'active',
-  };
-};
+import useAttractionsStore from '@/features/attractions/attractionsStore';
+import MapCanvas from '@/features/map/MapCanvas';
+import useRoutesStore from '@/features/routes/routesStore';
+import TopAppBar from '@/shared/components/TopAppBar';
+import useLangStore from '@/shared/i18n/langStore';
 
 const GuestPortal = () => {
   const { t } = useLangStore();
-  const [attractions, setAttractions] = useState([]);
-  const [routes, setRoutes] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const {
+    attractions,
+    isLoading: isAttractionsLoading,
+    error: attractionsError,
+    fetchAttractions,
+  } = useAttractionsStore();
+  const { routes, isLoading: isRoutesLoading, error: routesError, fetchRoutes } = useRoutesStore();
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [experienceFilter, setExperienceFilter] = useState('all');
 
   useEffect(() => {
-    let isMounted = true;
+    fetchAttractions();
+    fetchRoutes();
+  }, [fetchAttractions, fetchRoutes]);
 
-    const fetchGuestDataFromGeoServer = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const [routeFeatures, attractionFeatures] = await Promise.all([
-          fetchFeatures('routes'),
-          fetchFeatures('attractions'),
-        ]);
-
-        if (isMounted) {
-          setRoutes(routeFeatures.map(mapGeoServerRoute));
-          setAttractions(attractionFeatures.map(mapGeoServerAttraction));
-        }
-      } catch (fetchError) {
-        if (isMounted) {
-          setError(fetchError);
-          setRoutes([]);
-          setAttractions([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchGuestDataFromGeoServer();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
+  const isLoading = isAttractionsLoading || isRoutesLoading;
+  const error = attractionsError || routesError;
 
   const filteredRoutes = useMemo(() => {
     return routes.filter((route) => {
@@ -230,7 +34,26 @@ const GuestPortal = () => {
   }, [routes, availabilityFilter, experienceFilter]);
 
   const featuredRoutes = filteredRoutes//.slice(0, 2);
-  const mapAttractions = attractions//.slice(0, 4);
+  const featuredAttractions = attractions.slice(0, 4);
+
+  const getAttractionCategoryLabel = (category) => {
+    switch (String(category || '').toUpperCase()) {
+      case 'MUSEO':
+      case 'MUSEUM':
+        return t('attractions.museum');
+      case 'PARQUE':
+      case 'PARK':
+        return t('attractions.park');
+      case 'MONUMENTO':
+      case 'MONUMENT':
+        return t('attractions.monument');
+      case 'LANDMARK':
+      case 'PUNTO_DE_REFERENCIA':
+        return t('attractions.landmark');
+      default:
+        return String(category || '').replace(/_/g, ' ') || t('attractions.category');
+    }
+  };
 
   const clearFilters = () => {
     setAvailabilityFilter('all');
@@ -238,21 +61,20 @@ const GuestPortal = () => {
   };
 
   return (
-    <div className="bg-background text-on-surface font-body-md text-body-md overflow-hidden h-screen w-screen flex">
-      <main className="flex-1 relative h-full bg-surface-dim map-pattern">
+    <div className="bg-background text-on-background h-screen overflow-hidden font-body-md flex">
+      <main className="flex-1 relative flex flex-col h-full bg-surface-container-lowest">
         <TopAppBar title="GeoTravel GIS" variant="public" showGuestActions />
 
         <div className="absolute inset-0 z-0">
-          <MapCanvas screenId="guestPortal" routes={featuredRoutes} attractions={mapAttractions} />
+          <MapCanvas screenId="guestPortal" />
         </div>
-        <MapControls />
 
-        <aside className="absolute top-24 right-8 bottom-8 w-[380px] z-40 bg-surface/95 backdrop-blur border border-outline-variant rounded-xl flex flex-col shadow-md overflow-hidden">
-          <div className="px-4 py-3 border-b border-outline-variant bg-surface/95">
+        <aside className="absolute top-24 right-4 bottom-4 w-[380px] z-40 bg-surface/90 backdrop-blur-md border border-outline-variant rounded-2xl flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
+          <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
             <h3 className="font-headline-lg text-headline-lg text-primary">{t('guest.title')}</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">{t('guest.subtitle')}</p>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+          <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
             <section className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.filters')}</h4>
@@ -333,6 +155,34 @@ const GuestPortal = () => {
                           {route.durationHours} {t('guest.hours')}
                         </span>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <hr className="border-outline-variant/30" />
+
+            <section className="flex flex-col gap-4 pb-4">
+              <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('common.attractions')}</h4>
+              {!isLoading && featuredAttractions.length === 0 && (
+                <div className="text-sm text-outline">{t('attractions.noAttractions')}</div>
+              )}
+              <div className="grid grid-cols-1 gap-3">
+                {featuredAttractions.map((attraction) => (
+                  <div key={attraction.id} className="bg-surface rounded-xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h5 className="font-headline-md text-[15px] leading-tight text-primary font-semibold">
+                          {attraction.title}
+                        </h5>
+                        <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1">
+                          {attraction.description}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full border border-outline-variant bg-surface-variant px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
+                        {getAttractionCategoryLabel(attraction.category)}
+                      </span>
                     </div>
                   </div>
                 ))}
