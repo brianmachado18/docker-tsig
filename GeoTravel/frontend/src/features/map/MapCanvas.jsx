@@ -4,6 +4,7 @@ import View from 'ol/View';
 import { fromLonLat } from 'ol/proj';
 import MapBaseLayer from '@/features/map/MapBaseLayer';
 import MapOverlayLayers from '@/features/map/MapOverlayLayers';
+import PublicMapSelection from '@/features/map/interactions/PublicMapSelection';
 import useMapStore from '@/features/map/mapStore';
 
 const MapCanvas = ({
@@ -11,8 +12,8 @@ const MapCanvas = ({
   zones = [],
   routes = [],
   attractions = [],
-  visibleZoneIds = null,
   className = '',
+  onFeatureSelect,
 }) => {
   const mapElementRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -66,6 +67,15 @@ const MapCanvas = ({
           routes={routes}
           attractions={attractions}
           visibleZoneIds={visibleZoneIds}
+        />
+      )}
+      {mapInstance && onFeatureSelect && (
+        <PublicMapSelection
+          map={mapInstance}
+          zones={zones}
+          routes={routes}
+          attractions={attractions}
+          onSelect={onFeatureSelect}
         />
       )}
     </>

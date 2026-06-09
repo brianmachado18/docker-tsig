@@ -26,8 +26,11 @@ const buildAttractionFeatures = (attractions) => {
       .map((attraction) => ({
         type: 'Feature',
         properties: {
+          entityType: 'attraction',
           id: attraction.id,
           name: attraction.title || attraction.name,
+          description: attraction.description,
+          category: attraction.category,
           status: attraction.status,
         },
         geometry: {

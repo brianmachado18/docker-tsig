@@ -11,14 +11,7 @@ const zoneStyle = new Style({
   stroke: new Stroke({ color: '#0a6c44', width: 2 }),
 });
 
-const toComparableId = (value) => {
-  if (value === undefined || value === null || value === '') {
-    return null;
-  }
-  return String(value);
-};
-
-const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 30 }) => {
+const ZonesVectorLayer = ({ map, zones = [], zIndex = 10 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
   const visibleIdsRef = useRef(null);
@@ -35,8 +28,11 @@ const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 30 
         .map((zone) => ({
           type: 'Feature',
           properties: {
+            entityType: 'zone',
             id: zone.id,
             name: zone.name,
+            description: zone.description,
+            attractionLevel: zone.attractionLevel,
             status: zone.status,
           },
           geometry: zone.geometry,
@@ -75,6 +71,7 @@ const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 30 
       },
       zIndex,
       properties: {
+        entityKey: 'zones',
         layerKey: 'zones-vector',
         entityKey: 'zones',
         sourceType: 'vector',

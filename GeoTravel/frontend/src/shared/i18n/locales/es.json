@@ -29,6 +29,7 @@
     "filters": "Filtros",
     "clearAll": "Limpiar Todo",
     "availability": "Disponibilidad",
+    "routeStatus": "Estado del recorrido",
     "available": "Disponible",
     "offSeason": "Fuera de temporada",
     "experienceType": "Tipo de Experiencia",
@@ -41,7 +42,12 @@
     "publicView": "Vista Pública",
     "adminLogin": "Ingreso Admin",
     "stops": "Paradas",
-    "hours": "Horas"
+    "hours": "Horas",
+    "selectedZone": "Zona seleccionada",
+    "selectedRoute": "Recorrido seleccionado",
+    "selectedAttraction": "Atracción seleccionada",
+    "closeSelection": "Cerrar selección",
+    "attractionLevel": "Nivel de atractivo"
   },
   "auth": {
     "adminAccess": "Acceso Admin",
