@@ -6,6 +6,7 @@ import WKT from 'ol/format/WKT';
 import { click } from 'ol/events/condition';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import useMapStore from '@/features/map/mapStore';
+import useMapPopupStore from '@/features/map/mapPopupStore';
 
 const wktFormat = new WKT();
 
@@ -97,6 +98,7 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
   const activeTool = useMapStore((state) => state.activeTool);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useAttractionsStore((state) => state.openForm);
+  const openPopup = useMapPopupStore((state) => state.openPopup);
 
   useEffect(() => {
     if (!map || !activeTool) {
@@ -156,7 +158,7 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
 
         const attraction = getAttractionFromFeature(feature, attractions);
         if (attraction) {
-          openForm(attraction);
+          openPopup(attraction, 'attraction');
         }
       });
 
@@ -183,7 +185,7 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
     }
 
     return undefined;
-  }, [activeTool, attractions, layerLookupAttempt, map, openForm, setActiveTool]);
+  }, [activeTool, attractions, layerLookupAttempt, map, openForm, openPopup, setActiveTool]);
 
   return null;
 };

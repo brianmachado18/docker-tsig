@@ -29,6 +29,11 @@ export const zonesService = {
     return Array.isArray(zones) ? zones.map(normalizeZone) : [];
   },
 
+  async findByAddress(address) {
+    const zone = await apiClient.get(`/zona/buscar/porDireccion?direccion=${encodeURIComponent(address)}`);
+    return zone ? normalizeZone(zone) : null;
+  },
+
   async save(zone) {
     const dto = toDto(zone);
     if (zone.id) {

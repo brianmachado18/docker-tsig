@@ -3,6 +3,7 @@ import AttractionForm from '@/features/attractions/AttractionForm';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
 import MapControls from '@/features/map/MapControls';
+import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import AttractionMapInteractions from '@/features/map/interactions/AttractionMapInteractions';
 import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
@@ -40,6 +41,7 @@ const AttractionMap = () => {
         <MapCanvas screenId="attractionMap" attractions={attractions} />
         <AttractionMapInteractions attractions={attractions} />
         <MapControls drawIcon="add_location_alt" drawLabelKey="map.placeAttraction" />
+        <MapFeaturePopup />
         {isFormOpen && (
           <AttractionForm
             attraction={selectedAttraction}

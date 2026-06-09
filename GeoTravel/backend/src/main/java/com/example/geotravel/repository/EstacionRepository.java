@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface EstacionRepository extends JpaRepository<Estacion, Long> {
 
+    Boolean existsByIdEstacion(Long id);
     Estacion findByIdEstacion(Long id);
     List<Estacion> findAll();
 

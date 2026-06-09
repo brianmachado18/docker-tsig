@@ -17,6 +17,10 @@ public class EstacionService {
         return estacionRepository.findAll();
     }
 
+    public Boolean existe(Long id) {
+        return estacionRepository.existsByIdEstacion(id);
+    }
+
     public Estacion obtenerPorId(Long id) {
         return estacionRepository.findByIdEstacion(id);
     }

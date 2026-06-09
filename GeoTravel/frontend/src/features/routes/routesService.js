@@ -104,6 +104,11 @@ export const routesService = {
     return Array.isArray(stations) ? stations : [];
   },
 
+  async listByZone(zoneId) {
+    const routes = await apiClient.get(`/recorrido/buscar/porZona?idZona=${zoneId}`);
+    return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
+  },
+
   async save(route) {
     const dto = toDto(route);
     if (route.id) {
@@ -117,5 +122,25 @@ export const routesService = {
   async remove(routeId) {
     // El backend elimina primero las relaciones recorrido-atraccion.
     return apiClient.delete(`/recorrido/eliminar?idRecorrido=${routeId}`);
+  },
+
+  async changeStatus(routeId, status) {
+    const backendStatus = statusToBackend(status);
+    await apiClient.put(`/recorrido/cambiarEstado?idRecorrido=${routeId}&estado=${backendStatus}`);
+  },
+
+  async getHistory(routeId) {
+    const entries = await apiClient.get(`/historico/buscar/porRecorrido?idRecorrido=${routeId}`);
+    if (!Array.isArray(entries)) {
+      return [];
+    }
+
+    return entries
+      .map((entry) => ({
+        id: entry.idHistorico,
+        status: statusFromBackend(entry.estado),
+        date: entry.fechaCambio,
+      }))
+      .reverse();
   },
 };

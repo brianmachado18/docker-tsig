@@ -1,19 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { attractionsService } from '@/features/attractions/attractionsService';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import { getRouteStatusOptions } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
 import { validateRouteForm } from '@/features/routes/routeValidation';
 import { zonesService } from '@/features/zones/zonesService';
 import useLangStore from '@/shared/i18n/langStore';
 import { getApiErrorMessage } from '@/shared/lib/forms/validation';
+import { fetchRoadRoute, optimizeStopsOrder } from '@/shared/lib/geo/routing';
 import { toLineStringWkt } from '@/shared/lib/geo/wkt';
-
-const statusOptions = [
-  { id: 'available', label: 'Disponible' },
-  { id: 'pending', label: 'Pendiente' },
-  { id: 'off-season', label: 'Fuera de estación' },
-  { id: 'cancelled', label: 'Cancelado' },
-];
 
 const experienceOptions = [
   { id: 'cultural', label: 'Cultural' },
@@ -24,8 +19,14 @@ const experienceOptions = [
   { id: 'other', label: 'Otro' },
 ];
 
+const isValidCoordinate = (coordinates) =>
+  Array.isArray(coordinates)
+  && Number.isFinite(Number(coordinates[0]))
+  && Number.isFinite(Number(coordinates[1]));
+
 const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const { t } = useLangStore();
+  const statusOptions = useMemo(() => getRouteStatusOptions(t), [t]);
   const {
     closeForm,
     saveRoute,
@@ -53,6 +54,9 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const [availableAttractions, setAvailableAttractions] = useState([]);
   const [availableZones, setAvailableZones] = useState([]);
   const [validationError, setValidationError] = useState('');
+  const [routingFeedback, setRoutingFeedback] = useState('');
+  const [isRoutingExact, setIsRoutingExact] = useState(false);
+  const [isOptimizingStops, setIsOptimizingStops] = useState(false);
 
   const handleClose = () => {
     refreshRouteLayers();
@@ -87,18 +91,29 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       setStationId(route?.stationId || '');
       setGeomWkt(route?.geomWkt || '');
       setZoneIds(Array.isArray(route?.zoneIds) ? route.zoneIds : []);
-      // Las paradas vienen en el propio recorrido (el backend ya las devuelve ordenadas).
       setAttractionIds(Array.isArray(route?.attractionIds) ? route.attractionIds : []);
       setValidationError('');
+      setRoutingFeedback('');
       clearError();
     };
 
     loadRouteData();
   }, [route, clearError]);
 
-  const apiError = useMemo(() => {
-    return getApiErrorMessage(error, t('common.error'));
-  }, [error, t]);
+  const apiError = useMemo(() => getApiErrorMessage(error, t('common.error')), [error, t]);
+
+  const getStopCoordinates = (ids = attractionIds) => ids
+    .map((id) => availableAttractions.find((item) => item.id === id)?.coordinates)
+    .filter(isValidCoordinate)
+    .map(([lon, lat]) => [Number(lon), Number(lat)]);
+
+  const buildLineFromStops = (ids = attractionIds) => toLineStringWkt(getStopCoordinates(ids));
+
+  const setRouteStops = (nextAttractionIds) => {
+    setAttractionIds(nextAttractionIds);
+    setGeomWkt('');
+    setRoutingFeedback('');
+  };
 
   const toggleZone = (zoneId) => {
     setZoneIds((current) =>
@@ -114,12 +129,12 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     if (attractionIds.includes(attrId)) {
       return;
     }
-    setAttractionIds((current) => [...current, attrId]);
+    setRouteStops([...attractionIds, attrId]);
     setSelectedAttractionId('');
   };
 
   const removeAttraction = (id) => {
-    setAttractionIds((current) => current.filter((item) => item !== id));
+    setRouteStops(attractionIds.filter((item) => item !== id));
   };
 
   const moveAttraction = (index, direction) => {
@@ -129,15 +144,63 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     }
     const updated = [...attractionIds];
     [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
-    setAttractionIds(updated);
+    setRouteStops(updated);
   };
 
-  // Arma la línea del recorrido uniendo las coordenadas de las paradas, en orden.
-  const buildLineFromStops = () => {
-    const coords = attractionIds
-      .map((id) => availableAttractions.find((item) => item.id === id)?.coordinates)
-      .filter(Boolean);
-    return toLineStringWkt(coords);
+  const handleFollowExactRoad = async () => {
+    const coords = getStopCoordinates();
+    if (coords.length < 2) {
+      return;
+    }
+
+    setRoutingFeedback('');
+    setIsRoutingExact(true);
+    try {
+      const routedWkt = await fetchRoadRoute(coords);
+      if (!routedWkt) {
+        setRoutingFeedback('No se pudo ajustar el recorrido a calles reales. Se mantiene el trazado actual.');
+        return;
+      }
+
+      setGeomWkt(routedWkt);
+      setValidationError('');
+      setRoutingFeedback('Recorrido ajustado a calles reales.');
+    } finally {
+      setIsRoutingExact(false);
+    }
+  };
+
+  const handleOptimizeStops = async () => {
+    const coords = getStopCoordinates();
+    if (coords.length < 2) {
+      return;
+    }
+
+    setRoutingFeedback('');
+    setIsOptimizingStops(true);
+    try {
+      const result = await optimizeStopsOrder(coords);
+      if (!result?.reorderedIndices?.length) {
+        setRoutingFeedback('No se pudo optimizar el orden de las paradas. Se mantiene el orden actual.');
+        return;
+      }
+
+      const reorderedIds = result.reorderedIndices
+        .map((index) => attractionIds[index])
+        .filter((id) => id !== undefined);
+
+      if (reorderedIds.length !== attractionIds.length) {
+        setRoutingFeedback('No se pudo optimizar el orden de las paradas. Se mantiene el orden actual.');
+        return;
+      }
+
+      setAttractionIds(reorderedIds);
+      setGeomWkt(result.wkt || buildLineFromStops(reorderedIds));
+      setValidationError('');
+      setRoutingFeedback('Orden de paradas optimizado.');
+    } finally {
+      setIsOptimizingStops(false);
+    }
   };
 
   const validate = (geom) => {
@@ -154,7 +217,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Si no se dibujó la línea en el mapa, se genera uniendo las paradas en orden.
     const effectiveGeomWkt = geomWkt && geomWkt.trim() ? geomWkt : buildLineFromStops();
 
     const validation = validate(effectiveGeomWkt);
@@ -196,8 +258,11 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     }
   };
 
+  const hasEnoughStops = attractionIds.length >= 2;
+  const isRouteToolsBusy = isRoutingExact || isOptimizingStops;
+
   return (
-    <aside className="absolute top-0 right-0 h-full w-[420px] bg-surface-container-lowest border-l border-outline-variant z-40 shadow-lg flex flex-col">
+    <div className="w-full max-h-[90vh] bg-surface-container-lowest flex flex-col">
       <div className="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
         <h3 className="font-headline-lg text-headline-lg text-on-surface">
           {route?.id ? t('routes.design') : t('routes.newRoute')}
@@ -376,6 +441,37 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
               );
             })}
           </ul>
+          {hasEnoughStops && (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleFollowExactRoad}
+                  disabled={isRouteToolsBusy || isSaving || isDeleting}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded border border-primary text-primary disabled:opacity-60"
+                >
+                  {isRoutingExact && (
+                    <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                  )}
+                  <span>{isRoutingExact ? 'Siguiendo camino exacto...' : 'Seguir camino exacto'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOptimizeStops}
+                  disabled={isRouteToolsBusy || isSaving || isDeleting}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded border border-outline text-on-surface disabled:opacity-60"
+                >
+                  {isOptimizingStops && (
+                    <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                  )}
+                  <span>{isOptimizingStops ? 'Optimizando paradas...' : 'Optimizar orden de paradas'}</span>
+                </button>
+              </div>
+              {!!routingFeedback && (
+                <p className="text-xs text-on-surface-variant">{routingFeedback}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {(validationError || apiError) && <p className="text-sm text-error">{validationError || apiError}</p>}
@@ -394,21 +490,27 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
               type="button"
               onClick={handleClose}
               className="px-4 py-2 rounded-lg border border-outline text-on-surface"
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isDeleting || isRouteToolsBusy}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isDeleting || isRouteToolsBusy}
             >
-              {isSaving ? 'Guardando...' : t('common.save')}
+              {isOptimizingStops
+                ? 'Optimizando paradas...'
+                : isRoutingExact
+                  ? 'Siguiendo camino exacto...'
+                  : isSaving
+                    ? 'Guardando...'
+                    : t('common.save')}
             </button>
           </div>
         </div>
       </form>
-    </aside>
+    </div>
   );
 };
 

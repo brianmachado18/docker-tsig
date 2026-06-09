@@ -81,6 +81,8 @@ const ZoneMapInteractions = ({ zones = [] }) => {
   const activeTool = useMapStore((state) => state.activeTool);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useZonesStore((state) => state.openForm);
+  const fetchZoneRoutes = useZonesStore((state) => state.fetchZoneRoutes);
+  const zoneQueryType = useZonesStore((state) => state.zoneQueryType);
 
   useEffect(() => {
     if (!map || !activeTool) {
@@ -200,8 +202,33 @@ const ZoneMapInteractions = ({ zones = [] }) => {
       };
     }
 
+    if (activeTool === 'zone-query' && zoneQueryType === 'routes') {
+      const select = new Select({
+        condition: click,
+        layers: [layer],
+      });
+
+      select.on('select', async (event) => {
+        const feature = event.selected?.[0];
+        if (!feature) {
+          return;
+        }
+
+        const zone = getZoneFromFeature(feature, zones);
+        if (zone?.id) {
+          await fetchZoneRoutes(zone);
+        }
+      });
+
+      map.addInteraction(select);
+
+      return () => {
+        map.removeInteraction(select);
+      };
+    }
+
     return undefined;
-  }, [activeTool, layerLookupAttempt, map, openForm, setActiveTool, zones]);
+  }, [activeTool, fetchZoneRoutes, layerLookupAttempt, map, openForm, setActiveTool, zoneQueryType, zones]);
 
   return null;
 };

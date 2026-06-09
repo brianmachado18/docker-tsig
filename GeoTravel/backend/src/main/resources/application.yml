@@ -21,3 +21,8 @@ management:
 
 geoserver:
   url: ${GEOSERVER_URL:http://localhost:8081/geoserver}
+
+geocoding:
+  nominatim:
+    url: ${GEOCODING_NOMINATIM_URL:https://nominatim.openstreetmap.org}
+    user-agent: ${GEOCODING_USER_AGENT:GeoTravel/1.0 (tsig local project)}

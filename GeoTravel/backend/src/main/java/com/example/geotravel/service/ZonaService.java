@@ -23,6 +23,9 @@ public class ZonaService {
     @Autowired
     private RecorridoRepository recorridoRepository;
 
+    @Autowired
+    private GeocodingService geocodingService;
+
     public void alta(DTZona dtZona) throws Exception{
         validarZona(dtZona);
         validarInterseccion(dtZona.getGeomWkt());
@@ -57,6 +60,18 @@ public class ZonaService {
 
     public DTZona obtenerPorId(Long id){
         return objToDto(zonaRepository.findByIdZona(id));
+    }
+
+    public DTZona obtenerPorDireccion(String direccion) throws Exception{
+        GeocodingService.GeocodedPoint geocodedPoint = geocodingService.geocode(direccion);
+        String pointWkt = String.format("POINT(%s %s)", geocodedPoint.lon(), geocodedPoint.lat());
+
+        List<Zona> zonas = zonaRepository.findAllByPoint(pointWkt);
+        if (zonas.isEmpty()) {
+            throw new Exception("No existe una zona registrada para esa direccion.");
+        }
+
+        return objToDto(zonas.get(0));
     }
 
     public Zona obtenerObjPorId(Long id){

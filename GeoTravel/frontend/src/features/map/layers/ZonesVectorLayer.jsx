@@ -11,9 +11,17 @@ const zoneStyle = new Style({
   stroke: new Stroke({ color: '#0a6c44', width: 2 }),
 });
 
-const ZonesVectorLayer = ({ map, zones = [], zIndex = 30 }) => {
+const toComparableId = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  return String(value);
+};
+
+const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 30 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
+  const visibleIdsRef = useRef(null);
 
   const zoneFeatures = useMemo(() => {
     if (!zones.length) {
@@ -42,6 +50,13 @@ const ZonesVectorLayer = ({ map, zones = [], zIndex = 30 }) => {
   }, [zones]);
 
   useEffect(() => {
+    visibleIdsRef.current = Array.isArray(visibleZoneIds)
+      ? visibleZoneIds.map(toComparableId).filter(Boolean)
+      : null;
+    layerRef.current?.changed();
+  }, [visibleZoneIds]);
+
+  useEffect(() => {
     if (!map || layerRef.current) {
       return undefined;
     }
@@ -49,10 +64,19 @@ const ZonesVectorLayer = ({ map, zones = [], zIndex = 30 }) => {
     const source = new VectorSource();
     const layer = new VectorLayer({
       source,
-      style: zoneStyle,
+      style: (feature) => {
+        const visibleIds = visibleIdsRef.current;
+        if (!visibleIds || !visibleIds.length) {
+          return zoneStyle;
+        }
+
+        const featureId = toComparableId(feature?.get?.('id'));
+        return visibleIds.includes(featureId) ? zoneStyle : null;
+      },
       zIndex,
       properties: {
         layerKey: 'zones-vector',
+        entityKey: 'zones',
         sourceType: 'vector',
       },
     });

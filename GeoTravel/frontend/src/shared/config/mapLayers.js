@@ -12,7 +12,8 @@ const MAP_LAYER_STRATEGIES = {
     zones: 'off',
   },
   zoneManagement: {
-    zones: 'wfs',
+    zones: 'vector-primary',
+    routes: 'vector-primary',
   },
   routePlanner: {
     routes: 'wfs',

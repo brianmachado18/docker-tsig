@@ -64,4 +64,13 @@ public class ZonaController {
         }
     }
 
+    @GetMapping("/buscar/porDireccion")
+    public ResponseEntity<?> obtenerPorDireccion(@RequestParam String direccion){
+        try{
+            return ResponseEntity.ok().body(zonaService.obtenerPorDireccion(direccion));
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

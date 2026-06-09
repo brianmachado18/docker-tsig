@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 const useMapStore = create((set, get) => ({
   mapInstance: null,
-  activeTool: null, // 'draw', 'select'
+  activeTool: null, // 'draw', 'select', 'zone-query'
   center: [-56, -33], // Default center (Uruguay)
   zoom: 7,
   
