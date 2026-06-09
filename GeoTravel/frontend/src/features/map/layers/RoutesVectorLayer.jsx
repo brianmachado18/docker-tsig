@@ -26,8 +26,12 @@ const RoutesVectorLayer = ({ map, routes = [], zIndex = 20 }) => {
         .map((route) => ({
           type: 'Feature',
           properties: {
+            entityType: 'route',
             id: route.id,
             name: route.name,
+            description: route.description,
+            durationHours: route.durationHours,
+            experienceType: route.experienceType,
             status: route.status,
           },
           geometry: route.geometry,
@@ -51,6 +55,7 @@ const RoutesVectorLayer = ({ map, routes = [], zIndex = 20 }) => {
       style: routeStyle,
       zIndex,
       properties: {
+        entityKey: 'routes',
         layerKey: 'routes-vector',
         sourceType: 'vector',
       },

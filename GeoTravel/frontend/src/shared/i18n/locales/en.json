@@ -29,6 +29,7 @@
     "available": "Available",
     "pending": "Pending",
     "offSeason": "Off-Season",
+    "cancelled": "Cancelled",
     "archived": "Archived",
     "name": "Route Name",
     "duration": "Est. Duration",
@@ -42,6 +43,7 @@
     "filters": "Filters",
     "clearAll": "Clear All",
     "availability": "Availability",
+    "routeStatus": "Route status",
     "available": "Available",
     "offSeason": "Off-season",
     "experienceType": "Experience Type",
@@ -54,7 +56,12 @@
     "publicView": "Public View",
     "adminLogin": "Admin Login",
     "stops": "Stops",
-    "hours": "Hours"
+    "hours": "Hours",
+    "selectedZone": "Selected zone",
+    "selectedRoute": "Selected route",
+    "selectedAttraction": "Selected attraction",
+    "closeSelection": "Close selection",
+    "attractionLevel": "Attraction level"
   },
   "auth": {
     "adminAccess": "Admin Access",
