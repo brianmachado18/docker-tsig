@@ -3,12 +3,17 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Stroke, Style } from 'ol/style';
+import { STATUS_COLORS } from '@/features/routes/routeStatus';
 
 const geojson = new GeoJSON();
 
-const routeStyle = new Style({
-  stroke: new Stroke({ color: '#002045', width: 3, lineDash: [8, 6] }),
-});
+const getRouteStyle = (feature) => {
+  const status = feature.get('status') || 'available';
+  const color = STATUS_COLORS[status] ?? STATUS_COLORS.available;
+  return new Style({
+    stroke: new Stroke({ color, width: 3, lineDash: [8, 6] }),
+  });
+};
 
 const RoutesVectorLayer = ({ map, routes = [], zIndex = 40 }) => {
   const sourceRef = useRef(null);
@@ -52,7 +57,7 @@ const RoutesVectorLayer = ({ map, routes = [], zIndex = 40 }) => {
     const source = new VectorSource();
     const layer = new VectorLayer({
       source,
-      style: routeStyle,
+      style: getRouteStyle,
       zIndex,
       properties: {
         entityKey: 'routes',

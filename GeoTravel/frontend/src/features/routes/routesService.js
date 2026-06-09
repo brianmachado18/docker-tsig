@@ -63,7 +63,8 @@ const experienceToBackend = (type) => {
 
 const normalizeRoute = (route) => ({
   id: route.id ?? route.idRecorrido,
-  stationId: route.stationId ?? route.idEstacion ?? null,
+  mesInicio: route.mesInicio ?? null,
+  mesFin: route.mesFin ?? null,
   name: route.name ?? route.nombre ?? '',
   description: route.description ?? route.descripcion ?? '',
   durationHours: route.durationHours ?? route.duracionEstimada ?? 0,
@@ -79,7 +80,8 @@ const normalizeRoute = (route) => ({
 
 const toDto = (route) => ({
   idRecorrido: route.id ?? null,
-  idEstacion: Number(route.stationId),
+  mesInicio: Number(route.mesInicio),
+  mesFin: Number(route.mesFin),
   nombre: String(route.name || '').trim(),
   descripcion: String(route.description || '').trim(),
   duracionEstimada: Number(route.durationHours),
@@ -120,7 +122,6 @@ export const routesService = {
   },
 
   async remove(routeId) {
-    // El backend elimina primero las relaciones recorrido-atraccion.
     return apiClient.delete(`/recorrido/eliminar?idRecorrido=${routeId}`);
   },
 

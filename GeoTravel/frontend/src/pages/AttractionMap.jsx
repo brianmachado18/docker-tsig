@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import AttractionForm from '@/features/attractions/AttractionForm';
+import NuevaAtraccionModal from '@/features/attractions/NuevaAtraccionModal';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
 import MapControls from '@/features/map/MapControls';
@@ -7,6 +7,7 @@ import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import AttractionMapInteractions from '@/features/map/interactions/AttractionMapInteractions';
 import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import Modal from '@/shared/components/Modal';
 import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
@@ -23,8 +24,31 @@ const AttractionMap = () => {
     attractions,
     fetchAttractions,
     isFormOpen,
-    selectedAttraction,
+    openForm,
+    closeForm,
+    setPendingWizardData,
+    clearPendingWizardData,
   } = useAttractionsStore();
+
+  const handleDrawActivate = () => {
+    openForm(null);
+  };
+
+  const handleUbicarEnMapa = (partialData) => {
+    setPendingWizardData(partialData);
+    closeForm();
+  };
+
+  const handleCloseModal = () => {
+    clearPendingWizardData();
+    closeForm();
+    setActiveTool('select');
+  };
+
+  const handleSaved = () => {
+    refreshAttractionLayer();
+    setActiveTool('select');
+  };
 
   useEffect(() => {
     setViewport(URUGUAY_CENTER, URUGUAY_ZOOM);
@@ -40,15 +64,15 @@ const AttractionMap = () => {
         <TopAppBar title={t('attractions.mapTitle')} />
         <MapCanvas screenId="attractionMap" attractions={attractions} />
         <AttractionMapInteractions attractions={attractions} />
-        <MapControls drawIcon="add_location_alt" drawLabelKey="map.placeAttraction" />
+        <MapControls drawIcon="add_location_alt" drawLabelKey="map.placeAttraction" onDrawActivate={handleDrawActivate} />
         <MapFeaturePopup />
-        {isFormOpen && (
-          <AttractionForm
-            attraction={selectedAttraction}
-            onSaved={refreshAttractionLayer}
-            onDeleted={refreshAttractionLayer}
+        <Modal isOpen={isFormOpen} onClose={handleCloseModal}>
+          <NuevaAtraccionModal
+            onUbicarEnMapa={handleUbicarEnMapa}
+            onSaved={handleSaved}
+            onDeleted={handleSaved}
           />
-        )}
+        </Modal>
       </main>
     </div>
   );

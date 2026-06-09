@@ -27,9 +27,6 @@ public class RecorridoService {
     private RecorridoRepository recorridoRepository;
 
     @Autowired
-    private EstacionService estacionService;
-
-    @Autowired
     private ZonaRepository zonaRepository;
 
     @Autowired
@@ -102,7 +99,18 @@ public class RecorridoService {
                 .findByRecorridoOrderByOrden(r); // Obtener lista recorrido-atracciones
         for (RecorridoAtracciones ra : recorridoAtraccionesList) // Eliminar todos los recorrido-atracciones
             recorridoAtraccionesRepository.delete(ra);
-        recorridoRepository.delete(r); // Elimianr recorriod
+        recorridoRepository.delete(r);
+    }
+
+    public void cambiarEstado(Long idRecorrido, Estado nuevoEstado) throws Exception {
+        Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido);
+        if (r == null)
+            throw new Exception("Recorrido no encontrado.");
+        if (nuevoEstado.equals(r.getEstado()))
+            return;
+        r.setEstado(nuevoEstado);
+        recorridoRepository.save(r);
+        historicoService.registrarCambioEstado(r, nuevoEstado);
     }
 
     public void cambiarEstado(Long idRecorrido, Estado nuevoEstado) throws Exception {
@@ -156,7 +164,8 @@ public class RecorridoService {
     public Recorrido dtoToObj(DTRecorrido dtRecorrido) {
         Recorrido recorrido = new Recorrido();
         recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
-        recorrido.setEstacion(estacionService.obtenerPorId(dtRecorrido.getIdEstacion()));
+        recorrido.setMesInicio(dtRecorrido.getMesInicio());
+        recorrido.setMesFin(dtRecorrido.getMesFin());
         recorrido.setNombre(dtRecorrido.getNombre());
         recorrido.setDescripcion(dtRecorrido.getDescripcion());
         recorrido.setDuracionEstimada(dtRecorrido.getDuracionEstimada());
@@ -189,6 +198,8 @@ public class RecorridoService {
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
         dtRecorrido.setIdEstacion(recorrido.getEstacion() != null ? recorrido.getEstacion().getIdEstacion() : null);
+        dtRecorrido.setMesInicio(recorrido.getMesInicio());
+        dtRecorrido.setMesFin(recorrido.getMesFin());
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
@@ -234,6 +245,10 @@ public class RecorridoService {
             throw new Exception("Estacion invalida.");
         if (!estacionService.existe(dtRecorrido.getIdEstacion()))
             throw new Exception("Estacion no encontrada.");
+        if (dtRecorrido.getMesInicio() == null || dtRecorrido.getMesInicio() < 1 || dtRecorrido.getMesInicio() > 12)
+            throw new Exception("Mes de inicio inválido.");
+        if (dtRecorrido.getMesFin() == null || dtRecorrido.getMesFin() < 1 || dtRecorrido.getMesFin() > 12)
+            throw new Exception("Mes de fin inválido.");
         if (dtRecorrido.getTipoExperiencia() == null)
             throw new Exception("Experiencia requerida.");
         if (dtRecorrido.getEstado() == null)

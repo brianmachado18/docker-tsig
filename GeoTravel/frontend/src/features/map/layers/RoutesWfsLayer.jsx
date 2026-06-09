@@ -6,13 +6,18 @@ import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import { fetchWfsFeatureCollection } from '@/features/map/services/geoserver';
 import useRouteFilterStore, { matchesRouteFilter } from '@/features/map/routeFilterStore';
+import { STATUS_COLORS } from '@/features/routes/routeStatus';
 
 const geojsonFormat = new GeoJSON();
 const wktFormat = new WKT();
 
-const routeStyle = new Style({
-  stroke: new Stroke({ color: '#0b57d0', width: 4, lineDash: [10, 6] }),
-});
+const getRouteStyle = (feature) => {
+  const status = feature.get('status') || 'available';
+  const color = STATUS_COLORS[status] ?? STATUS_COLORS.available;
+  return new Style({
+    stroke: new Stroke({ color, width: 4, lineDash: [10, 6] }),
+  });
+};
 
 const toEntityId = (value) => {
   if (value === undefined || value === null || value === '') {
@@ -154,7 +159,7 @@ const RoutesWfsLayer = ({ map, zIndex = 30 }) => {
       source,
       // Estilo por feature: si no pasa el filtro, devolvemos null y el recorrido se oculta.
       style: (feature) =>
-        matchesRouteFilter(feature.getProperties(), filterRef.current) ? routeStyle : null,
+        matchesRouteFilter(feature.getProperties(), filterRef.current) ? getRouteStyle(feature) : null,
       zIndex,
       properties: {
         layerKey: 'routes-wfs',

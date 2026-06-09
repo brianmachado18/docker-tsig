@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import Draw from 'ol/interaction/Draw';
-import Modify from 'ol/interaction/Modify';
 import Select from 'ol/interaction/Select';
 import WKT from 'ol/format/WKT';
 import { click } from 'ol/events/condition';
@@ -79,6 +78,7 @@ const RouteMapInteractions = ({ routes = [] }) => {
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useRoutesStore((state) => state.openForm);
   const openPopup = useMapPopupStore((state) => state.openPopup);
+  const fitToExtent = useMapStore((state) => state.fitToExtent);
 
   useEffect(() => {
     if (!map || !activeTool) {
@@ -140,33 +140,22 @@ const RouteMapInteractions = ({ routes = [] }) => {
         const route = getRouteFromFeature(feature, routes);
         if (route) {
           openPopup(route, 'route');
+          const geom = feature.getGeometry();
+          if (geom) {
+            fitToExtent(geom.getExtent());
+          }
         }
       });
 
       map.addInteraction(select);
 
-      const modify = new Modify({
-        source,
-      });
-
-      modify.on('modifyend', (event) => {
-        const feature = event.features.item(0);
-        const route = getRouteFromFeature(feature, routes);
-        if (route) {
-          openForm(route);
-        }
-      });
-
-      map.addInteraction(modify);
-
       return () => {
-        map.removeInteraction(modify);
         map.removeInteraction(select);
       };
     }
 
     return undefined;
-  }, [activeTool, layerLookupAttempt, map, openForm, openPopup, routes, setActiveTool]);
+  }, [activeTool, fitToExtent, layerLookupAttempt, map, openForm, openPopup, routes, setActiveTool]);
 
   return null;
 };

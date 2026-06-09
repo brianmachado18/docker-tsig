@@ -8,13 +8,6 @@ DELETE FROM recorrido_zona;
 DELETE FROM recorrido;
 DELETE FROM atraccion;
 DELETE FROM zona;
-DELETE FROM estacion;
-
--- ESTACIONES (temporadas)
-INSERT INTO estacion (nombre, mes_inicio, mes_fin) VALUES
-  ('Todo el año', 1, 12),
-  ('Temporada alta (verano)', 11, 2),
-  ('Otoño', 3, 6);
 
 -- ZONAS (polígonos que NO se superponen)
 INSERT INTO zona (nombre, descripcion, nivel_atractivo, observaciones, geom_wkt) VALUES
@@ -28,35 +21,32 @@ INSERT INTO zona (nombre, descripcion, nivel_atractivo, observaciones, geom_wkt)
      ST_SetSRID(ST_GeomFromText('POLYGON((-56.070 -34.885, -56.050 -34.885, -56.050 -34.897, -56.070 -34.897, -56.070 -34.885))'),4326)::geography);
 
 -- ATRACCIONES (puntos)
+-- Clasificacion: MUSEO=0, TEATRO=1, MONUMENTO=2, PLAZA=3, GASTRONOMIA=4, PLAYA=5, PARQUE=6
 INSERT INTO atraccion (nombre, descripcion, clasificacion, foto_url, geom_wkt) VALUES
-  ('Mercado del Puerto', 'Gastronomía típica', 'Gastronomía', NULL,
+  ('Mercado del Puerto', 'Gastronomía típica', 4, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.2117 -34.9056)'),4326)::geography),
-  ('Teatro Solís', 'Principal teatro del país', 'Cultural', NULL,
+  ('Teatro Solís', 'Principal teatro del país', 1, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.2046 -34.9069)'),4326)::geography),
-  ('Plaza Independencia', 'Plaza fundacional', 'Histórico', NULL,
+  ('Plaza Independencia', 'Plaza fundacional', 3, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.1985 -34.9066)'),4326)::geography),
-  ('Parque Rodó', 'Parque urbano y lago', 'Natural', NULL,
+  ('Parque Rodó', 'Parque urbano y lago', 6, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.1722 -34.9156)'),4326)::geography),
-  ('Estadio Centenario', 'Estadio histórico del fútbol', 'Deportivo', NULL,
+  ('Estadio Centenario', 'Estadio histórico del fútbol', 2, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.1606 -34.8941)'),4326)::geography),
-  ('Rambla de Pocitos', 'Paseo costero', 'Natural', NULL,
+  ('Rambla de Pocitos', 'Paseo costero', 6, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.1530 -34.9170)'),4326)::geography),
-  ('Playa Carrasco', 'Playa al este', 'Natural', NULL,
+  ('Playa Carrasco', 'Playa al este', 5, NULL,
      ST_SetSRID(ST_GeomFromText('POINT(-56.0560 -34.8930)'),4326)::geography);
 
--- RECORRIDOS (líneas) — uno por cada estado para ver colores distintos
-INSERT INTO recorrido (nombre, descripcion, duracion_estimada, guia_responsable, tipo_experiencia, estado, id_estacion, geom_wkt) VALUES
-  ('Circuito Histórico Ciudad Vieja', 'Patrimonio y cultura', 120, 'Ana Pérez', 'CULTURAL', 'DISPONIBLE',
-     (SELECT id_estacion FROM estacion WHERE nombre='Todo el año'),
+-- RECORRIDOS (líneas)
+INSERT INTO recorrido (nombre, descripcion, duracion_estimada, guia_responsable, tipo_experiencia, estado, mes_inicio, mes_fin, geom_wkt) VALUES
+  ('Circuito Histórico Ciudad Vieja', 'Patrimonio y cultura', 120, 'Ana Pérez', 'CULTURAL', 'DISPONIBLE', 1, 12,
      ST_SetSRID(ST_GeomFromText('LINESTRING(-56.2117 -34.9056, -56.2046 -34.9069, -56.1985 -34.9066)'),4326)::geography),
-  ('Tour Gastronómico Centro', 'Sabores del centro', 90, 'Luis Gómez', 'GASTRONOMICO', 'PENDIENTE',
-     (SELECT id_estacion FROM estacion WHERE nombre='Todo el año'),
+  ('Tour Gastronómico Centro', 'Sabores del centro', 90, 'Luis Gómez', 'GASTRONOMICO', 'PENDIENTE', 1, 12,
      ST_SetSRID(ST_GeomFromText('LINESTRING(-56.1985 -34.9066, -56.1820 -34.9100, -56.1722 -34.9156)'),4326)::geography),
-  ('Recorrido Costero Pocitos-Carrasco', 'Playas y rambla', 180, 'María Silva', 'NATURAL', 'FUERA_DE_ESTACION',
-     (SELECT id_estacion FROM estacion WHERE nombre='Temporada alta (verano)'),
+  ('Recorrido Costero Pocitos-Carrasco', 'Playas y rambla', 180, 'María Silva', 'NATURAL', 'FUERA_DE_ESTACION', 11, 2,
      ST_SetSRID(ST_GeomFromText('LINESTRING(-56.1530 -34.9170, -56.1000 -34.9050, -56.0560 -34.8930)'),4326)::geography),
-  ('Aventura Parque Rodó', 'Actividades al aire libre', 60, 'Diego Rodríguez', 'AVENTURA', 'CANCELADO',
-     (SELECT id_estacion FROM estacion WHERE nombre='Otoño'),
+  ('Aventura Parque Rodó', 'Actividades al aire libre', 60, 'Diego Rodríguez', 'AVENTURA', 'CANCELADO', 3, 6,
      ST_SetSRID(ST_GeomFromText('LINESTRING(-56.1722 -34.9156, -56.1700 -34.9120, -56.1650 -34.9100)'),4326)::geography);
 
 -- RELACIÓN recorrido <-> zona
@@ -82,7 +72,7 @@ SELECT r.id_recorrido, a.id_atraccion, x.orden FROM recorrido r, atraccion a,
  ) AS x(rec,atr,orden)
 WHERE r.nombre=x.rec AND a.nombre=x.atr;
 
--- HISTÓRICO (estado = ordinal del enum: DISPONIBLE=0, FUERA_DE_ESTACION=1, PENDIENTE=2, CANCELADO=3)
+-- HISTÓRICO
 INSERT INTO historico (id_recorrido, estado, fecha_cambio)
 SELECT r.id_recorrido, x.estado, x.fecha FROM recorrido r,
  (VALUES

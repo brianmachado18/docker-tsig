@@ -19,9 +19,8 @@ public class Recorrido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idRecorrido;
 
-    @ManyToOne
-    @JoinColumn(name = "idEstacion")
-    private Estacion estacion;
+    private Integer mesInicio;
+    private Integer mesFin;
 
     @ManyToMany
     @JoinTable(name="recorridoZona", joinColumns=@JoinColumn(name="idRecorrido"), inverseJoinColumns=@JoinColumn(name="idZona"))

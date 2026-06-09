@@ -22,41 +22,41 @@ public class HistoricoService {
     @Autowired
     private RecorridoRepository recorridoRepository;
 
-    public void alta(DTHistorico dtHistorico){
+    public void alta(DTHistorico dtHistorico) {
         historicoRepository.save(dtoToObj(dtHistorico));
     }
 
-    public void actualizar(DTHistorico dtHistorico) throws Exception{
+    public void actualizar(DTHistorico dtHistorico) throws Exception {
         existeHistorico(dtHistorico.getIdHistorico());
         historicoRepository.save(dtoToObj(dtHistorico));
     }
 
-    public void eliminar(Long idHistorico)throws Exception{
+    public void eliminar(Long idHistorico) throws Exception {
         existeHistorico(idHistorico);
         historicoRepository.delete(historicoRepository.findByIdHistorico(idHistorico));
     }
 
-    public List<DTHistorico> obtenerTodos(){
+    public List<DTHistorico> obtenerTodos() {
         List<DTHistorico> listDto = new ArrayList<>();
-        for (Historico h : historicoRepository.findAll()){
+        for (Historico h : historicoRepository.findAll()) {
             listDto.add(objToDto(h));
         }
         return listDto;
     }
 
-    public DTHistorico obtenerPorId(Long id){
+    public DTHistorico obtenerPorId(Long id) {
         return objToDto(historicoRepository.findByIdHistorico(id));
     }
 
-    public List<DTHistorico> obtenerPorRecorrido(Long idRecorrido){
+    public List<DTHistorico> obtenerPorRecorrido(Long idRecorrido) {
         List<DTHistorico> listDto = new ArrayList<>();
-        for (Historico h : historicoRepository.findByRecorrido_IdRecorridoOrderByIdHistoricoAsc(idRecorrido)){
+        for (Historico h : historicoRepository.findByRecorrido_IdRecorridoOrderByIdHistoricoAsc(idRecorrido)) {
             listDto.add(objToDto(h));
         }
         return listDto;
     }
 
-    public void registrarCambioEstado(Recorrido recorrido, Estado estado){
+    public void registrarCambioEstado(Recorrido recorrido, Estado estado) {
         Historico historico = new Historico();
         historico.setRecorrido(recorrido);
         historico.setEstado(estado);
@@ -64,12 +64,12 @@ public class HistoricoService {
         historicoRepository.save(historico);
     }
 
-    public void eliminarPorRecorrido(Long idRecorrido){
+    public void eliminarPorRecorrido(Long idRecorrido) {
         List<Historico> entradas = historicoRepository.findByRecorrido_IdRecorridoOrderByIdHistoricoAsc(idRecorrido);
         historicoRepository.deleteAll(entradas);
     }
 
-    public Historico dtoToObj(DTHistorico dtHistorico){
+    public Historico dtoToObj(DTHistorico dtHistorico) {
         Historico historico = new Historico();
         historico.setIdHistorico(dtHistorico.getIdHistorico());
         historico.setRecorrido(recorridoRepository.findByIdRecorrido(dtHistorico.getIdRecorrido()));
@@ -78,7 +78,7 @@ public class HistoricoService {
         return historico;
     }
 
-    public DTHistorico objToDto(Historico historico){
+    public DTHistorico objToDto(Historico historico) {
         DTHistorico dtHistorico = new DTHistorico();
         dtHistorico.setIdHistorico(historico.getIdHistorico());
         dtHistorico.setIdRecorrido(historico.getRecorrido().getIdRecorrido());
@@ -87,7 +87,7 @@ public class HistoricoService {
         return dtHistorico;
     }
 
-    public void existeHistorico(Long idHistorico) throws Exception{
+    public void existeHistorico(Long idHistorico) throws Exception {
         if (!historicoRepository.existsByIdHistorico(idHistorico))
             throw new Exception("Historico no encontrado.");
     }

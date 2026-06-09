@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
 import useRouteFilterStore from '@/features/map/routeFilterStore';
+import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
 import useZonesStore from '@/features/zones/zonesStore';
 import TopAppBar from '@/shared/components/TopAppBar';
@@ -268,9 +269,15 @@ const GuestPortal = () => {
                   <div key={route.id} className="bg-surface rounded-xl overflow-hidden border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
                     <div className="h-32 w-full relative overflow-hidden bg-surface-variant flex items-center justify-center">
                       <span className="material-symbols-outlined text-[48px] text-outline opacity-20">landscape</span>
-                      <div className={`absolute top-2 right-2 px-2 py-1 backdrop-blur rounded font-mono-label text-[10px] flex items-center gap-1 shadow-sm ${getRouteStatusClassName(route.status)}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                        {getRouteStatusLabel(route.status)}
+                      <div
+                        className="absolute top-2 right-2 px-2 py-1 bg-surface/90 backdrop-blur rounded font-mono-label text-[10px] flex items-center gap-1 shadow-sm"
+                        style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                        />
+                        {STATUS_LABELS[route.status] || route.status}
                       </div>
                     </div>
                     <div className="p-4 flex flex-col gap-2">

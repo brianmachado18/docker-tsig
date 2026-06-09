@@ -99,6 +99,7 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useAttractionsStore((state) => state.openForm);
   const openPopup = useMapPopupStore((state) => state.openPopup);
+  const flyTo = useMapStore((state) => state.flyTo);
 
   useEffect(() => {
     if (!map || !activeTool) {
@@ -133,7 +134,13 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
 
         const attraction = getAttractionFromFeature(feature, attractions);
         if (attraction) {
-          openForm(attraction);
+          const pending = useAttractionsStore.getState().pendingWizardData;
+          if (pending) {
+            openForm({ ...pending, ...attraction });
+            useAttractionsStore.getState().clearPendingWizardData();
+          } else {
+            openForm(attraction);
+          }
         }
         setActiveTool('select');
       });
@@ -159,6 +166,9 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
         const attraction = getAttractionFromFeature(feature, attractions);
         if (attraction) {
           openPopup(attraction, 'attraction');
+          if (attraction.coordinates) {
+            flyTo(attraction.coordinates);
+          }
         }
       });
 
@@ -185,7 +195,7 @@ const AttractionMapInteractions = ({ attractions = [] }) => {
     }
 
     return undefined;
-  }, [activeTool, attractions, layerLookupAttempt, map, openForm, openPopup, setActiveTool]);
+  }, [activeTool, attractions, flyTo, layerLookupAttempt, map, openForm, openPopup, setActiveTool]);
 
   return null;
 };

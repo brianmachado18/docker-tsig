@@ -8,15 +8,15 @@ export const ROUTE_STATUS_LABEL_KEYS = {
 export const STATUS_LABELS = {
   available: 'Disponible',
   pending: 'Pendiente',
-  'off-season': 'Fuera de Temporada',
+  'off-season': 'Fuera de temporada',
   cancelled: 'Cancelado',
 };
 
 export const STATUS_STYLES = {
-  available: 'bg-status-available/10 text-status-available border-status-available/20',
-  pending: 'bg-status-pending/10 text-status-pending border-status-pending/20',
-  'off-season': 'bg-status-off-season/10 text-status-off-season border-status-off-season/20',
-  cancelled: 'bg-status-cancelled/10 text-status-cancelled border-status-cancelled/20',
+  available: 'text-green-700 bg-green-50 border-green-200',
+  pending: 'text-blue-700 bg-blue-50 border-blue-200',
+  'off-season': 'text-orange-600 bg-orange-50 border-orange-200',
+  cancelled: 'text-red-600 bg-red-50 border-red-200',
 };
 
 export const STATUS_COLORS = {

@@ -20,6 +20,15 @@ const wktFormat = new WKT();
 const NAV_LAYER_KEY = 'nav-route-popup';
 
 const CATEGORY_LABELS = {
+  // Clasificacion (atracciones)
+  MUSEO: 'Museo',
+  TEATRO: 'Teatro',
+  MONUMENTO: 'Monumento',
+  PLAZA: 'Plaza',
+  GASTRONOMIA: 'Gastronomía',
+  PLAYA: 'Playa',
+  PARQUE: 'Parque',
+  // TipoExperiencia (recorridos)
   CULTURAL: 'Cultural',
   GASTRONOMICO: 'Gastronómico',
   NATURAL: 'Natural',
@@ -173,19 +182,28 @@ const renderNavRoute = (map, userCoords, destCoords, routeWkt, mode, isRoute = f
       image: makeDotStyle(color).getImage(),
       text: isRoute
         ? new Text({
-            text: 'Inicio del recorrido',
-            offsetY: -18,
-            font: 'bold 12px sans-serif',
-            fill: new Fill({ color: '#ffffff' }),
-            backgroundFill: new Fill({ color }),
-            padding: [3, 6, 3, 6],
-            backgroundStroke: new Stroke({ color: '#ffffff', width: 1 }),
-          })
+          text: 'Inicio del recorrido',
+          offsetY: -18,
+          font: 'bold 12px sans-serif',
+          fill: new Fill({ color: '#ffffff' }),
+          backgroundFill: new Fill({ color }),
+          padding: [3, 6, 3, 6],
+          backgroundStroke: new Stroke({ color: '#ffffff', width: 1 }),
+        })
         : null,
     }),
   );
 
   source.addFeatures([outlineFeat, lineFeat, userFeat, destFeat]);
+
+  const extent = source.getExtent();
+  if (extent && Number.isFinite(extent[0])) {
+    map.getView().fit(extent, {
+      padding: [80, 60, 160, 60],
+      duration: 700,
+      maxZoom: 16,
+    });
+  }
 };
 
 const TimeCard = ({ icon, label, minutes, loading, mode, selected, onClick }) => {
@@ -195,11 +213,10 @@ const TimeCard = ({ icon, label, minutes, loading, mode, selected, onClick }) =>
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-1.5 flex-1 py-3 px-1 rounded-xl transition-all border-2 ${
-        selected
+      className={`flex flex-col items-center gap-1.5 flex-1 py-3 px-1 rounded-xl transition-all border-2 ${selected
           ? 'bg-surface-container shadow-sm scale-[1.03]'
           : 'bg-surface-container hover:bg-surface-container-high border-transparent'
-      }`}
+        }`}
       style={{ borderColor: selected ? color : 'transparent' }}
     >
       <span className="material-symbols-outlined text-[22px]" style={{ color }}>
@@ -226,6 +243,7 @@ const MapFeaturePopup = ({ editable = true }) => {
   const fetchRoutes = useRoutesStore((state) => state.fetchRoutes);
   const refreshMapLayer = useMapStore((state) => state.refreshMapLayer);
   const mapInstance = useMapStore((state) => state.mapInstance);
+  const restoreViewport = useMapStore((state) => state.restoreViewport);
 
   const [localStatus, setLocalStatus] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -299,6 +317,7 @@ const MapFeaturePopup = ({ editable = true }) => {
     removeNavLayer(mapInstance);
     setConfirmDelete(false);
     setIsDeleting(false);
+    restoreViewport();
     closePopup();
   };
 
@@ -461,6 +480,56 @@ const MapFeaturePopup = ({ editable = true }) => {
     }
   };
 
+  if (selectedMode) {
+    return (
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[340px] max-w-[calc(100vw-2rem)] bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant overflow-hidden">
+        <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+          <button
+            type="button"
+            onClick={() => setSelectedMode(null)}
+            className="p-1.5 rounded-full hover:bg-surface-container text-on-surface-variant shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          </button>
+          <p className="flex-1 font-semibold text-on-surface truncate text-sm">{title}</p>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="p-1.5 rounded-full hover:bg-surface-container text-on-surface-variant shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+        <div className="flex gap-2 px-3 pb-3">
+          <TimeCard
+            icon="directions_car"
+            label="Auto"
+            mode="driving"
+            minutes={navRoutes?.driving?.minutes}
+            selected={selectedMode === 'driving'}
+            onClick={() => handleSelectMode('driving')}
+          />
+          <TimeCard
+            icon="directions_bike"
+            label="Bicicleta"
+            mode="cycling"
+            minutes={navRoutes?.cycling?.minutes}
+            selected={selectedMode === 'cycling'}
+            onClick={() => handleSelectMode('cycling')}
+          />
+          <TimeCard
+            icon="directions_walk"
+            label="Caminando"
+            mode="walking"
+            minutes={navRoutes?.walking?.minutes}
+            selected={selectedMode === 'walking'}
+            onClick={() => handleSelectMode('walking')}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[340px] max-w-[calc(100vw-2rem)] bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant overflow-hidden">
@@ -480,6 +549,17 @@ const MapFeaturePopup = ({ editable = true }) => {
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
+
+        {entityType === 'attraction' && entity.imageUrl && (
+          <div className="px-4 pb-3">
+            <img
+              src={entity.imageUrl}
+              alt={title}
+              className="w-full h-40 object-cover rounded-lg"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+        )}
 
         {!!description && (
           <div className="px-4 pb-3">
@@ -528,9 +608,8 @@ const MapFeaturePopup = ({ editable = true }) => {
               <button
                 type="button"
                 onClick={handleToggleHistory}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs transition-colors ${
-                  historyOpen ? 'text-primary bg-primary/5' : 'text-on-surface-variant hover:bg-surface-container'
-                }`}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs transition-colors ${historyOpen ? 'text-primary bg-primary/5' : 'text-on-surface-variant hover:bg-surface-container'
+                  }`}
               >
                 <span className="material-symbols-outlined text-[16px]">history</span>
                 Historial
@@ -587,9 +666,8 @@ const MapFeaturePopup = ({ editable = true }) => {
           <button
             type="button"
             onClick={handleToggleDirection}
-            className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
-              directionOpen ? 'text-primary bg-primary/5' : 'text-on-surface-variant hover:bg-surface-container'
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${directionOpen ? 'text-primary bg-primary/5' : 'text-on-surface-variant hover:bg-surface-container'
+              }`}
           >
             <span className="flex items-center gap-2 font-medium">
               <span className="material-symbols-outlined text-[18px]">directions</span>
