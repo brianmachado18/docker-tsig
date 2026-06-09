@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import MapCanvas from '@/features/map/MapCanvas';
 import MapControls from '@/features/map/MapControls';
 import MapFeaturePopup from '@/features/map/MapFeaturePopup';

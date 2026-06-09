@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { attractionsService } from '@/features/attractions/attractionsService';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
-import { getRouteStatusOptions } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
 import { STATUS_LABELS, STATUS_STYLES } from '@/features/routes/routeStatus';
 import { validateRouteForm } from '@/features/routes/routeValidation';
@@ -143,7 +142,6 @@ const isValidCoordinate = (coordinates) =>
 
 const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const { t } = useLangStore();
-  const statusOptions = useMemo(() => getRouteStatusOptions(t), [t]);
   const {
     closeForm, saveRoute, deleteRoute,
     isSaving, isDeleting, error, clearError,
@@ -177,10 +175,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   // Datos disponibles
   const [availableAttractions, setAvailableAttractions] = useState([]);
   const [availableZones, setAvailableZones] = useState([]);
-  const [validationError, setValidationError] = useState('');
   const [routingFeedback, setRoutingFeedback] = useState('');
-  const [isRoutingExact, setIsRoutingExact] = useState(false);
-  const [isOptimizingStops, setIsOptimizingStops] = useState(false);
 
   const currentMonth = new Date().getMonth() + 1;
 
@@ -206,7 +201,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       setMesFin(route?.mesFin || '');
       setGeomWkt(route?.geomWkt || '');
       setZoneIds(Array.isArray(route?.zoneIds) ? route.zoneIds : []);
-      setAttractionIds(Array.isArray(route?.attractionIds) ? route.attractionIds : []);
       setValidationError('');
       setRoutingFeedback('');
       setIsOptimized(false);
@@ -243,19 +237,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   }, [route, clearError]);
 
   const apiError = useMemo(() => getApiErrorMessage(error, t('common.error')), [error, t]);
-
-  const getStopCoordinates = (ids = attractionIds) => ids
-    .map((id) => availableAttractions.find((item) => item.id === id)?.coordinates)
-    .filter(isValidCoordinate)
-    .map(([lon, lat]) => [Number(lon), Number(lat)]);
-
-  const buildLineFromStops = (ids = attractionIds) => toLineStringWkt(getStopCoordinates(ids));
-
-  const setRouteStops = (nextAttractionIds) => {
-    setAttractionIds(nextAttractionIds);
-    setGeomWkt('');
-    setRoutingFeedback('');
-  };
 
   // Detección "fuera de temporada" usando los meses del propio recorrido
   const outOfSeason = isOutOfSeason(Number(mesInicio), Number(mesFin), currentMonth);
@@ -306,177 +287,99 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     } finally {
       setIsOptimizing(false);
     }
-    setRouteStops([...attractionIds, attrId]);
-    setSelectedAttractionId('');
   };
 
-  const removeAttraction = (id) => {
-    setRouteStops(attractionIds.filter((item) => item !== id));
-  };
+  const buildLineFromStops = async () => {
+    const all = [startStop, ...intermediateStops, endStop].filter((s) => s?.coordinates);
+    const coords = all
+      .map((s) => s.coordinates)
+      .filter(isValidCoordinate)
+      .map(([lon, lat]) => [Number(lon), Number(lat)]);
 
-  const moveAttraction = (index, direction) => {
-    const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= attractionIds.length) {
-      return;
-    }
-    const updated = [...attractionIds];
-    [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
-    setRouteStops(updated);
-  };
+    if (coords.length < 2) return '';
 
-  const handleFollowExactRoad = async () => {
-    const coords = getStopCoordinates();
-    if (coords.length < 2) {
-      return;
-    }
-
+    setIsRoutingLoading(true);
     setRoutingFeedback('');
-    setIsRoutingExact(true);
     try {
       const routedWkt = await fetchRoadRoute(coords);
-      if (!routedWkt) {
-        setRoutingFeedback('No se pudo ajustar el recorrido a calles reales. Se mantiene el trazado actual.');
-        return;
-      }
+      if (routedWkt) return routedWkt;
 
-      setGeomWkt(routedWkt);
-      setValidationError('');
-      setRoutingFeedback('Recorrido ajustado a calles reales.');
+      setRoutingFeedback('No se pudo ajustar a calles reales. Se generó una línea directa entre las paradas.');
+      return toLineStringWkt(coords);
     } finally {
-      setIsRoutingExact(false);
+      setIsRoutingLoading(false);
     }
   };
 
-  const handleOptimizeStops = async () => {
-    const coords = getStopCoordinates();
-    if (coords.length < 2) {
-      return;
-    }
+  const validate = (geom) =>
+    validateRouteForm({ name: routeName, description: routeDescription, mesInicio, mesFin, durationHours, guide, geomWkt: geom }, t);
 
-    setRoutingFeedback('');
-    setIsOptimizingStops(true);
-    try {
-      const result = await optimizeStopsOrder(coords);
-      if (!result?.reorderedIndices?.length) {
-        setRoutingFeedback('No se pudo optimizar el orden de las paradas. Se mantiene el orden actual.');
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    let effectiveGeomWkt = '';
+
+    if (routeMode === 'draw') {
+      effectiveGeomWkt = geomWkt?.trim() || '';
+    } else {
+      if (!startStop || !endStop) {
+        setValidationError('Seleccioná un punto inicial y un punto final.');
         return;
       }
-
-      const reorderedIds = result.reorderedIndices
-        .map((index) => attractionIds[index])
-        .filter((id) => id !== undefined);
-
-      if (reorderedIds.length !== attractionIds.length) {
-        setRoutingFeedback('No se pudo optimizar el orden de las paradas. Se mantiene el orden actual.');
-        return;
-      }
-
-      setAttractionIds(reorderedIds);
-      setGeomWkt(result.wkt || buildLineFromStops(reorderedIds));
-      setValidationError('');
-      setRoutingFeedback('Orden de paradas optimizado.');
-    } finally {
-      setIsOptimizingStops(false);
+      effectiveGeomWkt = await buildLineFromStops();
     }
-  };
 
-  const validate = (geom) => {
-    return validateRouteForm({
+    const validation = validate(effectiveGeomWkt);
+    setValidationError(validation);
+    if (validation) return;
+
+    const allStops = routeMode === 'points' ? [startStop, ...intermediateStops, endStop].filter(Boolean) : [];
+    const derivedAttractionIds = allStops.filter((s) => s.type === 'attraction').map((s) => s.id);
+    const stopZoneIds = allStops.filter((s) => s.type === 'zone').map((s) => s.id);
+    const allZoneIds = [...new Set([...zoneIds, ...stopZoneIds])];
+
+    const ok = await saveRoute({
+      id: route?.id,
       name: routeName,
       description: routeDescription,
-      stationId,
-      durationHours,
+      status: routeStatus,
+      durationHours: Number(durationHours),
       guide,
-      geomWkt: geom,
-    }, t);
+      experienceType,
+      mesInicio: Number(mesInicio),
+      mesFin: Number(mesFin),
+      geomWkt: effectiveGeomWkt,
+      zoneIds: allZoneIds,
+      attractionIds: derivedAttractionIds,
+    });
+    if (ok) onSaved?.();
   };
-};
 
-const buildLineFromStops = async () => {
-  const all = [startStop, ...intermediateStops, endStop].filter((s) => s?.coordinates);
-  const coords = all.map((s) => s.coordinates);
-  if (coords.length < 2) return '';
-  setIsRoutingLoading(true);
-  try {
-    return (await fetchRoadRoute(coords)) || toLineStringWkt(coords);
-  } finally {
-    setIsRoutingLoading(false);
-  }
-};
+  const handleDelete = async () => {
+    if (!route?.id) return;
+    if (!window.confirm('¿Eliminar recorrido?')) return;
+    const ok = await deleteRoute(route.id);
+    if (ok) { onDeleted?.(); handleClose(); }
+  };
 
-const validate = (geom) =>
-  validateRouteForm({ name: routeName, description: routeDescription, mesInicio, mesFin, durationHours, guide, geomWkt: geom }, t);
+  const usedAttractionIds = useMemo(() => new Set([
+    ...(startStop?.type === 'attraction' ? [startStop.id] : []),
+    ...(endStop?.type === 'attraction' ? [endStop.id] : []),
+    ...intermediateStops.filter((s) => s.type === 'attraction').map((s) => s.id),
+  ]), [startStop, endStop, intermediateStops]);
 
-const handleSubmit = async (event) => {
-  event.preventDefault();
-  let effectiveGeomWkt = '';
+  const usedZoneIds = useMemo(() => new Set([
+    ...(startStop?.type === 'zone' ? [startStop.id] : []),
+    ...(endStop?.type === 'zone' ? [endStop.id] : []),
+    ...intermediateStops.filter((s) => s.type === 'zone').map((s) => s.id),
+  ]), [startStop, endStop, intermediateStops]);
 
-  const effectiveGeomWkt = geomWkt && geomWkt.trim() ? geomWkt : buildLineFromStops();
-  if (routeMode === 'draw') {
-    effectiveGeomWkt = geomWkt?.trim() || '';
-  } else {
-    if (!startStop || !endStop) {
-      setValidationError('Seleccioná un punto inicial y un punto final.');
-      return;
-    }
-    effectiveGeomWkt = await buildLineFromStops();
-  }
+  const availableForIntermediate = {
+    attractions: availableAttractions.filter((a) => !usedAttractionIds.has(a.id)),
+    zones: availableZones.filter((z) => !usedZoneIds.has(z.id)),
+  };
 
-  const validation = validate(effectiveGeomWkt);
-  setValidationError(validation);
-  if (validation) return;
-
-  const allStops = routeMode === 'points' ? [startStop, ...intermediateStops, endStop].filter(Boolean) : [];
-  const derivedAttractionIds = allStops.filter((s) => s.type === 'attraction').map((s) => s.id);
-  const stopZoneIds = allStops.filter((s) => s.type === 'zone').map((s) => s.id);
-  const allZoneIds = [...new Set([...zoneIds, ...stopZoneIds])];
-
-  const ok = await saveRoute({
-    id: route?.id,
-    name: routeName,
-    description: routeDescription,
-    status: routeStatus,
-    durationHours: Number(durationHours),
-    guide,
-    experienceType,
-    mesInicio: Number(mesInicio),
-    mesFin: Number(mesFin),
-    geomWkt: effectiveGeomWkt,
-    zoneIds: allZoneIds,
-    attractionIds: derivedAttractionIds,
-  });
-  if (ok) onSaved?.();
-};
-
-const handleDelete = async () => {
-  if (!route?.id) return;
-  if (!window.confirm('¿Eliminar recorrido?')) return;
-  const ok = await deleteRoute(route.id);
-  if (ok) { onDeleted?.(); handleClose(); }
-};
-
-const hasEnoughStops = attractionIds.length >= 2;
-const isRouteToolsBusy = isRoutingExact || isOptimizingStops;
-
-const usedAttractionIds = useMemo(() => new Set([
-  ...(startStop?.type === 'attraction' ? [startStop.id] : []),
-  ...(endStop?.type === 'attraction' ? [endStop.id] : []),
-  ...intermediateStops.filter((s) => s.type === 'attraction').map((s) => s.id),
-]), [startStop, endStop, intermediateStops]);
-
-const usedZoneIds = useMemo(() => new Set([
-  ...(startStop?.type === 'zone' ? [startStop.id] : []),
-  ...(endStop?.type === 'zone' ? [endStop.id] : []),
-  ...intermediateStops.filter((s) => s.type === 'zone').map((s) => s.id),
-]), [startStop, endStop, intermediateStops]);
-
-const availableForIntermediate = {
-  attractions: availableAttractions.filter((a) => !usedAttractionIds.has(a.id)),
-  zones: availableZones.filter((z) => !usedZoneIds.has(z.id)),
-};
-
-const canOptimize = !!(startStop && endStop && intermediateStops.length >= 2);
-const isSubmitting = isSaving || isDeleting || isRoutingLoading || isOptimizing;
+  const canOptimize = !!(startStop && endStop && intermediateStops.length >= 2);
+  const isSubmitting = isSaving || isDeleting || isRoutingLoading || isOptimizing;
 
 // ── Splash: selección de modo (solo para recorridos nuevos) ──────────────────
 if (!hasChosenMode) {
@@ -650,8 +553,8 @@ return (
                     type="button"
                     onClick={() => setRouteStatus(next)}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${routeStatus === next
-                        ? STATUS_STYLES[next]
-                        : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                      ? STATUS_STYLES[next]
+                      : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
                       }`}
                   >
                     Pasar a {STATUS_LABELS[next]}
@@ -712,8 +615,8 @@ return (
                     onClick={handleOptimize}
                     disabled={isOptimizing}
                     className={`flex items-center gap-1 text-xs border rounded-full px-2.5 py-1 transition-colors disabled:opacity-60 ${isOptimized
-                        ? 'bg-primary text-on-primary border-primary'
-                        : 'text-primary border-primary/30 hover:bg-primary/5'
+                      ? 'bg-primary text-on-primary border-primary'
+                      : 'text-primary border-primary/30 hover:bg-primary/5'
                       }`}
                   >
                     <span className="material-symbols-outlined text-[13px]">
@@ -786,96 +689,9 @@ return (
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <span className="font-label-md text-label-md text-on-surface-variant">{t('routes.stops')}</span>
-        <p className="text-xs text-outline">
-          Si no dibujás el recorrido en el mapa, se generará automáticamente uniendo las paradas en orden.
-        </p>
-        <div className="flex gap-2">
-          <select
-            className="flex-1 px-3 py-2 border border-outline rounded bg-surface"
-            value={selectedAttractionId}
-            onChange={(event) => setSelectedAttractionId(event.target.value)}
-          >
-            <option value="">Seleccionar atracción...</option>
-            {availableAttractions.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.title}
-              </option>
-            ))}
-          </select>
-          <button type="button" onClick={addAttraction} className="px-3 py-2 rounded bg-primary text-on-primary">
-            +
-          </button>
-        </div>
-        <ul className="border border-outline rounded p-2 bg-surface flex flex-col gap-2">
-          {!attractionIds.length && <li className="text-xs text-outline">Sin paradas cargadas.</li>}
-          {attractionIds.map((id, index) => {
-            const attraction = availableAttractions.find((item) => item.id === id);
-            return (
-              <li key={`${id}-${index}`} className="flex items-center justify-between text-sm">
-                <span>
-                  {index + 1}. {attraction?.title || `Atracción ${id}`}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    className="px-2 py-1 border border-outline rounded"
-                    onClick={() => moveAttraction(index, -1)}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    className="px-2 py-1 border border-outline rounded"
-                    onClick={() => moveAttraction(index, 1)}
-                  >
-                    ↓
-                  </button>
-                  <button
-                    type="button"
-                    className="px-2 py-1 border border-error rounded text-error"
-                    onClick={() => removeAttraction(id)}
-                  >
-                    x
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        {hasEnoughStops && (
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleFollowExactRoad}
-                disabled={isRouteToolsBusy || isSaving || isDeleting}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded border border-primary text-primary disabled:opacity-60"
-              >
-                {isRoutingExact && (
-                  <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                )}
-                <span>{isRoutingExact ? 'Siguiendo camino exacto...' : 'Seguir camino exacto'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleOptimizeStops}
-                disabled={isRouteToolsBusy || isSaving || isDeleting}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded border border-outline text-on-surface disabled:opacity-60"
-              >
-                {isOptimizingStops && (
-                  <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                )}
-                <span>{isOptimizingStops ? 'Optimizando paradas...' : 'Optimizar orden de paradas'}</span>
-              </button>
-            </div>
-            {!!routingFeedback && (
-              <p className="text-xs text-on-surface-variant">{routingFeedback}</p>
-            )}
-          </div>
-        )}
-      </div>
+      {!!routingFeedback && (
+        <p className="text-xs text-on-surface-variant">{routingFeedback}</p>
+      )}
       {(validationError || apiError) && (
         <p className="text-sm text-error">{validationError || apiError}</p>
       )}
@@ -886,30 +702,6 @@ return (
           {isDeleting ? 'Eliminando...' : 'Eliminar'}
         </button>
         <div className="flex gap-3">
-
-          {/*   
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 rounded-lg border border-outline text-on-surface"
-              disabled={isSaving || isDeleting || isRouteToolsBusy}
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
-              disabled={isSaving || isDeleting || isRouteToolsBusy}
-            >
-              {isOptimizingStops
-                ? 'Optimizando paradas...'
-                : isRoutingExact
-                  ? 'Siguiendo camino exacto...'
-                  : isSaving
-                    ? 'Guardando...'
-                    : t('common.save')} */}
-
-
           <button type="button" onClick={handleClose} className="px-4 py-2 rounded-lg border border-outline text-on-surface" disabled={isSubmitting}>
             {t('common.cancel')}
           </button>

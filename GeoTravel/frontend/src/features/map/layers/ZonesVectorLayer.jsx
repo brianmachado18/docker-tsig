@@ -11,7 +11,7 @@ const zoneStyle = new Style({
   stroke: new Stroke({ color: '#0a6c44', width: 2 }),
 });
 
-const ZonesVectorLayer = ({ map, zones = [], zIndex = 10 }) => {
+const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 10 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
   const visibleIdsRef = useRef(null);

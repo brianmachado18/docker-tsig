@@ -14,6 +14,7 @@ const MapCanvas = ({
   attractions = [],
   className = '',
   onFeatureSelect,
+  visibleZoneIds = null
 }) => {
   const mapElementRef = useRef(null);
   const mapInstanceRef = useRef(null);
