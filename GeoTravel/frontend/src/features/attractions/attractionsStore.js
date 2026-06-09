@@ -9,10 +9,13 @@ const useAttractionsStore = create((set, get) => ({
   isSaving: false,
   isDeleting: false,
   error: null,
+  pendingWizardData: null,
 
   openForm: (attraction = null) => set({ isFormOpen: true, selectedAttraction: attraction, error: null }),
   closeForm: () => set({ isFormOpen: false, selectedAttraction: null, error: null }),
   clearError: () => set({ error: null }),
+  setPendingWizardData: (data) => set({ pendingWizardData: data }),
+  clearPendingWizardData: () => set({ pendingWizardData: null }),
 
   fetchAttractions: async () => {
     set({ isLoading: true, error: null });

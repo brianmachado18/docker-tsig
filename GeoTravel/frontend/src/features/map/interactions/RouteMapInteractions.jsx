@@ -78,6 +78,7 @@ const RouteMapInteractions = ({ routes = [] }) => {
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useRoutesStore((state) => state.openForm);
   const openPopup = useMapPopupStore((state) => state.openPopup);
+  const fitToExtent = useMapStore((state) => state.fitToExtent);
 
   useEffect(() => {
     if (!map || !activeTool) {
@@ -139,6 +140,10 @@ const RouteMapInteractions = ({ routes = [] }) => {
         const route = getRouteFromFeature(feature, routes);
         if (route) {
           openPopup(route, 'route');
+          const geom = feature.getGeometry();
+          if (geom) {
+            fitToExtent(geom.getExtent());
+          }
         }
       });
 
@@ -150,7 +155,7 @@ const RouteMapInteractions = ({ routes = [] }) => {
     }
 
     return undefined;
-  }, [activeTool, layerLookupAttempt, map, openForm, openPopup, routes, setActiveTool]);
+  }, [activeTool, fitToExtent, layerLookupAttempt, map, openForm, openPopup, routes, setActiveTool]);
 
   return null;
 };

@@ -20,6 +20,15 @@ const wktFormat = new WKT();
 const NAV_LAYER_KEY = 'nav-route-popup';
 
 const CATEGORY_LABELS = {
+  // Clasificacion (atracciones)
+  MUSEO: 'Museo',
+  TEATRO: 'Teatro',
+  MONUMENTO: 'Monumento',
+  PLAZA: 'Plaza',
+  GASTRONOMIA: 'Gastronomía',
+  PLAYA: 'Playa',
+  PARQUE: 'Parque',
+  // TipoExperiencia (recorridos)
   CULTURAL: 'Cultural',
   GASTRONOMICO: 'Gastronómico',
   NATURAL: 'Natural',
@@ -235,6 +244,7 @@ const MapFeaturePopup = ({ editable = true }) => {
   const fetchRoutes = useRoutesStore((state) => state.fetchRoutes);
   const refreshMapLayer = useMapStore((state) => state.refreshMapLayer);
   const mapInstance = useMapStore((state) => state.mapInstance);
+  const restoreViewport = useMapStore((state) => state.restoreViewport);
 
   const [localStatus, setLocalStatus] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -308,6 +318,7 @@ const MapFeaturePopup = ({ editable = true }) => {
     removeNavLayer(mapInstance);
     setConfirmDelete(false);
     setIsDeleting(false);
+    restoreViewport();
     closePopup();
   };
 
@@ -539,6 +550,17 @@ const MapFeaturePopup = ({ editable = true }) => {
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
+
+        {entityType === 'attraction' && entity.imageUrl && (
+          <div className="px-4 pb-3">
+            <img
+              src={entity.imageUrl}
+              alt={title}
+              className="w-full h-40 object-cover rounded-lg"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+        )}
 
         {!!description && (
           <div className="px-4 pb-3">

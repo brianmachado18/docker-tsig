@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import { validateAttractionForm } from '@/features/attractions/attractionValidation';
+import ImagePicker from '@/features/attractions/ImagePicker';
 import useLangStore from '@/shared/i18n/langStore';
 import { getApiErrorMessage } from '@/shared/lib/forms/validation';
 
-const classifyOptions = ['CULTURAL', 'GASTRONOMICO', 'NATURAL', 'HITORICA', 'AVENTURA', 'OTRO'];
+const classifyOptions = ['MUSEO', 'TEATRO', 'MONUMENTO', 'PLAZA', 'GASTRONOMIA', 'PLAYA', 'PARQUE'];
 
 const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
   const { t } = useLangStore();
@@ -31,7 +32,7 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
   useEffect(() => {
     setTitle(attraction?.title || '');
     setDescription(attraction?.description || '');
-    setCategory((attraction?.category || 'CULTURAL').toUpperCase());
+    setCategory(attraction?.category || 'MUSEO');
     setImageUrl(attraction?.imageUrl || '');
     setLatitude(attraction?.latitude ?? attraction?.coordinates?.[1] ?? '');
     setLongitude(attraction?.longitude ?? attraction?.coordinates?.[0] ?? '');
@@ -146,15 +147,10 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
           </select>
         </label>
 
-        <label className="flex flex-col gap-1">
-          <span className="font-label-md text-label-md text-on-surface-variant">Foto URL (opcional)</span>
-          <input
-            className="w-full px-3 py-2 border border-outline rounded bg-surface"
-            type="url"
-            value={imageUrl}
-            onChange={(event) => setImageUrl(event.target.value)}
-          />
-        </label>
+        <div className="flex flex-col gap-1">
+          <span className="font-label-md text-label-md text-on-surface-variant">Foto (opcional)</span>
+          <ImagePicker value={imageUrl} onChange={setImageUrl} />
+        </div>
 
         {(validationError || apiError) && (
           <p className="text-sm text-error">{validationError || apiError}</p>
