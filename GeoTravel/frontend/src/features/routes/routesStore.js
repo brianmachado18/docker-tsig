@@ -34,22 +34,6 @@ const useRoutesStore = create((set, get) => ({
     }
   },
 
-  loadRouteAttractions: async (routeId) => {
-    if (!routeId) {
-      return [];
-    }
-    try {
-      const relations = await routesService.listRouteAttractions(routeId);
-      return relations
-        .slice()
-        .sort((a, b) => a.orden - b.orden)
-        .map((item) => item.idAtraccion);
-    } catch (error) {
-      set({ error });
-      return [];
-    }
-  },
-
   saveRoute: async (routeData) => {
     set({ isSaving: true, error: null });
     try {

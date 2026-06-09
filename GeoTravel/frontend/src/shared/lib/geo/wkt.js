@@ -62,3 +62,19 @@ export const parsePolygonWkt = (wkt) => {
 
 export const toPointWkt = (longitude, latitude) => `POINT(${Number(longitude)} ${Number(latitude)})`;
 
+// Arma una LINESTRING a partir de una lista de coordenadas [ [lon, lat], ... ].
+// Devuelve '' si no hay al menos 2 puntos válidos (una línea necesita 2 vértices).
+export const toLineStringWkt = (coordinates) => {
+  if (!Array.isArray(coordinates)) {
+    return '';
+  }
+  const valid = coordinates.filter(
+    (pair) => Array.isArray(pair) && Number.isFinite(Number(pair[0])) && Number.isFinite(Number(pair[1]))
+  );
+  if (valid.length < 2) {
+    return '';
+  }
+  const inner = valid.map(([lon, lat]) => `${Number(lon)} ${Number(lat)}`).join(', ');
+  return `LINESTRING (${inner})`;
+};
+

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
+import useRouteFilterStore from '@/features/map/routeFilterStore';
 import useRoutesStore from '@/features/routes/routesStore';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
@@ -16,11 +17,26 @@ const GuestPortal = () => {
   const { routes, isLoading: isRoutesLoading, error: routesError, fetchRoutes } = useRoutesStore();
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [experienceFilter, setExperienceFilter] = useState('all');
+  const setStatusFilter = useRouteFilterStore((state) => state.setStatus);
+  const setExperienceTypeFilter = useRouteFilterStore((state) => state.setExperienceType);
+  const resetRouteFilter = useRouteFilterStore((state) => state.reset);
 
   useEffect(() => {
     fetchAttractions();
     fetchRoutes();
   }, [fetchAttractions, fetchRoutes]);
+
+  // Sincronizar el filtro del panel con el mapa (capa WFS de recorridos).
+  useEffect(() => {
+    setStatusFilter(availabilityFilter);
+  }, [availabilityFilter, setStatusFilter]);
+
+  useEffect(() => {
+    setExperienceTypeFilter(experienceFilter);
+  }, [experienceFilter, setExperienceTypeFilter]);
+
+  // Al salir del portal, limpiar el filtro para no afectar otras pantallas.
+  useEffect(() => () => resetRouteFilter(), [resetRouteFilter]);
 
   const isLoading = isAttractionsLoading || isRoutesLoading;
   const error = attractionsError || routesError;
@@ -74,7 +90,7 @@ const GuestPortal = () => {
             <h3 className="font-headline-lg text-headline-lg text-primary">{t('guest.title')}</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">{t('guest.subtitle')}</p>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+          <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
             <section className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.filters')}</h4>
@@ -118,9 +134,8 @@ const GuestPortal = () => {
                 </div>
               </div>
             </section>
-
-            <hr className="border-outline-variant/30" />
-
+          </div>
+          <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
             <section className="flex flex-col gap-4 pb-4">
               <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.featured')}</h4>
               {error && (

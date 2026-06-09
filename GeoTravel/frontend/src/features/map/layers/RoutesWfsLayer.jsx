@@ -5,6 +5,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Stroke, Style } from 'ol/style';
 import { fetchWfsFeatureCollection } from '@/features/map/services/geoserver';
+import useRouteFilterStore, { matchesRouteFilter } from '@/features/map/routeFilterStore';
 
 const geojsonFormat = new GeoJSON();
 const wktFormat = new WKT();
@@ -114,6 +115,16 @@ const normalizeRouteFeature = (feature) => {
 const RoutesWfsLayer = ({ map, zIndex = 30 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
+  const status = useRouteFilterStore((state) => state.status);
+  const experienceType = useRouteFilterStore((state) => state.experienceType);
+  const filterRef = useRef({ status, experienceType });
+
+  // El filtro actual vive en un ref para que la función de estilo lo lea sin recrear la capa.
+  // Al cambiar el filtro, forzamos el re-render de la capa.
+  useEffect(() => {
+    filterRef.current = { status, experienceType };
+    layerRef.current?.changed();
+  }, [status, experienceType]);
 
   useEffect(() => {
     if (!map || layerRef.current) {
@@ -141,7 +152,9 @@ const RoutesWfsLayer = ({ map, zIndex = 30 }) => {
 
     const layer = new VectorLayer({
       source,
-      style: routeStyle,
+      // Estilo por feature: si no pasa el filtro, devolvemos null y el recorrido se oculta.
+      style: (feature) =>
+        matchesRouteFilter(feature.getProperties(), filterRef.current) ? routeStyle : null,
       zIndex,
       properties: {
         layerKey: 'routes-wfs',

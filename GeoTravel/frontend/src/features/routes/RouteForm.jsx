@@ -6,6 +6,7 @@ import { validateRouteForm } from '@/features/routes/routeValidation';
 import { zonesService } from '@/features/zones/zonesService';
 import useLangStore from '@/shared/i18n/langStore';
 import { getApiErrorMessage } from '@/shared/lib/forms/validation';
+import { toLineStringWkt } from '@/shared/lib/geo/wkt';
 
 const statusOptions = [
   { id: 'available', label: 'Disponible' },
@@ -33,7 +34,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     isDeleting,
     stations,
     fetchStations,
-    loadRouteAttractions,
     error,
     clearError,
   } = useRoutesStore();
@@ -87,19 +87,14 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       setStationId(route?.stationId || '');
       setGeomWkt(route?.geomWkt || '');
       setZoneIds(Array.isArray(route?.zoneIds) ? route.zoneIds : []);
+      // Las paradas vienen en el propio recorrido (el backend ya las devuelve ordenadas).
+      setAttractionIds(Array.isArray(route?.attractionIds) ? route.attractionIds : []);
       setValidationError('');
       clearError();
-
-      if (route?.id) {
-        const ids = await loadRouteAttractions(route.id);
-        setAttractionIds(ids);
-      } else {
-        setAttractionIds([]);
-      }
     };
 
     loadRouteData();
-  }, [route, loadRouteAttractions, clearError]);
+  }, [route, clearError]);
 
   const apiError = useMemo(() => {
     return getApiErrorMessage(error, t('common.error'));
@@ -137,20 +132,32 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     setAttractionIds(updated);
   };
 
-  const validate = () => {
+  // Arma la línea del recorrido uniendo las coordenadas de las paradas, en orden.
+  const buildLineFromStops = () => {
+    const coords = attractionIds
+      .map((id) => availableAttractions.find((item) => item.id === id)?.coordinates)
+      .filter(Boolean);
+    return toLineStringWkt(coords);
+  };
+
+  const validate = (geom) => {
     return validateRouteForm({
       name: routeName,
       description: routeDescription,
       stationId,
       durationHours,
       guide,
-      geomWkt,
+      geomWkt: geom,
     }, t);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const validation = validate();
+
+    // Si no se dibujó la línea en el mapa, se genera uniendo las paradas en orden.
+    const effectiveGeomWkt = geomWkt && geomWkt.trim() ? geomWkt : buildLineFromStops();
+
+    const validation = validate(effectiveGeomWkt);
     setValidationError(validation);
     if (validation) {
       return;
@@ -165,7 +172,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       guide,
       experienceType,
       stationId: Number(stationId),
-      geomWkt,
+      geomWkt: effectiveGeomWkt,
       zoneIds,
       attractionIds,
     });
@@ -313,6 +320,9 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
 
         <div className="flex flex-col gap-2">
           <span className="font-label-md text-label-md text-on-surface-variant">{t('routes.stops')}</span>
+          <p className="text-xs text-outline">
+            Si no dibujás el recorrido en el mapa, se generará automáticamente uniendo las paradas en orden.
+          </p>
           <div className="flex gap-2">
             <select
               className="flex-1 px-3 py-2 border border-outline rounded bg-surface"
