@@ -20,4 +20,5 @@ public class DTRecorrido {
     private Estado estado;
     private String geomWkt;
     private List<Long> zonas;
+    private List<Long> atracciones;
 }

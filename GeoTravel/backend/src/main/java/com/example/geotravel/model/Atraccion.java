@@ -1,5 +1,6 @@
 package com.example.geotravel.model;
 
+import com.example.geotravel.enums.Clasificacion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,9 +18,9 @@ public class Atraccion {
 
     private String nombre;
     private String descripcion;
-    private String clasificacion;
+    private Clasificacion clasificacion;
     private String fotoUrl;
 
-    @Column(columnDefinition = "geography(Point,4326)")
+    @Column(columnDefinition = "geometry(Point,4326)")
     private Point geomWkt;
 }

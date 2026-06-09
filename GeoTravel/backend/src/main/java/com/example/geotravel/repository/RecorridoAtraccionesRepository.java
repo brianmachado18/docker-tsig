@@ -10,7 +10,8 @@ import java.util.List;
 public interface RecorridoAtraccionesRepository extends JpaRepository<RecorridoAtracciones, Long> {
     Boolean existsByIdRecorridoAtracciones(Long idRecorridoAtracciones);
     Boolean existsByRecorridoAndAtraccion(Recorrido recorrido, Atraccion atraccion);
+    Boolean existsByAtraccion(Atraccion atraccion);
     Boolean existsByRecorridoAndOrden(Recorrido recorrido, int orden);
     RecorridoAtracciones findByIdRecorridoAtracciones(Long idRecorridoAtracciones);
-    List<RecorridoAtracciones> findByRecorrido(Recorrido recorrido);
+    List<RecorridoAtracciones> findByRecorridoOrderByOrden(Recorrido recorrido);
 }

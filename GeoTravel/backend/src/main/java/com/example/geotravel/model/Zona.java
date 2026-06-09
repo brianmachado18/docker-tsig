@@ -25,6 +25,6 @@ public class Zona {
     private int nivelAtractivo;
     private String observaciones;
 
-    @Column(columnDefinition = "geography(Polygon,4326)")
+    @Column(columnDefinition = "geometry(Polygon,4326)")
     private Polygon geomWkt;
 }
