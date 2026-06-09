@@ -7,16 +7,15 @@ import { STATUS_COLORS } from '@/features/routes/routeStatus';
 
 const geojson = new GeoJSON();
 
-const STATUS_STYLES = Object.fromEntries(
-  Object.entries(STATUS_COLORS).map(([status, color]) => [
-    status,
-    new Style({ stroke: new Stroke({ color, width: 3, lineDash: [8, 6] }) }),
-  ]),
-);
+const getRouteStyle = (feature) => {
+  const status = feature.get('status') || 'available';
+  const color = STATUS_COLORS[status] ?? STATUS_COLORS.available;
+  return new Style({
+    stroke: new Stroke({ color, width: 3, lineDash: [8, 6] }),
+  });
+};
 
-const getRouteStyle = (feature) => STATUS_STYLES[feature.get('status')] ?? STATUS_STYLES.available;
-
-const RoutesVectorLayer = ({ map, routes = [], zIndex = 20 }) => {
+const RoutesVectorLayer = ({ map, routes = [], zIndex = 40 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
 

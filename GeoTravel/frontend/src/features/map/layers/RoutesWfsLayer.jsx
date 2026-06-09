@@ -11,14 +11,13 @@ import { STATUS_COLORS } from '@/features/routes/routeStatus';
 const geojsonFormat = new GeoJSON();
 const wktFormat = new WKT();
 
-const STATUS_STYLES = Object.fromEntries(
-  Object.entries(STATUS_COLORS).map(([status, color]) => [
-    status,
-    new Style({ stroke: new Stroke({ color, width: 4, lineDash: [10, 6] }) }),
-  ]),
-);
-
-const getRouteStyle = (feature) => STATUS_STYLES[feature.get('status')] ?? STATUS_STYLES.available;
+const getRouteStyle = (feature) => {
+  const status = feature.get('status') || 'available';
+  const color = STATUS_COLORS[status] ?? STATUS_COLORS.available;
+  return new Style({
+    stroke: new Stroke({ color, width: 4, lineDash: [10, 6] }),
+  });
+};
 
 const toEntityId = (value) => {
   if (value === undefined || value === null || value === '') {
