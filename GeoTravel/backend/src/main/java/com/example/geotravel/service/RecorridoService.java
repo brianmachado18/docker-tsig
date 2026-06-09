@@ -2,14 +2,10 @@ package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
 import com.example.geotravel.enums.Estado;
-import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.RecorridoAtracciones;
 import com.example.geotravel.model.Zona;
-import com.example.geotravel.repository.AtraccionRepository;
-import com.example.geotravel.repository.RecorridoAtraccionesRepository;
-import com.example.geotravel.repository.RecorridoRepository;
-import com.example.geotravel.repository.ZonaRepository;
+import com.example.geotravel.repository.*;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -37,6 +33,9 @@ public class RecorridoService {
 
     @Autowired
     private HistoricoService historicoService;
+
+    @Autowired
+    private EstacionRepository estacionRepository;
 
     public void alta(DTRecorrido dtRecorrido) throws Exception {
         validarRecorrido(dtRecorrido); // Validar los datos del recorrido
@@ -103,17 +102,6 @@ public class RecorridoService {
     }
 
     public void cambiarEstado(Long idRecorrido, Estado nuevoEstado) throws Exception {
-        Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido);
-        if (r == null)
-            throw new Exception("Recorrido no encontrado.");
-        if (nuevoEstado.equals(r.getEstado()))
-            return;
-        r.setEstado(nuevoEstado);
-        recorridoRepository.save(r);
-        historicoService.registrarCambioEstado(r, nuevoEstado);
-    }
-
-    public void cambiarEstado(Long idRecorrido, Estado nuevoEstado) throws Exception {
         Recorrido recorrido = recorridoRepository.findByIdRecorrido(idRecorrido);
         if (recorrido == null) {
             throw new Exception("Recorrido no encontrado.");
@@ -121,7 +109,6 @@ public class RecorridoService {
         if (nuevoEstado.equals(recorrido.getEstado())) {
             return;
         }
-
         recorrido.setEstado(nuevoEstado);
         recorridoRepository.save(recorrido);
         historicoService.registrarCambioEstado(recorrido, nuevoEstado);
@@ -164,8 +151,7 @@ public class RecorridoService {
     public Recorrido dtoToObj(DTRecorrido dtRecorrido) {
         Recorrido recorrido = new Recorrido();
         recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
-        recorrido.setMesInicio(dtRecorrido.getMesInicio());
-        recorrido.setMesFin(dtRecorrido.getMesFin());
+        recorrido.setEstacion(estacionRepository.findByIdEstacion(dtRecorrido.getIdEstacion()));
         recorrido.setNombre(dtRecorrido.getNombre());
         recorrido.setDescripcion(dtRecorrido.getDescripcion());
         recorrido.setDuracionEstimada(dtRecorrido.getDuracionEstimada());
@@ -198,8 +184,7 @@ public class RecorridoService {
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
         dtRecorrido.setIdEstacion(recorrido.getEstacion() != null ? recorrido.getEstacion().getIdEstacion() : null);
-        dtRecorrido.setMesInicio(recorrido.getMesInicio());
-        dtRecorrido.setMesFin(recorrido.getMesFin());
+        dtRecorrido.setIdEstacion(recorrido.getEstacion().getIdEstacion());
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
@@ -243,12 +228,8 @@ public class RecorridoService {
             throw new Exception("Guia responsable requerido.");
         if (dtRecorrido.getIdEstacion() == null || dtRecorrido.getIdEstacion() <= 0)
             throw new Exception("Estacion invalida.");
-        if (!estacionService.existe(dtRecorrido.getIdEstacion()))
+        if (!estacionRepository.existsByIdEstacion(dtRecorrido.getIdEstacion()))
             throw new Exception("Estacion no encontrada.");
-        if (dtRecorrido.getMesInicio() == null || dtRecorrido.getMesInicio() < 1 || dtRecorrido.getMesInicio() > 12)
-            throw new Exception("Mes de inicio inválido.");
-        if (dtRecorrido.getMesFin() == null || dtRecorrido.getMesFin() < 1 || dtRecorrido.getMesFin() > 12)
-            throw new Exception("Mes de fin inválido.");
         if (dtRecorrido.getTipoExperiencia() == null)
             throw new Exception("Experiencia requerida.");
         if (dtRecorrido.getEstado() == null)
