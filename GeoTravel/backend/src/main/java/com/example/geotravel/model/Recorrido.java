@@ -20,6 +20,7 @@ public class Recorrido {
     private Long idRecorrido;
 
     @ManyToOne
+    @JoinColumn(name = "idEstacion")
     private Estacion estacion;
 
     @ManyToMany

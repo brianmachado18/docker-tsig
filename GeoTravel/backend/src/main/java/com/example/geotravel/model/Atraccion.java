@@ -18,8 +18,10 @@ public class Atraccion {
 
     private String nombre;
     private String descripcion;
-    private Clasificacion clasificacion;
     private String fotoUrl;
+
+    //@Enumerated(EnumType.STRING)
+    private Clasificacion clasificacion;
 
     @Column(columnDefinition = "geometry(Point,4326)")
     private Point geomWkt;
