@@ -29,6 +29,7 @@
     "available": "Available",
     "pending": "Pending",
     "offSeason": "Off-Season",
+    "cancelled": "Cancelled",
     "archived": "Archived",
     "name": "Route Name",
     "duration": "Est. Duration",
@@ -73,7 +74,7 @@
     "formSubtitle": "Complete the details for the zone selected on the map.",
     "polygonId": "Editing Polygon ID",
     "loading": "Loading zones...",
-    "offSeason": "Off-Season",
+    "offSeason": "Off-season Zone",
     "name": "Zone Name",
     "attractionLevel": "Attraction Level",
     "internalNotes": "Internal Observations",
@@ -82,7 +83,41 @@
     "geometryInvalid": "The captured geometry is invalid. Draw or edit the zone again.",
     "status": "Current Status:",
     "active": "Active Zone",
-    "offSeason": "Off-season Zone"
+    "routesQuery": {
+      "title": "Routes by zone",
+      "subtitle": "Routes stay hidden until a specific zone is queried.",
+      "enterMode": "Query",
+      "exitMode": "Exit",
+      "waitingSelection": "Click a zone to show only the routes that intersect that geometry.",
+      "hiddenUntilSelection": "Enable the query to choose a zone and reveal its routes.",
+      "loading": "Searching routes for the selected zone...",
+      "selectedZone": "Queried zone",
+      "singleResult": "1 route found",
+      "multiResult": "{count} routes found",
+      "empty": "This zone has no spatially associated routes.",
+      "clear": "Clear query",
+      "noDescription": "No description"
+    },
+    "query": {
+      "title": "Zone queries",
+      "subtitle": "Query by map click or by address from the same panel.",
+      "enterMode": "Query",
+      "exitMode": "Exit",
+      "routesTab": "By zone",
+      "addressTab": "By address",
+      "hiddenUntilSelection": "Enable the query to choose a zone or search for an address."
+    },
+    "addressQuery": {
+      "inputLabel": "Address",
+      "inputPlaceholder": "Ex: 18 de Julio 1234, Montevideo",
+      "search": "Search address",
+      "loading": "Searching...",
+      "waitingInput": "Type an address and only the matching zone will remain visible.",
+      "foundZone": "Found zone",
+      "mapResultHint": "The map hides every other zone and keeps visible only the one matching the address.",
+      "clear": "Clear query",
+      "noDescription": "No description"
+    }
   },
   "attractions": {
     "title": "Attraction Catalog",

@@ -10,7 +10,7 @@ const routeStyle = new Style({
   stroke: new Stroke({ color: '#002045', width: 3, lineDash: [8, 6] }),
 });
 
-const RoutesVectorLayer = ({ map, routes = [], zIndex = 20 }) => {
+const RoutesVectorLayer = ({ map, routes = [], zIndex = 40 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
 

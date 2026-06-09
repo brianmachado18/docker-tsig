@@ -1,6 +1,7 @@
 package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
+import com.example.geotravel.enums.Estado;
 import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.RecorridoAtracciones;
@@ -37,6 +38,9 @@ public class RecorridoService {
     @Autowired
     private RecorridoAtraccionesRepository recorridoAtraccionesRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public void alta(DTRecorrido dtRecorrido) throws Exception{
         validarRecorrido(dtRecorrido); // Validar los datos del recorrido
         validarAtracciones(dtRecorrido.getAtracciones()); // Validar las atracciones relacionadas
@@ -49,13 +53,19 @@ public class RecorridoService {
             recorridoAtracciones.setOrden(cont++);
             recorridoAtraccionesRepository.save(recorridoAtracciones);
         }
+        historicoService.registrarCambioEstado(r, r.getEstado());
     }
 
     public void actualizar(DTRecorrido dtRecorrido) throws Exception{
         validarRecorrido(dtRecorrido);
         validarAtracciones(dtRecorrido.getAtracciones());
+        Recorrido anterior = recorridoRepository.findByIdRecorrido(dtRecorrido.getIdRecorrido());
+        Estado estadoAnterior = anterior != null ? anterior.getEstado() : null;
         Recorrido r = dtoToObj(dtRecorrido);
         recorridoRepository.save(r);
+        if (estadoAnterior != null && dtRecorrido.getEstado() != null && !dtRecorrido.getEstado().equals(estadoAnterior)) {
+            historicoService.registrarCambioEstado(r, r.getEstado());
+        }
         List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r);
         int cont = 1;
         for (Long idAtraccion : dtRecorrido.getAtracciones()){
@@ -83,10 +93,25 @@ public class RecorridoService {
 
     public void eliminar(Long idRecorrido){
         Recorrido r = recorridoRepository.findByIdRecorrido(idRecorrido); // Obtener recorrido
+        historicoService.eliminarPorRecorrido(idRecorrido);
         List<RecorridoAtracciones> recorridoAtraccionesList = recorridoAtraccionesRepository.findByRecorridoOrderByOrden(r); // Obtener lista recorrido-atracciones
         for (RecorridoAtracciones ra : recorridoAtraccionesList) // Eliminar todos los recorrido-atracciones
             recorridoAtraccionesRepository.delete(ra);
         recorridoRepository.delete(r); // Elimianr recorriod
+    }
+
+    public void cambiarEstado(Long idRecorrido, Estado nuevoEstado) throws Exception{
+        Recorrido recorrido = recorridoRepository.findByIdRecorrido(idRecorrido);
+        if (recorrido == null) {
+            throw new Exception("Recorrido no encontrado.");
+        }
+        if (nuevoEstado.equals(recorrido.getEstado())) {
+            return;
+        }
+
+        recorrido.setEstado(nuevoEstado);
+        recorridoRepository.save(recorrido);
+        historicoService.registrarCambioEstado(recorrido, nuevoEstado);
     }
 
     public Boolean existe(Long idRecorrido){
@@ -105,6 +130,18 @@ public class RecorridoService {
     @Transactional(readOnly = true)
     public DTRecorrido obtenerPorId(Long id){
         return objToDto(recorridoRepository.findByIdRecorrido(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DTRecorrido> obtenerPorZona(Long idZona) throws Exception{
+        if (!zonaRepository.existsByIdZona(idZona))
+            throw new Exception("Zona no encontrada.");
+
+        List<DTRecorrido> listDto = new ArrayList<>();
+        for (Recorrido r : recorridoRepository.findAllByZonaGeom(idZona)){
+            listDto.add(objToDto(r));
+        }
+        return listDto;
     }
 
     public Recorrido obtenerObjPorId(Long id){
@@ -146,7 +183,7 @@ public class RecorridoService {
     public DTRecorrido objToDto(Recorrido recorrido){
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
-        dtRecorrido.setIdEstacion(recorrido.getEstacion().getIdEstacion());
+        dtRecorrido.setIdEstacion(recorrido.getEstacion() != null ? recorrido.getEstacion().getIdEstacion() : null);
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
@@ -185,6 +222,8 @@ public class RecorridoService {
             throw new Exception("Guia responsable requerido.");
         if (dtRecorrido.getIdEstacion() == null || dtRecorrido.getIdEstacion() <= 0)
             throw new Exception("Estacion invalida.");
+        if (!estacionService.existe(dtRecorrido.getIdEstacion()))
+            throw new Exception("Estacion no encontrada.");
         if (dtRecorrido.getTipoExperiencia() == null)
             throw new Exception("Experiencia requerida.");
         if (dtRecorrido.getEstado() == null)

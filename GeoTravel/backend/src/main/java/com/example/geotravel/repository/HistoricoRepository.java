@@ -10,5 +10,6 @@ public interface HistoricoRepository extends JpaRepository<Historico, Long> {
     Boolean existsByIdHistorico(Long id);
     Historico findByIdHistorico(Long id);
     List<Historico> findAll();
+    List<Historico> findByRecorrido_IdRecorridoOrderByIdHistoricoAsc(Long idRecorrido);
 
 }

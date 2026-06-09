@@ -50,9 +50,25 @@ const normalizeZoneFeature = (feature) => {
   });
 };
 
-const ZonesWfsLayer = ({ map, zIndex = 30 }) => {
+const toComparableId = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  return String(value);
+};
+
+const ZonesWfsLayer = ({ map, visibleZoneIds = null, zIndex = 30 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
+  const visibleIdsRef = useRef(null);
+
+  useEffect(() => {
+    visibleIdsRef.current = Array.isArray(visibleZoneIds)
+      ? visibleZoneIds.map(toComparableId).filter(Boolean)
+      : null;
+    layerRef.current?.changed();
+  }, [visibleZoneIds]);
 
   useEffect(() => {
     if (!map || layerRef.current) {
@@ -80,7 +96,15 @@ const ZonesWfsLayer = ({ map, zIndex = 30 }) => {
 
     const layer = new VectorLayer({
       source,
-      style: zoneStyle,
+      style: (feature) => {
+        const visibleIds = visibleIdsRef.current;
+        if (!visibleIds || !visibleIds.length) {
+          return zoneStyle;
+        }
+
+        const featureId = toComparableId(feature?.get?.('id'));
+        return visibleIds.includes(featureId) ? zoneStyle : null;
+      },
       zIndex,
       properties: {
         layerKey: 'zones-wfs',

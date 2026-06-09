@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import MapCanvas from '@/features/map/MapCanvas';
 import MapControls from '@/features/map/MapControls';
 import RouteMapInteractions from '@/features/map/interactions/RouteMapInteractions';
@@ -6,6 +7,7 @@ import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import RouteForm from '@/features/routes/RouteForm';
 import useRoutesStore from '@/features/routes/routesStore';
+import Modal from '@/shared/components/Modal';
 import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
@@ -53,14 +55,15 @@ const RoutePlanner = () => {
           Nuevo recorrido
         </button>
 
-        {isFormOpen && (
+        <MapFeaturePopup />
+        <Modal isOpen={isFormOpen} onClose={closeForm}>
           <RouteForm
             route={selectedRoute}
             onClose={closeForm}
             onSaved={refreshRouteLayer}
             onDeleted={refreshRouteLayer}
           />
-        )}
+        </Modal>
       </main>
     </div>
   );

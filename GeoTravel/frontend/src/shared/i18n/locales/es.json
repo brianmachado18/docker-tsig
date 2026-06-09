@@ -69,7 +69,42 @@
     "geometryInvalid": "La geometría capturada no es válida. Vuelve a dibujar o editar la zona.",
     "status": "Estado Actual:",
     "active": "Zona Activa",
-    "offSeason": "Zona Fuera de Temporada"
+    "offSeason": "Zona Fuera de Temporada",
+    "routesQuery": {
+      "title": "Recorridos por zona",
+      "subtitle": "Los recorridos permanecen ocultos hasta consultar una zona puntual.",
+      "enterMode": "Consultar",
+      "exitMode": "Salir",
+      "waitingSelection": "Haz clic en una zona para mostrar solo los recorridos que intersectan esa geometria.",
+      "hiddenUntilSelection": "Activa la consulta para elegir una zona y revelar sus recorridos.",
+      "loading": "Buscando recorridos de la zona seleccionada...",
+      "selectedZone": "Zona consultada",
+      "singleResult": "1 recorrido encontrado",
+      "multiResult": "{count} recorridos encontrados",
+      "empty": "Esta zona no tiene recorridos asociados espacialmente.",
+      "clear": "Limpiar consulta",
+      "noDescription": "Sin descripcion"
+    },
+    "query": {
+      "title": "Consultas de zona",
+      "subtitle": "Consulta por click o por direcci?n desde el mismo panel.",
+      "enterMode": "Consultar",
+      "exitMode": "Salir",
+      "routesTab": "Por zona",
+      "addressTab": "Por direccion",
+      "hiddenUntilSelection": "Activa la consulta para elegir una zona o buscar una direccion."
+    },
+    "addressQuery": {
+      "inputLabel": "Direccion",
+      "inputPlaceholder": "Ej: 18 de Julio 1234, Montevideo",
+      "search": "Buscar direccion",
+      "loading": "Buscando...",
+      "waitingInput": "Escribe una direccion y se mostrara solo la zona encontrada.",
+      "foundZone": "Zona encontrada",
+      "mapResultHint": "El mapa oculta las demas zonas y deja visible solo la correspondiente a la direccion.",
+      "clear": "Limpiar consulta",
+      "noDescription": "Sin descripcion"
+    }
   },
   "routes": {
     "design": "Diseñar Recorrido",
@@ -77,6 +112,7 @@
     "available": "Disponible",
     "pending": "Pendiente",
     "offSeason": "Fuera de Temporada",
+    "cancelled": "Cancelado",
     "archived": "Archivado",
     "name": "Nombre del Recorrido",
     "duration": "Duración Est.",
