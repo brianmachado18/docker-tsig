@@ -63,8 +63,7 @@ const experienceToBackend = (type) => {
 
 const normalizeRoute = (route) => ({
   id: route.id ?? route.idRecorrido,
-  mesInicio: route.mesInicio ?? null,
-  mesFin: route.mesFin ?? null,
+  stationId: route.stationId ?? route.idEstacion ?? null,
   name: route.name ?? route.nombre ?? '',
   description: route.description ?? route.descripcion ?? '',
   durationHours: route.durationHours ?? route.duracionEstimada ?? 0,
@@ -80,8 +79,7 @@ const normalizeRoute = (route) => ({
 
 const toDto = (route) => ({
   idRecorrido: route.id ?? null,
-  mesInicio: Number(route.mesInicio),
-  mesFin: Number(route.mesFin),
+  idEstacion: Number(route.stationId),
   nombre: String(route.name || '').trim(),
   descripcion: String(route.description || '').trim(),
   duracionEstimada: Number(route.durationHours),

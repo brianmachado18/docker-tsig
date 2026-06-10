@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { attractionsService } from '@/features/attractions/attractionsService';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useRoutesStore from '@/features/routes/routesStore';
+import { routesService } from '@/features/routes/routesService';
 import { STATUS_LABELS, STATUS_STYLES } from '@/features/routes/routeStatus';
 import { validateRouteForm } from '@/features/routes/routeValidation';
 import { zonesService } from '@/features/zones/zonesService';
@@ -33,8 +34,6 @@ const MONTH_NAMES = {
   1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio',
   7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre',
 };
-
-const MONTH_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 const isOutOfSeason = (mesInicio, mesFin, month) => {
   if (!mesInicio || !mesFin) return false;
@@ -155,8 +154,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const [durationHours, setDurationHours] = useState('');
   const [guide, setGuide] = useState('');
   const [experienceType, setExperienceType] = useState('cultural');
-  const [mesInicio, setMesInicio] = useState('');
-  const [mesFin, setMesFin] = useState('');
+  const [stationId, setStationId] = useState('');
   const [geomWkt, setGeomWkt] = useState('');
   const [zoneIds, setZoneIds] = useState([]);
   const [validationError, setValidationError] = useState('');
@@ -175,6 +173,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   // Datos disponibles
   const [availableAttractions, setAvailableAttractions] = useState([]);
   const [availableZones, setAvailableZones] = useState([]);
+  const [availableStations, setAvailableStations] = useState([]);
   const [routingFeedback, setRoutingFeedback] = useState('');
 
   const currentMonth = new Date().getMonth() + 1;
@@ -187,9 +186,14 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
 
   useEffect(() => {
     const loadAll = async () => {
-      const [attractions, zones] = await Promise.all([attractionsService.list(), zonesService.list()]);
+      const [attractions, zones, stations] = await Promise.all([
+        attractionsService.list(),
+        zonesService.list(),
+        routesService.listStations(),
+      ]);
       setAvailableAttractions(attractions);
       setAvailableZones(zones);
+      setAvailableStations(stations);
 
       setRouteName(route?.name || '');
       setRouteDescription(route?.description || '');
@@ -197,8 +201,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       setDurationHours(route?.durationHours || '');
       setGuide(route?.guide || '');
       setExperienceType(route?.experienceType || 'cultural');
-      setMesInicio(route?.mesInicio || '');
-      setMesFin(route?.mesFin || '');
+      setStationId(route?.stationId || '');
       setGeomWkt(route?.geomWkt || '');
       setZoneIds(Array.isArray(route?.zoneIds) ? route.zoneIds : []);
       setValidationError('');
@@ -235,11 +238,13 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     };
     loadAll();
   }, [route, clearError]);
-
   const apiError = useMemo(() => getApiErrorMessage(error, t('common.error')), [error, t]);
-
-  // Detección "fuera de temporada" usando los meses del propio recorrido
-  const outOfSeason = isOutOfSeason(Number(mesInicio), Number(mesFin), currentMonth);
+  const selectedStation = useMemo(
+    () => availableStations.find((station) => String(station.idEstacion) === String(stationId)) || null,
+    [availableStations, stationId],
+  );
+  // Deteccion "fuera de temporada" usando la estacion seleccionada
+  const outOfSeason = isOutOfSeason(selectedStation?.mesInicio, selectedStation?.mesFin, currentMonth);
 
   const toggleZone = (zoneId) =>
     setZoneIds((c) => c.includes(zoneId) ? c.filter((id) => id !== zoneId) : [...c, zoneId]);
@@ -312,7 +317,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   };
 
   const validate = (geom) =>
-    validateRouteForm({ name: routeName, description: routeDescription, mesInicio, mesFin, durationHours, guide, geomWkt: geom }, t);
+    validateRouteForm({ name: routeName, description: routeDescription, stationId, durationHours, guide, geomWkt: geom }, t);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -345,8 +350,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       durationHours: Number(durationHours),
       guide,
       experienceType,
-      mesInicio: Number(mesInicio),
-      mesFin: Number(mesFin),
+      stationId: Number(stationId),
       geomWkt: effectiveGeomWkt,
       zoneIds: allZoneIds,
       attractionIds: derivedAttractionIds,
@@ -483,37 +487,35 @@ return (
           {experienceOptions.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
       </label>
-
-      {/* Temporada: mes inicial y mes final */}
+      {/* Estacion */}
       <div className="flex flex-col gap-2">
-        <span className="font-label-md text-label-md text-on-surface-variant">Temporada</span>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-on-surface-variant">Mes inicial</span>
-            <select className="w-full px-3 py-2 border border-outline rounded bg-surface" value={mesInicio} onChange={(e) => setMesInicio(e.target.value)}>
-              <option value="">Seleccionar...</option>
-              {MONTH_OPTIONS.map((m) => <option key={m} value={m}>{MONTH_NAMES[m]}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-on-surface-variant">Mes final</span>
-            <select className="w-full px-3 py-2 border border-outline rounded bg-surface" value={mesFin} onChange={(e) => setMesFin(e.target.value)}>
-              <option value="">Seleccionar...</option>
-              {MONTH_OPTIONS.map((m) => <option key={m} value={m}>{MONTH_NAMES[m]}</option>)}
-            </select>
-          </label>
-        </div>
-        {mesInicio && mesFin && Number(mesInicio) > Number(mesFin) && (
+        <span className="font-label-md text-label-md text-on-surface-variant">Estacion</span>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-on-surface-variant">Temporada configurada</span>
+          <select className="w-full px-3 py-2 border border-outline rounded bg-surface" value={stationId} onChange={(e) => setStationId(e.target.value)}>
+            <option value="">Seleccionar...</option>
+            {availableStations.map((station) => (
+              <option key={station.idEstacion} value={station.idEstacion}>{station.nombre}</option>
+            ))}
+          </select>
+        </label>
+        {selectedStation && (
           <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
-            <span className="material-symbols-outlined text-[13px]">loop</span>
-            Temporada cruza de año: {MONTH_NAMES[Number(mesInicio)]} → {MONTH_NAMES[Number(mesFin)]} del año siguiente
+            <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+            Disponible de {MONTH_NAMES[selectedStation.mesInicio]} a {MONTH_NAMES[selectedStation.mesFin]}
           </p>
         )}
-        {outOfSeason && mesInicio && mesFin && (
+        {selectedStation && selectedStation.mesInicio > selectedStation.mesFin && (
+          <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
+            <span className="material-symbols-outlined text-[13px]">loop</span>
+            Temporada cruza de ano: {MONTH_NAMES[selectedStation.mesInicio]} {'→'} {MONTH_NAMES[selectedStation.mesFin]} del ano siguiente
+          </p>
+        )}
+        {outOfSeason && selectedStation && (
           <div className="flex items-start gap-2 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
             <span className="material-symbols-outlined text-[15px] mt-0.5 shrink-0">ac_unit</span>
             <span>
-              {MONTH_NAMES[currentMonth]} está fuera de la temporada configurada. El sistema marcará este recorrido como <strong>Fuera de temporada</strong>.
+              {MONTH_NAMES[currentMonth]} esta fuera de la temporada de {selectedStation.nombre}. El sistema marcara este recorrido como <strong>Fuera de temporada</strong>.
             </span>
           </div>
         )}

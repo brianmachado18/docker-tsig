@@ -184,7 +184,6 @@ public class RecorridoService {
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
         dtRecorrido.setIdEstacion(recorrido.getEstacion() != null ? recorrido.getEstacion().getIdEstacion() : null);
-        dtRecorrido.setIdEstacion(recorrido.getEstacion().getIdEstacion());
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
