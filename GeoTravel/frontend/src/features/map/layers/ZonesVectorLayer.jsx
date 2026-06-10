@@ -11,6 +11,14 @@ const zoneStyle = new Style({
   stroke: new Stroke({ color: '#0a6c44', width: 2 }),
 });
 
+const toComparableId = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  return String(value);
+};
+
 const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 10 }) => {
   const sourceRef = useRef(null);
   const layerRef = useRef(null);
