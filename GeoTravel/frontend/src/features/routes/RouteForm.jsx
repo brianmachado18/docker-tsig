@@ -44,10 +44,10 @@ const isOutOfSeason = (mesInicio, mesFin, month) => {
 // ─── Estado y transiciones ─────────────────────────────────────────────────────
 
 const ALLOWED_TRANSITIONS = {
-  pending: ['available', 'cancelled'],
-  available: ['pending', 'cancelled'],
+  pending: ['available', 'cancelled', 'off-season'],
+  available: ['pending', 'cancelled', 'off-season'],
   'off-season': ['available', 'cancelled'],
-  cancelled: ['pending'],
+  cancelled: ['pending', 'off-season'],
 };
 
 // ─── StopPicker ────────────────────────────────────────────────────────────────
