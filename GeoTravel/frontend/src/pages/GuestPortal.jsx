@@ -24,7 +24,7 @@ const GuestPortal = () => {
 
   const routeStatusOptions = [
     { id: 'available', label: t('routes.available'), icon: 'check_circle' },
-    { id: 'pending', label: t('routes.pending'), icon: 'pending' },
+    // { id: 'pending', label: t('routes.pending'), icon: 'pending' },
     { id: 'off-season', label: t('guest.offSeason'), icon: 'event_busy' },
     { id: 'cancelled', label: t('routes.cancelled'), icon: 'cancel' },
   ];

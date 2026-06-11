@@ -12,9 +12,6 @@ import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
 
-const URUGUAY_CENTER = [-56.2, -33.1];
-const URUGUAY_ZOOM = 7;
-
 const RoutePlanner = () => {
   const {
     routes,
@@ -28,9 +25,10 @@ const RoutePlanner = () => {
   const setViewport = useMapStore((state) => state.setViewport);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const refreshRouteLayer = useRefreshEntityLayer('routes');
+  const { center, zoom } = useMapStore();
 
   useEffect(() => {
-    setViewport(URUGUAY_CENTER, URUGUAY_ZOOM);
+    setViewport(center, zoom);
     setActiveTool('select');
     fetchRoutes();
   }, [fetchRoutes, setActiveTool, setViewport]);
