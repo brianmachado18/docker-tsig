@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Collection from 'ol/Collection';
 import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Select from 'ol/interaction/Select';
@@ -43,6 +44,19 @@ const getZoneByFeature = (feature, zones) => {
   return zones.find((zone) => String(zone.id) === String(zoneId)) || null;
 };
 
+const getFeatureByZone = (source, zone) => {
+  const zoneId = zone?.id;
+  if (zoneId !== undefined && zoneId !== null) {
+    return source
+      ?.getFeatures?.()
+      ?.find((feature) => String(feature?.get?.('id')) === String(zoneId)) || null;
+  }
+
+  return source
+    ?.getFeatures?.()
+    ?.find((feature) => feature?.get?.('isDraftZone')) || null;
+};
+
 const getZoneFromFeature = (feature, zones = []) => {
   const existingZone = getZoneByFeature(feature, zones);
   if (existingZone) {
@@ -81,6 +95,8 @@ const ZoneMapInteractions = ({ zones = [] }) => {
   const activeTool = useMapStore((state) => state.activeTool);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useZonesStore((state) => state.openForm);
+  const geometryEditZone = useZonesStore((state) => state.geometryEditZone);
+  const updateGeometryEditDraft = useZonesStore((state) => state.updateGeometryEditDraft);
   const fetchZoneRoutes = useZonesStore((state) => state.fetchZoneRoutes);
   const zoneQueryType = useZonesStore((state) => state.zoneQueryType);
 
@@ -165,40 +181,45 @@ const ZoneMapInteractions = ({ zones = [] }) => {
 
       map.addInteraction(select);
 
-      const modify = new Modify({
-        source,
-      });
+      return () => {
+        map.removeInteraction(select);
+      };
+    }
 
-      modify.on('modifystart', (event) => {
-        event.features?.forEach?.((feature) => {
-          ensurePersistedGeometryWkt(feature);
-        });
+    if (activeTool === 'zone-geometry-edit') {
+      const feature = getFeatureByZone(source, geometryEditZone);
+      if (!feature) {
+        const timeoutId = window.setTimeout(() => {
+          setLayerLookupAttempt((attempt) => attempt + 1);
+        }, 100);
+        return () => {
+          window.clearTimeout(timeoutId);
+        };
+      }
+
+      ensurePersistedGeometryWkt(feature);
+      const modify = new Modify({
+        features: new Collection([feature]),
       });
 
       modify.on('modifyend', (event) => {
-        const feature = event.features.item(0);
-        const geomWkt = getGeometryWkt(feature);
-        feature.set('geomWkt', geomWkt);
-        if (!feature.get('isDraftZone')) {
-          ensurePersistedGeometryWkt(feature);
-          feature.set('draftGeomWkt', geomWkt);
-          feature.set('hasDraftGeometry', true);
+        const modifiedFeature = event.features.item(0);
+        const geomWkt = getGeometryWkt(modifiedFeature);
+        modifiedFeature.set('geomWkt', geomWkt);
+
+        if (!modifiedFeature.get('isDraftZone')) {
+          ensurePersistedGeometryWkt(modifiedFeature);
+          modifiedFeature.set('draftGeomWkt', geomWkt);
+          modifiedFeature.set('hasDraftGeometry', true);
         }
 
-        const zone = getZoneFromFeature(feature, zones);
-        if (zone) {
-          openForm(zone);
-          return;
-        }
-
-        openForm({ geomWkt, routeIds: [] });
+        updateGeometryEditDraft(geomWkt);
       });
 
       map.addInteraction(modify);
 
       return () => {
         map.removeInteraction(modify);
-        map.removeInteraction(select);
       };
     }
 
@@ -228,7 +249,18 @@ const ZoneMapInteractions = ({ zones = [] }) => {
     }
 
     return undefined;
-  }, [activeTool, fetchZoneRoutes, layerLookupAttempt, map, openForm, setActiveTool, zoneQueryType, zones]);
+  }, [
+    activeTool,
+    fetchZoneRoutes,
+    geometryEditZone,
+    layerLookupAttempt,
+    map,
+    openForm,
+    setActiveTool,
+    updateGeometryEditDraft,
+    zoneQueryType,
+    zones,
+  ]);
 
   return null;
 };

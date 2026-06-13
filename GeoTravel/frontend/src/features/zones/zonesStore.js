@@ -4,6 +4,9 @@ import { zonesService } from '@/features/zones/zonesService';
 const useZonesStore = create((set, get) => ({
   zones: [],
   selectedZone: null,
+  geometryEditZone: null,
+  geometryEditOriginalGeomWkt: '',
+  geometryEditDraftGeomWkt: '',
   selectedZoneForRoutes: null,
   selectedZoneByAddress: null,
   zoneRoutes: [],
@@ -20,8 +23,62 @@ const useZonesStore = create((set, get) => ({
   zoneQueryType: 'routes',
 
   openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone, error: null }),
-  closeForm: () => set({ isFormOpen: false, selectedZone: null, error: null }),
+  closeForm: () =>
+    set({
+      isFormOpen: false,
+      selectedZone: null,
+      geometryEditZone: null,
+      geometryEditOriginalGeomWkt: '',
+      geometryEditDraftGeomWkt: '',
+      error: null,
+    }),
   clearError: () => set({ error: null }),
+  startGeometryEdit: (zone) =>
+    set({
+      isFormOpen: false,
+      selectedZone: zone,
+      geometryEditZone: zone,
+      geometryEditOriginalGeomWkt: zone?.geomWkt || '',
+      geometryEditDraftGeomWkt: zone?.geomWkt || '',
+      error: null,
+    }),
+  updateGeometryEditDraft: (geomWkt) => set({ geometryEditDraftGeomWkt: geomWkt || '' }),
+  completeGeometryEdit: () => {
+    const { geometryEditZone, geometryEditDraftGeomWkt } = get();
+    const nextZone = geometryEditZone
+      ? {
+          ...geometryEditZone,
+          geomWkt: geometryEditDraftGeomWkt || geometryEditZone.geomWkt || '',
+        }
+      : null;
+
+    set({
+      isFormOpen: true,
+      selectedZone: nextZone,
+      geometryEditZone: null,
+      geometryEditOriginalGeomWkt: '',
+      geometryEditDraftGeomWkt: '',
+      error: null,
+    });
+  },
+  cancelGeometryEdit: () => {
+    const { geometryEditZone, geometryEditOriginalGeomWkt } = get();
+    const nextZone = geometryEditZone
+      ? {
+          ...geometryEditZone,
+          geomWkt: geometryEditOriginalGeomWkt || geometryEditZone.geomWkt || '',
+        }
+      : null;
+
+    set({
+      isFormOpen: true,
+      selectedZone: nextZone,
+      geometryEditZone: null,
+      geometryEditOriginalGeomWkt: '',
+      geometryEditDraftGeomWkt: '',
+      error: null,
+    });
+  },
   setZoneQueryType: (zoneQueryType) =>
     set({
       zoneQueryType,
@@ -62,7 +119,14 @@ const useZonesStore = create((set, get) => ({
     try {
       await zonesService.save(zoneData);
       await get().fetchZones();
-      set({ isSaving: false, isFormOpen: false, selectedZone: null });
+      set({
+        isSaving: false,
+        isFormOpen: false,
+        selectedZone: null,
+        geometryEditZone: null,
+        geometryEditOriginalGeomWkt: '',
+        geometryEditDraftGeomWkt: '',
+      });
       return true;
     } catch (error) {
       set({ error, isSaving: false });

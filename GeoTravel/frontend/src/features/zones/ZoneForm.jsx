@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useRoutesStore from '@/features/routes/routesStore';
 import { validateZoneForm } from '@/features/zones/zoneValidation';
@@ -12,11 +13,13 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     closeForm,
     saveZone,
     deleteZone,
+    startGeometryEdit,
     isSaving,
     isDeleting,
     error,
     clearError,
   } = useZonesStore();
+  const setActiveTool = useMapStore((state) => state.setActiveTool);
   const { routes, fetchRoutes } = useRoutesStore();
   const refreshZoneLayers = useRefreshEntityLayer('zones');
 
@@ -60,6 +63,20 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     setRouteIds((current) =>
       current.includes(routeId) ? current.filter((id) => id !== routeId) : [...current, routeId]
     );
+  };
+
+  const handleStartGeometryEdit = () => {
+    startGeometryEdit({
+      ...zone,
+      id: zone?.id,
+      name: zoneName,
+      description: zoneDescription,
+      attractionLevel: Number(attractionLevel),
+      notes: zoneNotes,
+      geomWkt,
+      routeIds,
+    });
+    setActiveTool('zone-geometry-edit');
   };
 
   const validate = () => {
@@ -168,6 +185,23 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
             onChange={(event) => setZoneNotes(event.target.value)}
           />
         </label>
+
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
+          <div>
+            <p className="font-label-md text-label-md text-on-surface">Geometría</p>
+            <p className="text-xs text-on-surface-variant">
+              {geomWkt ? 'Polígono capturado en el mapa.' : 'Sin geometría capturada.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleStartGeometryEdit}
+            disabled={!geomWkt || isSaving || isDeleting}
+            className="shrink-0 px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40"
+          >
+            Editar geometría
+          </button>
+        </div>
 
         <div className="flex flex-col gap-2">
           <span className="font-label-md text-label-md text-on-surface">Recorridos vinculados (opcional)</span>

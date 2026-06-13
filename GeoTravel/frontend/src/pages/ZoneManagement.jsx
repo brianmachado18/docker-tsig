@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import WKT from 'ol/format/WKT';
 import MapCanvas from '@/features/map/MapCanvas';
 import MapControls from '@/features/map/MapControls';
 import ZoneMapInteractions from '@/features/map/interactions/ZoneMapInteractions';
@@ -11,6 +12,61 @@ import Modal from '@/shared/components/Modal';
 import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 
+const wktFormat = new WKT();
+
+const getEditableZoneFeature = (map, zone) => {
+  const zoneId = zone?.id;
+  const zoneLayers = map
+    ?.getLayers()
+    ?.getArray()
+    ?.filter((layer) => layer?.get?.('entityKey') === 'zones') || [];
+
+  for (const layer of zoneLayers) {
+    const features = layer?.getSource?.()?.getFeatures?.() || [];
+    const feature = zoneId !== undefined && zoneId !== null
+      ? features.find((candidate) => String(candidate?.get?.('id')) === String(zoneId))
+      : features.find((candidate) => candidate?.get?.('isDraftZone'));
+
+    if (feature) {
+      return feature;
+    }
+  }
+
+  return null;
+};
+
+const restoreZoneFeatureGeometry = (map, zone, geomWkt) => {
+  const feature = getEditableZoneFeature(map, zone);
+  if (!feature || !geomWkt) {
+    return;
+  }
+
+  const geometry = wktFormat.readGeometry(geomWkt, {
+    dataProjection: 'EPSG:4326',
+    featureProjection: 'EPSG:3857',
+  });
+
+  feature.setGeometry(geometry);
+  feature.set('geomWkt', geomWkt);
+
+  if (feature.get('isDraftZone')) {
+    feature.unset('draftGeomWkt');
+    feature.unset('hasDraftGeometry');
+    return;
+  }
+
+  const persistedGeomWkt = feature.get('persistedGeomWkt');
+  if (!persistedGeomWkt || persistedGeomWkt === geomWkt) {
+    feature.set('persistedGeomWkt', geomWkt);
+    feature.unset('draftGeomWkt');
+    feature.unset('hasDraftGeometry');
+    return;
+  }
+
+  feature.set('draftGeomWkt', geomWkt);
+  feature.set('hasDraftGeometry', true);
+};
+
 const ZoneManagement = () => {
   const {
     zones,
@@ -18,10 +74,15 @@ const ZoneManagement = () => {
     visibleZoneIds,
     selectedZone,
     isFormOpen,
+    geometryEditZone,
+    geometryEditOriginalGeomWkt,
     closeForm,
+    completeGeometryEdit,
+    cancelGeometryEdit,
     fetchZones,
     clearZoneQueries,
   } = useZonesStore();
+  const map = useMapStore((state) => state.mapInstance);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const activeTool = useMapStore((state) => state.activeTool);
   const refreshZoneLayers = useRefreshEntityLayer('zones');
@@ -37,6 +98,23 @@ const ZoneManagement = () => {
     }
   }, [activeTool, clearZoneQueries]);
 
+  const handleApplyGeometry = () => {
+    completeGeometryEdit();
+    setActiveTool('select');
+  };
+
+  const handleCancelGeometry = () => {
+    restoreZoneFeatureGeometry(map, geometryEditZone, geometryEditOriginalGeomWkt);
+    cancelGeometryEdit();
+    setActiveTool('select');
+  };
+
+  const handleModalClose = () => {
+    refreshZoneLayers();
+    closeForm();
+    setActiveTool('select');
+  };
+
   return (
     <div className="bg-background text-on-surface font-body-md text-body-md overflow-hidden h-screen w-screen flex">
       <Sidebar activeItem="zones" />
@@ -50,10 +128,35 @@ const ZoneManagement = () => {
           visibleZoneIds={visibleZoneIds}
         />
         <ZoneMapInteractions zones={zones} />
-        <MapControls />
+        {!geometryEditZone && <MapControls />}
         <ZoneRoutesQueryCard />
 
-        <Modal isOpen={isFormOpen} onClose={closeForm}>
+        {geometryEditZone && (
+          <div className="absolute left-1/2 bottom-6 z-40 w-[calc(100%-2rem)] max-w-[560px] -translate-x-1/2 rounded-lg border border-outline-variant bg-surface-container-lowest shadow-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="font-label-md text-label-md text-on-surface">Editando geometría</p>
+              <p className="text-xs text-on-surface-variant">{geometryEditZone.name || 'Zona sin nombre'}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCancelGeometry}
+                className="px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyGeometry}
+                className="px-3 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90"
+              >
+                Aplicar geometría
+              </button>
+            </div>
+          </div>
+        )}
+
+        <Modal isOpen={isFormOpen} onClose={handleModalClose}>
           <ZoneForm
             zone={selectedZone}
             onClose={closeForm}
