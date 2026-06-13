@@ -58,7 +58,11 @@ const getRouteFromFeature = (feature, routes = []) => {
     durationHours: feature?.get?.('durationHours') || '',
     guide: feature?.get?.('guide') || '',
     experienceType: feature?.get?.('experienceType') || 'cultural',
-    stationId: feature?.get?.('stationId') || '',
+    //stationId: feature?.get?.('stationId') || '',
+    startDay: feature?.get?.('startDay') || '',
+    startMonth: feature?.get?.('startMonth') || '',
+    endDay: feature?.get?.('endDay') || '',
+    endMonth: feature?.get?.('endMonth') || '',
     geomWkt,
     zoneIds: Array.isArray(feature?.get?.('zoneIds')) ? feature.get('zoneIds') : [],
   };

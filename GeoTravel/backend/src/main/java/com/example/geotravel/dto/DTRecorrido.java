@@ -11,13 +11,16 @@ import java.util.List;
 @NoArgsConstructor
 public class DTRecorrido {
     private Long idRecorrido;
-    private Long idEstacion;
     private String nombre;
     private String descripcion;
     private int duracionEstimada;
     private String guiaResponsable;
     private TipoExperiencia tipoExperiencia;
     private Estado estado;
+    private int diaInicio;
+    private int mesInicio;
+    private int diaFin;
+    private int mesFin;
     private String geomWkt;
     private List<Long> zonas;
     private List<Long> atracciones;

@@ -63,13 +63,19 @@ const experienceToBackend = (type) => {
 
 const normalizeRoute = (route) => ({
   id: route.id ?? route.idRecorrido,
-  stationId: route.stationId ?? route.idEstacion ?? null,
+  //stationId: route.stationId ?? route.idEstacion ?? null,
   name: route.name ?? route.nombre ?? '',
   description: route.description ?? route.descripcion ?? '',
   durationHours: route.durationHours ?? route.duracionEstimada ?? 0,
   guide: route.guide ?? route.guiaResponsable ?? '',
   experienceType: route.experienceType ?? experienceFromBackend(route.tipoExperiencia),
   status: route.status ?? statusFromBackend(route.estado),
+  // Cambio estacionalidad a fecha inicio/fin
+  diaInicio: route.startDay ?? route.startDay ?? 0,
+  mesInicio: route.startMonth ?? route.startMonth ?? 0,
+  diaFin: route.endDay ?? route.endDay ?? 0,
+  mesFin: route.endMonth ?? route.endMonth ?? 0,
+  // ----------------------------------------
   geomWkt: route.geomWkt ?? '',
   geometry: route.geometry ?? parseLineStringWkt(route.geomWkt),
   zoneIds: route.zoneIds ?? route.zonas ?? [],
@@ -79,13 +85,19 @@ const normalizeRoute = (route) => ({
 
 const toDto = (route) => ({
   idRecorrido: route.id ?? null,
-  idEstacion: Number(route.stationId),
+  //idEstacion: Number(route.stationId),
   nombre: String(route.name || '').trim(),
   descripcion: String(route.description || '').trim(),
   duracionEstimada: Number(route.durationHours),
   guiaResponsable: String(route.guide || '').trim(),
   tipoExperiencia: experienceToBackend(route.experienceType),
   estado: statusToBackend(route.status),
+  // Cambio estacionalidad a fecha inicio/fin
+  diaInicio: Number(route.startDay),
+  mesInicio: Number(route.startMonth),
+  diaFin: Number(route.endDay),
+  mesFin: Number(route.endMonth),
+  // ----------------------------------------
   geomWkt: String(route.geomWkt || '').trim(),
   // Zonas por las que pasa y paradas (en orden) viajan en el mismo body:
   // el endpoint /recorrido/alta y /recorrido/actualizar las sincroniza.
@@ -97,11 +109,6 @@ export const routesService = {
   async list() {
     const routes = await apiClient.get('/recorrido/buscar/todos');
     return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
-  },
-
-  async listStations() {
-    const stations = await apiClient.get('/estacion/buscar/todos');
-    return Array.isArray(stations) ? stations : [];
   },
 
   async listByZone(zoneId) {

@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.LineString;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -19,10 +21,6 @@ public class Recorrido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idRecorrido;
 
-    @ManyToOne
-    @JoinColumn(name = "idEstacion")
-    private Estacion estacion;
-
     @ManyToMany
     @JoinTable(name="recorridoZona", joinColumns=@JoinColumn(name="idRecorrido"), inverseJoinColumns=@JoinColumn(name="idZona"))
     private List<Zona> zonas;
@@ -31,6 +29,8 @@ public class Recorrido {
     private String descripcion;
     private int duracionEstimada;
     private String guiaResponsable;
+    private LocalDate fechaInicio;
+    private LocalDate fechaFin;
 
     @Enumerated(EnumType.STRING)
     private TipoExperiencia tipoExperiencia;

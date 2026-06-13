@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,9 +35,6 @@ public class RecorridoService {
 
     @Autowired
     private HistoricoService historicoService;
-
-    @Autowired
-    private EstacionRepository estacionRepository;
 
     public void alta(DTRecorrido dtRecorrido) throws Exception {
         validarRecorrido(dtRecorrido); // Validar los datos del recorrido
@@ -151,13 +150,14 @@ public class RecorridoService {
     public Recorrido dtoToObj(DTRecorrido dtRecorrido) {
         Recorrido recorrido = new Recorrido();
         recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
-        recorrido.setEstacion(estacionRepository.findByIdEstacion(dtRecorrido.getIdEstacion()));
         recorrido.setNombre(dtRecorrido.getNombre());
         recorrido.setDescripcion(dtRecorrido.getDescripcion());
         recorrido.setDuracionEstimada(dtRecorrido.getDuracionEstimada());
         recorrido.setGuiaResponsable(dtRecorrido.getGuiaResponsable());
         recorrido.setTipoExperiencia(dtRecorrido.getTipoExperiencia());
         recorrido.setEstado(dtRecorrido.getEstado());
+        recorrido.setFechaInicio(LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesInicio(), dtRecorrido.getDiaInicio()));
+        recorrido.setFechaFin(LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesFin(), dtRecorrido.getDiaFin()));
 
         if (dtRecorrido.getZonas() == null) {
             recorrido.setZonas(new ArrayList<>());
@@ -183,13 +183,16 @@ public class RecorridoService {
     public DTRecorrido objToDto(Recorrido recorrido) {
         DTRecorrido dtRecorrido = new DTRecorrido();
         dtRecorrido.setIdRecorrido(recorrido.getIdRecorrido());
-        dtRecorrido.setIdEstacion(recorrido.getEstacion() != null ? recorrido.getEstacion().getIdEstacion() : null);
         dtRecorrido.setNombre(recorrido.getNombre());
         dtRecorrido.setDescripcion(recorrido.getDescripcion());
         dtRecorrido.setDuracionEstimada(recorrido.getDuracionEstimada());
         dtRecorrido.setGuiaResponsable(recorrido.getGuiaResponsable());
         dtRecorrido.setTipoExperiencia(recorrido.getTipoExperiencia());
         dtRecorrido.setEstado(recorrido.getEstado());
+        dtRecorrido.setDiaInicio(recorrido.getFechaInicio().getDayOfMonth());
+        dtRecorrido.setMesInicio(recorrido.getFechaInicio().getMonthValue());
+        dtRecorrido.setDiaFin(recorrido.getFechaFin().getDayOfMonth());
+        dtRecorrido.setMesFin(recorrido.getFechaFin().getMonthValue());
 
         // Zonas por las que pasa el recorrido
         List<Long> zonasIds = new ArrayList<>();
@@ -225,16 +228,28 @@ public class RecorridoService {
             throw new Exception("Duracion requerida.");
         if (dtRecorrido.getGuiaResponsable() == null || dtRecorrido.getGuiaResponsable().trim().isEmpty())
             throw new Exception("Guia responsable requerido.");
-        if (dtRecorrido.getIdEstacion() == null || dtRecorrido.getIdEstacion() <= 0)
-            throw new Exception("Estacion invalida.");
-        if (!estacionRepository.existsByIdEstacion(dtRecorrido.getIdEstacion()))
-            throw new Exception("Estacion no encontrada.");
         if (dtRecorrido.getTipoExperiencia() == null)
             throw new Exception("Experiencia requerida.");
         if (dtRecorrido.getEstado() == null)
             throw new Exception("Estado requerido.");
         if (dtRecorrido.getGeomWkt() == null || dtRecorrido.getGeomWkt().trim().isEmpty())
             throw new Exception("Linea requerida.");
+        try {
+            System.out.println("============================");
+            System.out.println(dtRecorrido.getMesInicio());
+            System.out.println(dtRecorrido.getDiaInicio());
+            LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesInicio(), dtRecorrido.getDiaInicio());
+            System.out.println("============================");
+        } catch (DateTimeException e) {
+            System.out.println(e.getMessage());
+            System.out.println("============================");
+            throw new Exception("Fecha de inicio invalida.");
+        }
+        try {
+            LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesFin(), dtRecorrido.getDiaFin());
+        } catch (DateTimeException e) {
+            throw new Exception("Fecha de fin invalida.");
+        }
         try {
             WKTReader reader = new WKTReader();
             LineString l = (LineString) reader.read(dtRecorrido.getGeomWkt());

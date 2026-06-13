@@ -93,7 +93,7 @@ const normalizeExperienceType = (type) => {
 
 const normalizeRouteFeature = (feature) => {
   const id = getFeatureNumericId(feature);
-  const stationId = getFeatureValue(feature, ['stationId', 'idEstacion', 'id_estacion']);
+  //const stationId = getFeatureValue(feature, ['stationId', 'idEstacion', 'id_estacion']);
   const durationHours = getFeatureValue(feature, [
     'durationHours',
     'duracionEstimada',
@@ -104,13 +104,17 @@ const normalizeRouteFeature = (feature) => {
 
   feature.setProperties({
     id,
-    stationId: toEntityId(stationId),
+    //stationId: toEntityId(stationId),
     name: getFeatureValue(feature, ['name', 'nombre']) || '',
     description: getFeatureValue(feature, ['description', 'descripcion']) || '',
     durationHours: durationHours === null ? '' : Number(durationHours),
     guide: getFeatureValue(feature, ['guide', 'guiaResponsable', 'guia_responsable']) || '',
     experienceType: normalizeExperienceType(experienceType),
     status: normalizeStatus(status),
+    startDay: startDay === null ? '' : Number(startDay),
+    startMonth: startMonth === null ? '' : Number(startMonth),
+    endDay: endDay === null ? '' : Number(endDay),
+    endMonth: endMonth === null ? '' : Number(endMonth),
     geomWkt: getFeatureWkt(feature),
     zoneIds: [],
     sourceType: 'wfs',
