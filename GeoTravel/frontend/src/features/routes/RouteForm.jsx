@@ -210,10 +210,10 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       setDurationHours(route?.durationHours || '');
       setGuide(route?.guide || '');
       setExperienceType(route?.experienceType || 'cultural');
-      setStartDay(route?.setStartDay || '');
-      setStartMonth(route?.setStartMonth || '');
-      setEndDay(route?.setEndDay || '');
-      setEndMonth(route?.setEndMonth || '');
+      setStartDay(route?.startDay || '');
+      setStartMonth(route?.startMonth || '');
+      setEndDay(route?.endDay || '');
+      setEndMonth(route?.endMonth || '');
       setGeomWkt(route?.geomWkt || '');
       setZoneIds(Array.isArray(route?.zoneIds) ? route.zoneIds : []);
       setValidationError('');

@@ -70,12 +70,10 @@ const normalizeRoute = (route) => ({
   guide: route.guide ?? route.guiaResponsable ?? '',
   experienceType: route.experienceType ?? experienceFromBackend(route.tipoExperiencia),
   status: route.status ?? statusFromBackend(route.estado),
-  // Cambio estacionalidad a fecha inicio/fin
-  diaInicio: route.startDay ?? route.startDay ?? 0,
-  mesInicio: route.startMonth ?? route.startMonth ?? 0,
-  diaFin: route.endDay ?? route.endDay ?? 0,
-  mesFin: route.endMonth ?? route.endMonth ?? 0,
-  // ----------------------------------------
+  startDay: route.startDay ?? route.diaInicio ?? 0,
+  startMonth: route.startMonth ?? route.mesInicio ?? 0,
+  endDay: route.endDay ?? route.diaFin ?? 0,
+  endMonth: route.endMonth ?? route.mesFin ?? 0,
   geomWkt: route.geomWkt ?? '',
   geometry: route.geometry ?? parseLineStringWkt(route.geomWkt),
   zoneIds: route.zoneIds ?? route.zonas ?? [],
@@ -92,12 +90,10 @@ const toDto = (route) => ({
   guiaResponsable: String(route.guide || '').trim(),
   tipoExperiencia: experienceToBackend(route.experienceType),
   estado: statusToBackend(route.status),
-  // Cambio estacionalidad a fecha inicio/fin
   diaInicio: Number(route.startDay),
   mesInicio: Number(route.startMonth),
   diaFin: Number(route.endDay),
   mesFin: Number(route.endMonth),
-  // ----------------------------------------
   geomWkt: String(route.geomWkt || '').trim(),
   // Zonas por las que pasa y paradas (en orden) viajan en el mismo body:
   // el endpoint /recorrido/alta y /recorrido/actualizar las sincroniza.
