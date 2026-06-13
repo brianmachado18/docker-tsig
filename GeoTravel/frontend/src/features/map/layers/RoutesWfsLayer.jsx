@@ -93,18 +93,16 @@ const normalizeExperienceType = (type) => {
 
 const normalizeRouteFeature = (feature) => {
   const id = getFeatureNumericId(feature);
-  //const stationId = getFeatureValue(feature, ['stationId', 'idEstacion', 'id_estacion']);
-  const durationHours = getFeatureValue(feature, [
-    'durationHours',
-    'duracionEstimada',
-    'duracion_estimada',
-  ]);
+  const durationHours = getFeatureValue(feature, ['durationHours', 'duracionEstimada', 'duracion_estimada']);
+  const startDay = getFeatureValue(feature, ['fechaInicio', 'fecha_inicio']).split('-')[1];
+  const startMonth = getFeatureValue(feature, ['fechaInicio', 'fecha_inicio']).split('-')[2];
+  const endDay = getFeatureValue(feature, ['fechaFin', 'fecha_fin']).split('-')[1];
+  const endMonth = getFeatureValue(feature, ['fechaFin', 'fecha_fin']).split('-')[2];
   const status = getFeatureValue(feature, ['status', 'estado']);
   const experienceType = getFeatureValue(feature, ['experienceType', 'tipoExperiencia', 'tipo_experiencia']);
 
   feature.setProperties({
     id,
-    //stationId: toEntityId(stationId),
     name: getFeatureValue(feature, ['name', 'nombre']) || '',
     description: getFeatureValue(feature, ['description', 'descripcion']) || '',
     durationHours: durationHours === null ? '' : Number(durationHours),
