@@ -40,7 +40,7 @@ const GuestPortal = () => {
 
   const filteredRoutes = useMemo(() => {
     return routes.filter((route) => {
-      const statusMatch = routeStatusFilter === 'all' || route.status === routeStatusFilter;
+      const statusMatch = route.status !== 'pending' && (routeStatusFilter === 'all' || route.status === routeStatusFilter);
       const experienceMatch = experienceFilter === 'all' || route.experienceType === experienceFilter;
       return statusMatch && experienceMatch;
     });
