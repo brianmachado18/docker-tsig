@@ -235,14 +235,8 @@ public class RecorridoService {
         if (dtRecorrido.getGeomWkt() == null || dtRecorrido.getGeomWkt().trim().isEmpty())
             throw new Exception("Linea requerida.");
         try {
-            System.out.println("============================");
-            System.out.println(dtRecorrido.getMesInicio());
-            System.out.println(dtRecorrido.getDiaInicio());
             LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesInicio(), dtRecorrido.getDiaInicio());
-            System.out.println("============================");
         } catch (DateTimeException e) {
-            System.out.println(e.getMessage());
-            System.out.println("============================");
             throw new Exception("Fecha de inicio invalida.");
         }
         try {
