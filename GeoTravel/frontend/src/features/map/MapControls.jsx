@@ -22,14 +22,14 @@ const MapControls = ({ drawIcon = 'draw', drawLabelKey = 'map.drawPolygon', onDr
   };
 
   return (
-    <div className="absolute top-28 left-6 z-30 bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.1)] p-2 border border-outline-variant flex flex-col gap-2">
+    <div className="absolute left-4 bottom-4 md:left-6 md:top-28 md:bottom-auto z-30 bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.1)] p-2 border border-outline-variant flex flex-row md:flex-col gap-2">
       <button className={getButtonClass('select')} title={selectLabel} onClick={() => setActiveTool('select')} type="button">
         <span className="material-symbols-outlined">arrow_selector_tool</span>
-        <div className="absolute left-full ml-2 px-2 py-1 bg-inverse-surface text-inverse-on-surface font-label-md text-label-md rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">{selectLabel}</div>
+        <div className="hidden md:block absolute left-full ml-2 px-2 py-1 bg-inverse-surface text-inverse-on-surface font-label-md text-label-md rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">{selectLabel}</div>
       </button>
       <button className={getButtonClass('draw')} title={drawLabel} onClick={handleDrawClick} type="button">
         <span className="material-symbols-outlined">{drawIcon}</span>
-        <div className="absolute left-full ml-2 px-2 py-1 bg-inverse-surface text-inverse-on-surface font-label-md text-label-md rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">{drawLabel}</div>
+        <div className="hidden md:block absolute left-full ml-2 px-2 py-1 bg-inverse-surface text-inverse-on-surface font-label-md text-label-md rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">{drawLabel}</div>
       </button>
     </div>
   );

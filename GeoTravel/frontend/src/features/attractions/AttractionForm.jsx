@@ -156,27 +156,27 @@ const AttractionForm = ({ attraction, onSaved, onDeleted }) => {
           <p className="text-sm text-error">{validationError || apiError}</p>
         )}
 
-        <div className="pt-4 mt-auto border-t border-outline-variant flex items-center justify-between">
+        <div className="sticky bottom-0 -mx-6 mt-auto border-t border-outline-variant bg-surface-container-lowest px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <button
             type="button"
             disabled={!attraction?.id || isDeleting || isSaving}
             onClick={handleDelete}
-            className="px-4 py-2 rounded-lg border border-error text-error disabled:opacity-40"
+            className="w-full sm:w-auto px-4 py-2 rounded-lg border border-error text-error disabled:opacity-40"
           >
             {isDeleting ? 'Eliminando...' : 'Eliminar'}
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full sm:w-auto items-center gap-3">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 rounded-lg border border-outline text-on-surface"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-outline text-on-surface"
               disabled={isSaving || isDeleting}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
               disabled={isSaving || isDeleting}
             >
               {isSaving ? 'Guardando...' : t('common.save')}

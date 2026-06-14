@@ -13,12 +13,12 @@ const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-[520px] max-h-[90vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl bg-surface-container-lowest">
+      <div className="relative z-10 w-full max-w-[520px] max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl bg-surface-container-lowest">
         {children}
       </div>
     </div>

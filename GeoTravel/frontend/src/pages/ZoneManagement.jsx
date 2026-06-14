@@ -8,8 +8,8 @@ import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import ZoneForm from '@/features/zones/ZoneForm';
 import ZoneRoutesQueryCard from '@/features/zones/ZoneRoutesQueryCard';
 import useZonesStore from '@/features/zones/zonesStore';
+import AdminLayout from '@/shared/components/AdminLayout';
 import Modal from '@/shared/components/Modal';
-import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 
 const wktFormat = new WKT();
@@ -116,56 +116,52 @@ const ZoneManagement = () => {
   };
 
   return (
-    <div className="bg-background text-on-surface font-body-md text-body-md overflow-hidden h-screen w-screen flex">
-      <Sidebar activeItem="zones" />
+    <AdminLayout activeItem="zones" mainClassName="bg-surface-dim map-pattern">
+      <TopAppBar />
+      <MapCanvas
+        screenId="zoneManagement"
+        zones={zones}
+        routes={zoneRoutes}
+        visibleZoneIds={visibleZoneIds}
+      />
+      <ZoneMapInteractions zones={zones} />
+      {!geometryEditZone && <MapControls />}
+      {!geometryEditZone && <ZoneRoutesQueryCard />}
 
-      <main className="ml-[360px] flex-grow relative h-full bg-surface-dim map-pattern">
-        <TopAppBar />
-        <MapCanvas
-          screenId="zoneManagement"
-          zones={zones}
-          routes={zoneRoutes}
-          visibleZoneIds={visibleZoneIds}
-        />
-        <ZoneMapInteractions zones={zones} />
-        {!geometryEditZone && <MapControls />}
-        <ZoneRoutesQueryCard />
-
-        {geometryEditZone && (
-          <div className="absolute left-1/2 bottom-6 z-40 w-[calc(100%-2rem)] max-w-[560px] -translate-x-1/2 rounded-lg border border-outline-variant bg-surface-container-lowest shadow-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="font-label-md text-label-md text-on-surface">Editando geometría</p>
-              <p className="text-xs text-on-surface-variant">{geometryEditZone.name || 'Zona sin nombre'}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCancelGeometry}
-                className="px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleApplyGeometry}
-                className="px-3 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90"
-              >
-                Aplicar geometría
-              </button>
-            </div>
+      {geometryEditZone && (
+        <div className="absolute left-1/2 bottom-4 sm:bottom-6 z-[60] w-[calc(100%-2rem)] max-w-[560px] -translate-x-1/2 rounded-lg border border-outline-variant bg-surface-container-lowest shadow-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="font-label-md text-label-md text-on-surface">Editando geometría</p>
+            <p className="text-xs text-on-surface-variant">{geometryEditZone.name || 'Zona sin nombre'}</p>
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCancelGeometry}
+              className="px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleApplyGeometry}
+              className="px-3 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90"
+            >
+              Aplicar geometría
+            </button>
+          </div>
+        </div>
+      )}
 
-        <Modal isOpen={isFormOpen} onClose={handleModalClose}>
-          <ZoneForm
-            zone={selectedZone}
-            onClose={closeForm}
-            onSaved={refreshZoneLayers}
-            onDeleted={refreshZoneLayers}
-          />
-        </Modal>
-      </main>
-    </div>
+      <Modal isOpen={isFormOpen} onClose={handleModalClose}>
+        <ZoneForm
+          zone={selectedZone}
+          onClose={closeForm}
+          onSaved={refreshZoneLayers}
+          onDeleted={refreshZoneLayers}
+        />
+      </Modal>
+    </AdminLayout>
   );
 };
 

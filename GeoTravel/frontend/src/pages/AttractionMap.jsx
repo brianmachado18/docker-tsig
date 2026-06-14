@@ -7,8 +7,8 @@ import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import AttractionMapInteractions from '@/features/map/interactions/AttractionMapInteractions';
 import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import AdminLayout from '@/shared/components/AdminLayout';
 import Modal from '@/shared/components/Modal';
-import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
 
@@ -57,24 +57,20 @@ const AttractionMap = () => {
   }, [fetchAttractions, setActiveTool, setViewport]);
 
   return (
-    <div className="bg-background text-on-surface font-body-md text-body-md overflow-hidden h-screen w-screen flex">
-      <Sidebar activeItem="attractionsMap" />
-
-      <main className="ml-[360px] flex-1 relative h-full bg-surface-dim">
-        <TopAppBar title={t('attractions.mapTitle')} />
-        <MapCanvas screenId="attractionMap" attractions={attractions} />
-        <AttractionMapInteractions attractions={attractions} />
-        <MapControls drawIcon="add_location_alt" drawLabelKey="map.placeAttraction" onDrawActivate={handleDrawActivate} />
-        <MapFeaturePopup />
-        <Modal isOpen={isFormOpen} onClose={handleCloseModal}>
-          <NuevaAtraccionModal
-            onUbicarEnMapa={handleUbicarEnMapa}
-            onSaved={handleSaved}
-            onDeleted={handleSaved}
-          />
-        </Modal>
-      </main>
-    </div>
+    <AdminLayout activeItem="attractionsMap" mainClassName="bg-surface-dim">
+      <TopAppBar title={t('attractions.mapTitle')} />
+      <MapCanvas screenId="attractionMap" attractions={attractions} />
+      <AttractionMapInteractions attractions={attractions} />
+      <MapControls drawIcon="add_location_alt" drawLabelKey="map.placeAttraction" onDrawActivate={handleDrawActivate} />
+      <MapFeaturePopup />
+      <Modal isOpen={isFormOpen} onClose={handleCloseModal}>
+        <NuevaAtraccionModal
+          onUbicarEnMapa={handleUbicarEnMapa}
+          onSaved={handleSaved}
+          onDeleted={handleSaved}
+        />
+      </Modal>
+    </AdminLayout>
   );
 };
 

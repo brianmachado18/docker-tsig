@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import AttractionCard from '@/features/attractions/AttractionCard';
 import AttractionForm from '@/features/attractions/AttractionForm';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
-import Sidebar from '@/shared/components/Sidebar';
+import AdminLayout from '@/shared/components/AdminLayout';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
 
@@ -71,13 +71,10 @@ const AttractionCatalog = () => {
   };
 
   return (
-    <div className="bg-background text-on-background h-screen overflow-hidden font-body-md flex">
-      <Sidebar activeItem="attractions" />
-      
-      <main className="ml-[360px] flex-1 flex flex-col relative h-full">
+    <AdminLayout activeItem="attractions" mainClassName="flex flex-col text-on-background">
         <TopAppBar title={t('attractions.title')} mobileOnlyAccount />
         
-        <div className="flex-1 overflow-y-auto pt-8 px-4 md:px-8 pb-8 bg-surface-container-lowest">
+        <div className="flex-1 overflow-y-auto pt-20 lg:pt-8 px-4 md:px-8 pb-8 bg-surface-container-lowest">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div>
               <h2 className="font-headline-lg text-headline-lg text-on-background">{t('attractions.poi')}</h2>
@@ -107,7 +104,7 @@ const AttractionCatalog = () => {
               </button>
 
               {isFilterOpen && (
-                <div className="absolute right-0 top-full mt-3 w-[320px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-30 overflow-hidden">
+                <div className="absolute right-0 top-full mt-3 w-[min(320px,calc(100vw-2rem))] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-30 overflow-hidden">
                   <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
                     <h3 className="font-headline-md text-headline-md text-on-surface">{t('attractions.filters')}</h3>
                     <button
@@ -195,8 +192,7 @@ const AttractionCatalog = () => {
         </div>
 
         {isFormOpen && <AttractionForm attraction={selectedAttraction} />}
-      </main>
-    </div>
+    </AdminLayout>
   );
 };
 

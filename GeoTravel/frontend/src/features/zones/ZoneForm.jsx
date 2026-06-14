@@ -186,8 +186,8 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
           />
         </label>
 
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
+          <div className="min-w-0">
             <p className="font-label-md text-label-md text-on-surface">Geometría</p>
             <p className="text-xs text-on-surface-variant">
               {geomWkt ? 'Polígono capturado en el mapa.' : 'Sin geometría capturada.'}
@@ -197,7 +197,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
             type="button"
             onClick={handleStartGeometryEdit}
             disabled={!geomWkt || isSaving || isDeleting}
-            className="shrink-0 px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40"
+            className="w-full sm:w-auto shrink-0 px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container disabled:opacity-40"
           >
             Editar geometría
           </button>
@@ -224,27 +224,27 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
           <p className="text-sm text-error">{validationError || apiError}</p>
         )}
 
-        <div className="pt-4 mt-auto border-t border-outline-variant flex items-center justify-between">
+        <div className="sticky bottom-0 -mx-6 mt-auto border-t border-outline-variant bg-surface-container-lowest px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <button
             type="button"
             disabled={!zone?.id || isDeleting || isSaving}
             onClick={handleDelete}
-            className="px-4 py-2 rounded-lg border border-error text-error disabled:opacity-40"
+            className="w-full sm:w-auto px-4 py-2 rounded-lg border border-error text-error disabled:opacity-40"
           >
             {isDeleting ? 'Eliminando...' : 'Eliminar'}
           </button>
-          <div className="flex gap-3">
+          <div className="flex w-full sm:w-auto gap-3">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 rounded-lg border border-outline text-on-surface"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-outline text-on-surface"
               disabled={isSaving || isDeleting}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-primary text-on-primary disabled:opacity-60"
               disabled={isSaving || isDeleting}
             >
               {isSaving ? 'Guardando...' : t('common.save')}

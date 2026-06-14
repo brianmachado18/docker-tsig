@@ -370,25 +370,25 @@ const NuevaAtraccionModal = ({ onUbicarEnMapa, onSaved, onDeleted }) => {
 
       {/* Footer — solo en paso 3 */}
       {step === 3 && (
-        <div className="px-6 py-4 border-t border-outline-variant flex items-center justify-between bg-surface-bright shrink-0">
+        <div className="px-6 py-4 border-t border-outline-variant flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface-bright shrink-0">
           {isEditing ? (
             <button
               type="button"
               disabled={isDeleting || isSaving}
               onClick={handleDelete}
-              className="px-4 py-2 rounded-lg border border-error text-error text-sm disabled:opacity-40"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg border border-error text-error text-sm disabled:opacity-40"
             >
               {isDeleting ? 'Eliminando...' : 'Eliminar'}
             </button>
           ) : (
-            <div />
+            <div className="hidden sm:block" />
           )}
-          <div className="flex items-center gap-3">
+          <div className="flex w-full sm:w-auto items-center gap-3">
             <button
               type="button"
               onClick={closeForm}
               disabled={isSaving || isDeleting}
-              className="px-4 py-2 rounded-lg border border-outline text-on-surface text-sm"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-outline text-on-surface text-sm"
             >
               Cancelar
             </button>
@@ -396,7 +396,7 @@ const NuevaAtraccionModal = ({ onUbicarEnMapa, onSaved, onDeleted }) => {
               type="button"
               onClick={handleGuardar}
               disabled={!canSave}
-              className="px-4 py-2 rounded-lg bg-primary text-on-primary text-sm disabled:opacity-60"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-primary text-on-primary text-sm disabled:opacity-60"
             >
               {isSaving ? 'Guardando...' : 'Guardar'}
             </button>

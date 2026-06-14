@@ -145,7 +145,7 @@ const GuestPortal = () => {
         </div>
 
         {selectedMapItem && (
-          <section className="absolute top-24 left-4 z-40 w-[360px] max-w-[calc(100vw-2rem)] flex flex-col gap-3 rounded-lg border border-primary/30 bg-surface/95 backdrop-blur-md p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+          <section className="absolute top-20 left-3 right-3 sm:top-24 sm:left-4 sm:right-auto z-40 sm:w-[360px] max-w-[calc(100vw-1.5rem)] flex flex-col gap-3 rounded-lg border border-primary/30 bg-surface/95 backdrop-blur-md p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <span className="font-label-md text-label-md text-primary uppercase tracking-wider">
@@ -203,7 +203,7 @@ const GuestPortal = () => {
           </section>
         )}
 
-        <aside className="absolute top-24 right-4 bottom-4 w-[380px] z-40 bg-surface/90 backdrop-blur-md border border-outline-variant rounded-2xl flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
+        <aside className="absolute left-3 right-3 bottom-3 top-auto max-h-[56dvh] md:top-24 md:right-4 md:bottom-4 md:left-auto md:max-h-none md:w-[380px] z-40 bg-surface/90 backdrop-blur-md border border-outline-variant rounded-2xl flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-y-auto overscroll-contain">
           <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
             <h3 className="font-headline-lg text-headline-lg text-primary">{t('guest.title')}</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">{t('guest.subtitle')}</p>
@@ -252,7 +252,7 @@ const GuestPortal = () => {
               </div>
             </section>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+          <div className="p-6 flex flex-col gap-8">
             <section className="flex flex-col gap-4 pb-4">
               <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.featured')}</h4>
               {error && (

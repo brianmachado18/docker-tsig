@@ -7,8 +7,8 @@ import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import RouteForm from '@/features/routes/RouteForm';
 import useRoutesStore from '@/features/routes/routesStore';
+import AdminLayout from '@/shared/components/AdminLayout';
 import Modal from '@/shared/components/Modal';
-import Sidebar from '@/shared/components/Sidebar';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
 
@@ -34,36 +34,32 @@ const RoutePlanner = () => {
   }, [fetchRoutes, setActiveTool, setViewport]);
 
   return (
-    <div className="bg-background text-on-surface font-body-md text-body-md overflow-hidden h-screen w-screen flex">
-      <Sidebar activeItem="routes" />
+    <AdminLayout activeItem="routes" mainClassName="bg-surface-dim">
+      <TopAppBar title={t('routes.design')} />
+      <MapCanvas screenId="routePlanner" />
+      <RouteMapInteractions routes={routes} />
+      <MapControls drawIcon="route" drawLabelKey="map.drawRoute" />
 
-      <main className="ml-[360px] flex-1 relative h-full bg-surface-dim">
-        <TopAppBar title={t('routes.design')} />
-        <MapCanvas screenId="routePlanner" />
-        <RouteMapInteractions routes={routes} />
-        <MapControls drawIcon="route" drawLabelKey="map.drawRoute" />
+      {/* Crear un recorrido sin dibujar: la línea se arma desde las paradas. */}
+      <button
+        type="button"
+        onClick={() => openForm()}
+        className="absolute top-4 right-4 lg:top-20 z-40 px-3 sm:px-4 py-2 rounded-lg bg-primary text-on-primary shadow-md flex items-center gap-1 hover:opacity-90 transition-opacity"
+      >
+        <span className="material-symbols-outlined text-[18px]">add</span>
+        <span className="hidden sm:inline">Nuevo recorrido</span>
+      </button>
 
-        {/* Crear un recorrido sin dibujar: la línea se arma desde las paradas. */}
-        <button
-          type="button"
-          onClick={() => openForm()}
-          className="absolute top-20 right-4 z-40 px-4 py-2 rounded-lg bg-primary text-on-primary shadow-md flex items-center gap-1 hover:opacity-90 transition-opacity"
-        >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Nuevo recorrido
-        </button>
-
-        <MapFeaturePopup />
-        <Modal isOpen={isFormOpen} onClose={closeForm}>
-          <RouteForm
-            route={selectedRoute}
-            onClose={closeForm}
-            onSaved={refreshRouteLayer}
-            onDeleted={refreshRouteLayer}
-          />
-        </Modal>
-      </main>
-    </div>
+      <MapFeaturePopup />
+      <Modal isOpen={isFormOpen} onClose={closeForm}>
+        <RouteForm
+          route={selectedRoute}
+          onClose={closeForm}
+          onSaved={refreshRouteLayer}
+          onDeleted={refreshRouteLayer}
+        />
+      </Modal>
+    </AdminLayout>
   );
 };
 

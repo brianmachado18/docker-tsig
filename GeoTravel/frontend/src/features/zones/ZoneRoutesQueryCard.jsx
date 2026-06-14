@@ -71,7 +71,7 @@ const ZoneRoutesQueryCard = () => {
   };
 
   return (
-    <section className="absolute top-24 right-4 z-40 w-[340px] rounded-2xl border border-outline-variant bg-surface/95 backdrop-blur-md shadow-lg p-4 flex flex-col gap-3">
+    <section className="absolute left-4 right-4 bottom-24 md:left-auto md:right-4 md:bottom-auto md:top-24 z-40 md:w-[340px] max-h-[42dvh] md:max-h-[calc(100dvh-7rem)] overflow-y-auto rounded-2xl border border-outline-variant bg-surface/95 backdrop-blur-md shadow-lg p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-title-md text-title-md text-on-surface">{t('zones.query.title')}</h2>
