@@ -30,13 +30,16 @@ public class ZonaService {
         validarZona(dtZona);
         validarInterseccion(dtZona.getGeomWkt());
         zonaRepository.save(dtoToObj(dtZona));
+        actualizarRecorridosZonaNueva(dtZona.getGeomWkt());
     }
 
     public void actualizar(DTZona dtZona) throws Exception{
         existeZona(dtZona.getIdZona());
+        String geomWktViejo = zonaRepository.findByIdZona(dtZona.getIdZona()).getGeomWkt().toString();
         validarZona(dtZona);
-        validarInterseccion(dtZona.getGeomWkt());
+        validarInterseccion(dtZona.getGeomWkt(), dtZona.getIdZona());
         zonaRepository.save(dtoToObj(dtZona));
+        actualizarRecorridosZonaModificada(dtZona.getGeomWkt(), geomWktViejo);
     }
 
     public void eliminar(Long idZona) throws Exception{
@@ -87,16 +90,6 @@ public class ZonaService {
         zona.setNivelAtractivo(dtZona.getNivelAtractivo());
         WKTReader reader = new WKTReader();
 
-        if (dtZona.getRecorridos() == null) {
-            zona.setRecorridos(new ArrayList<>());
-        } else {
-            List<Recorrido> zonasList = new ArrayList<>();
-            for (Long r : dtZona.getRecorridos()){
-                zonasList.add(recorridoRepository.findByIdRecorrido(r));
-            }
-            zona.setRecorridos(zonasList);
-        }
-
         try {
             zona.setGeomWkt((Polygon)reader.read(dtZona.getGeomWkt()));
         } catch(ParseException e) {
@@ -114,8 +107,8 @@ public class ZonaService {
         dtZona.setNombre(zona.getNombre());
         dtZona.setObservaciones(zona.getObservaciones());
         dtZona.setNivelAtractivo(zona.getNivelAtractivo());
-        dtZona.setRecorridos(new ArrayList<>());
         dtZona.setGeomWkt(zona.getGeomWkt().toString());
+
         return dtZona;
     }
 
@@ -143,14 +136,46 @@ public class ZonaService {
         }
     }
 
-    public void validarUsoEnRecorrido(Zona z) throws Exception{
-        if (recorridoRepository.existsByZonas(z))
-            throw new Exception("Zona presente en recorrido.");
+    public void validarUsoEnRecorrido(Zona z){
+        if (recorridoRepository.existsByZonas(z)) {
+            for (Recorrido recorrido : recorridoRepository.findByZonas(z)){
+                recorrido.setZonas(zonaRepository.findByLinestringExceptOne(recorrido.getGeomWkt().toString(), z.getIdZona()));
+                recorridoRepository.save(recorrido);
+            }
+        }
     }
 
     public void validarInterseccion(String geomWkt) throws Exception{
-        if (zonaRepository.countInterseccion(geomWkt) > 0){
+        if (zonaRepository.countIntersection(geomWkt) > 0){
             throw new Exception("Una zona no puede superponerse con otra.");
+        }
+    }
+
+    public void validarInterseccion(String geomWkt, Long idZona) throws Exception{
+        if (zonaRepository.countIntersectionExceptOne(geomWkt, idZona) > 0){
+            throw new Exception("Una zona no puede superponerse con otra.");
+        }
+    }
+
+    public void actualizarRecorridosZonaNueva(String geomWkt){
+        List<Recorrido> listRec = recorridoRepository.findByPolygon(geomWkt);
+        for (Recorrido r : listRec){
+            List<Zona> listZon = zonaRepository.findByLinestring(r.getGeomWkt().toString());
+            r.setZonas(listZon);
+            recorridoRepository.save(r);
+        }
+    }
+
+    public void actualizarRecorridosZonaModificada(String geomWktNuevo, String geomWktViejo){
+        for (Recorrido r : recorridoRepository.findByPolygon(geomWktNuevo)){
+            List<Zona> listZon = zonaRepository.findByLinestring(r.getGeomWkt().toString());
+            r.setZonas(listZon);
+            recorridoRepository.save(r);
+        }
+        for (Recorrido r : recorridoRepository.findByPolygon(geomWktViejo)){
+            List<Zona> listZon = zonaRepository.findByLinestring(r.getGeomWkt().toString());
+            r.setZonas(listZon);
+            recorridoRepository.save(r);
         }
     }
 

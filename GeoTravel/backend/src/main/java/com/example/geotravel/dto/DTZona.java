@@ -14,5 +14,5 @@ public class DTZona {
     private int nivelAtractivo;
     private String observaciones;
     private String geomWkt;
-    private List<Long> recorridos;
+    //private List<Long> recorridos;
 }
