@@ -252,9 +252,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   }, [route, clearError]);
   const apiError = useMemo(() => getApiErrorMessage(error, t('common.error')), [error, t]);
 
-  const toggleZone = (zoneId) =>
-    setZoneIds((c) => c.includes(zoneId) ? c.filter((id) => id !== zoneId) : [...c, zoneId]);
-
   const moveIntermediate = (index, dir) => {
     const newList = [...intermediateStops];
     const target = index + dir;
@@ -390,6 +387,11 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
     attractions: availableAttractions.filter((a) => !usedAttractionIds.has(a.id)),
     zones: availableZones.filter((z) => !usedZoneIds.has(z.id)),
   };
+
+  const includedZones = useMemo(() => {
+    const includedIds = new Set([...zoneIds, ...usedZoneIds]);
+    return availableZones.filter((zone) => includedIds.has(zone.id));
+  }, [availableZones, zoneIds, usedZoneIds]);
 
   const canOptimize = !!(startStop && endStop && intermediateStops.length >= 2);
   const isSubmitting = isSaving || isDeleting || isRoutingLoading || isOptimizing;
@@ -695,12 +697,12 @@ return (
       <div className="flex flex-col gap-2">
         <span className="font-label-md text-label-md text-on-surface-variant">Zonas incluidas (opcional)</span>
         <div className="max-h-28 overflow-y-auto border border-outline rounded p-2 bg-surface">
-          {!availableZones.length && <p className="text-xs text-outline">Sin zonas disponibles.</p>}
-          {availableZones.map((item) => (
-            <label key={item.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
-              <input type="checkbox" checked={zoneIds.includes(item.id)} onChange={() => toggleZone(item.id)} />
+          {!includedZones.length && <p className="text-xs text-outline">Sin zonas incluidas.</p>}
+          {includedZones.map((item) => (
+            <div key={item.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
+              <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
               <span>{item.name}</span>
-            </label>
+            </div>
           ))}
         </div>
       </div>
