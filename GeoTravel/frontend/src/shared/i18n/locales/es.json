@@ -93,12 +93,31 @@
     },
     "query": {
       "title": "Consultas de zona",
-      "subtitle": "Consulta por click o por direcci?n desde el mismo panel.",
+      "subtitle": "Consulta por click, direccion o interseccion desde el mismo panel.",
       "enterMode": "Consultar",
       "exitMode": "Salir",
       "routesTab": "Por zona",
       "addressTab": "Por direccion",
+      "intersectionTab": "Interseccion",
+      "activeZonesTab": "Zonas activas",
       "hiddenUntilSelection": "Activa la consulta para elegir una zona o buscar una direccion."
+    },
+    "activeZonesQuery": {
+      "title": "Zonas con mas recorridos activos",
+      "loadButton": "Ver reporte",
+      "loading": "Cargando...",
+      "emptyState": "Carga el reporte y haz clic en una zona para ver sus recorridos activos.",
+      "empty": "No se encontraron zonas para mostrar en el reporte.",
+      "waitingSelection": "Haz clic en una zona coloreada para ver cuantos recorridos activos tiene y cuales son.",
+      "selectedZone": "Zona activa seleccionada",
+      "singleZoneResult": "1 zona en el reporte",
+      "multiZoneResult": "{count} zonas en el reporte",
+      "singleRouteResult": "1 recorrido activo",
+      "multiRouteResult": "{count} recorridos activos",
+      "mapResultHint": "El mapa colorea todas las zonas por cantidad de recorridos activos y dibuja los recorridos de la zona seleccionada.",
+      "clear": "Limpiar consulta",
+      "noDescription": "Sin descripcion",
+      "noRoutes": "Esta zona no tiene recorridos activos en este momento."
     },
     "addressQuery": {
       "inputLabel": "Direccion",
@@ -108,6 +127,22 @@
       "waitingInput": "Escribe una direccion y se mostrara solo la zona encontrada.",
       "foundZone": "Zona encontrada",
       "mapResultHint": "El mapa oculta las demas zonas y deja visible solo la correspondiente a la direccion.",
+      "clear": "Limpiar consulta",
+      "noDescription": "Sin descripcion"
+    },
+    "intersectionQuery": {
+      "street1Label": "Calle 1",
+      "street1Placeholder": "Ej: 18 de Julio",
+      "street2Label": "Calle 2",
+      "street2Placeholder": "Ej: Ejido",
+      "search": "Buscar interseccion",
+      "loading": "Buscando...",
+      "waitingInput": "Ingresa dos calles para encontrar el recorrido mas cercano.",
+      "foundRoute": "Recorrido encontrado",
+      "distanceLabel": "Distancia: {distance} m",
+      "routeZones": "Zonas por las que pasa",
+      "noZones": "El recorrido no tiene zonas asociadas.",
+      "mapResultHint": "El mapa deja visibles las zonas asociadas al recorrido encontrado.",
       "clear": "Limpiar consulta",
       "noDescription": "Sin descripcion"
     }

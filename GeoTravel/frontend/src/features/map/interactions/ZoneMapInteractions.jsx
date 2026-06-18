@@ -98,6 +98,7 @@ const ZoneMapInteractions = ({ zones = [] }) => {
   const geometryEditZone = useZonesStore((state) => state.geometryEditZone);
   const updateGeometryEditDraft = useZonesStore((state) => state.updateGeometryEditDraft);
   const fetchZoneRoutes = useZonesStore((state) => state.fetchZoneRoutes);
+  const selectActiveZone = useZonesStore((state) => state.selectActiveZone);
   const zoneQueryType = useZonesStore((state) => state.zoneQueryType);
 
   useEffect(() => {
@@ -248,6 +249,27 @@ const ZoneMapInteractions = ({ zones = [] }) => {
       };
     }
 
+    if (activeTool === 'zone-query' && zoneQueryType === 'active-zones') {
+      const select = new Select({
+        condition: click,
+        layers: [layer],
+      });
+
+      select.on('select', (event) => {
+        const feature = event.selected?.[0];
+        const zoneId = feature?.get?.('id');
+        if (zoneId !== undefined && zoneId !== null) {
+          selectActiveZone(zoneId);
+        }
+      });
+
+      map.addInteraction(select);
+
+      return () => {
+        map.removeInteraction(select);
+      };
+    }
+
     return undefined;
   }, [
     activeTool,
@@ -256,6 +278,7 @@ const ZoneMapInteractions = ({ zones = [] }) => {
     layerLookupAttempt,
     map,
     openForm,
+    selectActiveZone,
     setActiveTool,
     updateGeometryEditDraft,
     zoneQueryType,

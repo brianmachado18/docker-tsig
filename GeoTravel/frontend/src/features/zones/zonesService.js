@@ -1,5 +1,18 @@
 import { apiClient } from '@/shared/lib/api/apiClient';
-import { parsePolygonWkt } from '@/shared/lib/geo/wkt';
+import { parseLineStringWkt, parsePolygonWkt } from '@/shared/lib/geo/wkt';
+
+const statusFromBackend = (status) => {
+  switch (String(status || '').toUpperCase()) {
+    case 'FUERA_DE_ESTACION':
+      return 'off-season';
+    case 'PENDIENTE':
+      return 'pending';
+    case 'CANCELADO':
+      return 'cancelled';
+    default:
+      return 'available';
+  }
+};
 
 const normalizeZone = (zone) => ({
   id: zone.id ?? zone.idZona,
@@ -11,6 +24,23 @@ const normalizeZone = (zone) => ({
   geometry: zone.geometry ?? parsePolygonWkt(zone.geomWkt),
   routeIds: zone.routeIds ?? zone.recorridos ?? [],
   status: zone.status ?? 'active',
+});
+
+const normalizeActiveRoute = (route) => ({
+  id: route.id ?? route.idRecorrido,
+  name: route.name ?? route.nombre ?? '',
+  description: route.description ?? route.descripcion ?? '',
+  status: route.status ?? statusFromBackend(route.estado),
+  geomWkt: route.geomWkt ?? '',
+  geometry: route.geometry ?? parseLineStringWkt(route.geomWkt),
+});
+
+const normalizeActiveZone = (zone) => ({
+  ...normalizeZone(zone),
+  activeRoutesCount: Number(zone.activeRoutesCount ?? zone.cantidadRecorridosActivos ?? 0),
+  activeRoutes: Array.isArray(zone.activeRoutes ?? zone.recorridosActivos)
+    ? (zone.activeRoutes ?? zone.recorridosActivos).map(normalizeActiveRoute)
+    : [],
 });
 
 const toDto = (zone) => ({
@@ -32,6 +62,11 @@ export const zonesService = {
   async findByAddress(address) {
     const zone = await apiClient.get(`/zona/buscar/porDireccion?direccion=${encodeURIComponent(address)}`);
     return zone ? normalizeZone(zone) : null;
+  },
+
+  async listActiveZones() {
+    const zones = await apiClient.get('/zona/buscar/activas');
+    return Array.isArray(zones) ? zones.map(normalizeActiveZone) : [];
   },
 
   async save(zone) {

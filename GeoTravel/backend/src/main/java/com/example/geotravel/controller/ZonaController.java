@@ -1,5 +1,6 @@
 package com.example.geotravel.controller;
 
+import com.example.geotravel.dto.DTZonaActiva;
 import com.example.geotravel.dto.DTZona;
 import com.example.geotravel.service.ZonaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,15 @@ public class ZonaController {
             return ResponseEntity.ok().body(zonaService.obtenerPorDireccion(direccion));
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/buscar/activas")
+    public ResponseEntity<List<DTZonaActiva>> obtenerZonasConMasRecorridosActivos() {
+        try {
+            return ResponseEntity.ok().body(zonaService.obtenerZonasConMasRecorridosActivos());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
         }
     }
 

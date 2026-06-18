@@ -30,4 +30,12 @@ public interface ZonaRepository extends JpaRepository<Zona, Long> {
     // TODO
     @Query(value = "SELECT * FROM zona z WHERE ST_Covers(z.geom_wkt, ST_GeomFromText(:pointWkt, 4326))", nativeQuery = true)
     List<Zona> findAllByPoint(@Param("pointWkt") String pointWkt);
+
+    @Query(value = """
+            SELECT z.*
+            FROM zona z
+            JOIN recorrido r ON r.id_recorrido = :idRecorrido
+            WHERE ST_Intersects(z.geom_wkt, r.geom_wkt)
+            """, nativeQuery = true)
+    List<Zona> findAllByRecorridoIntersects(@Param("idRecorrido") Long idRecorrido);
 }

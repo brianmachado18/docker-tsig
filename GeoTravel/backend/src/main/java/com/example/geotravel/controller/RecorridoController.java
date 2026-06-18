@@ -1,5 +1,6 @@
 package com.example.geotravel.controller;
 
+import com.example.geotravel.dto.DTBusquedaRecorridoInterseccion;
 import com.example.geotravel.dto.DTRecorrido;
 import com.example.geotravel.enums.Estado;
 import com.example.geotravel.service.RecorridoService;
@@ -71,6 +72,16 @@ public class RecorridoController {
             return ResponseEntity.ok().body(recorridoService.obtenerPorZona(idZona));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("/buscar/porInterseccion")
+    public ResponseEntity<?> obtenerPorInterseccion(@RequestParam String calle1, @RequestParam String calle2) {
+        try {
+            DTBusquedaRecorridoInterseccion resultado = recorridoService.obtenerPorInterseccion(calle1, calle2);
+            return ResponseEntity.ok().body(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

@@ -1,6 +1,9 @@
 package com.example.geotravel.service;
 
+import com.example.geotravel.dto.DTRecorridoActivoResumen;
+import com.example.geotravel.dto.DTZonaActiva;
 import com.example.geotravel.dto.DTZona;
+import com.example.geotravel.enums.Estado;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.Zona;
 import com.example.geotravel.repository.RecorridoRepository;
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -73,6 +77,35 @@ public class ZonaService {
         return objToDto(zonas.get(0));
     }
 
+    public List<DTZonaActiva> obtenerZonasConMasRecorridosActivos() {
+        List<DTZonaActiva> zonasActivas = new ArrayList<>();
+
+        for (Zona zona : zonaRepository.findAll()) {
+            List<Recorrido> recorridosActivos = recorridoRepository.findAllByZonaGeomAndEstado(
+                    zona.getIdZona(),
+                    Estado.DISPONIBLE
+            );
+
+            zonasActivas.add(new DTZonaActiva(
+                    zona.getIdZona(),
+                    zona.getNombre(),
+                    zona.getDescripcion(),
+                    zona.getNivelAtractivo(),
+                    zona.getObservaciones(),
+                    zona.getGeomWkt() != null ? zona.getGeomWkt().toString() : null,
+                    recorridosActivos.size(),
+                    recorridosActivosToDto(recorridosActivos)
+            ));
+        }
+
+        zonasActivas.sort(Comparator
+                .comparingInt(DTZonaActiva::getCantidadRecorridosActivos)
+                .reversed()
+                .thenComparing(DTZonaActiva::getNombre, Comparator.nullsLast(String::compareToIgnoreCase)));
+
+        return zonasActivas;
+    }
+
     public Zona obtenerObjPorId(Long id){
         return zonaRepository.findByIdZona(id);
     }
@@ -110,6 +143,30 @@ public class ZonaService {
             dtZona.getRecorridos().add(r.getIdRecorrido());
 
         return dtZona;
+    }
+
+    private List<DTRecorridoActivoResumen> recorridosActivosToDto(List<Recorrido> recorridos) {
+        List<DTRecorridoActivoResumen> resumenes = new ArrayList<>();
+
+        if (recorridos == null) {
+            return resumenes;
+        }
+
+        for (Recorrido recorrido : recorridos) {
+            if (recorrido == null) {
+                continue;
+            }
+
+            resumenes.add(new DTRecorridoActivoResumen(
+                    recorrido.getIdRecorrido(),
+                    recorrido.getNombre(),
+                    recorrido.getDescripcion(),
+                    recorrido.getEstado(),
+                    recorrido.getGeomWkt() != null ? recorrido.getGeomWkt().toString() : null
+            ));
+        }
+
+        return resumenes;
     }
 
     public void existeZona(Long idZona) throws Exception{

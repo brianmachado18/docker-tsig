@@ -112,6 +112,32 @@ export const routesService = {
     return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
   },
 
+  async findByIntersection(street1, street2) {
+    const result = await apiClient.get(
+      `/recorrido/buscar/porInterseccion?calle1=${encodeURIComponent(street1)}&calle2=${encodeURIComponent(street2)}`
+    );
+
+    if (!result) {
+      return null;
+    }
+
+    return {
+      route: result.recorrido ? normalizeRoute(result.recorrido) : null,
+      zones: Array.isArray(result.zonas)
+        ? result.zonas.map((zone) => ({
+            id: zone.id ?? zone.idZona,
+            name: zone.name ?? zone.nombre ?? '',
+            description: zone.description ?? zone.descripcion ?? '',
+            attractionLevel: zone.attractionLevel ?? zone.nivelAtractivo ?? 1,
+            notes: zone.notes ?? zone.observaciones ?? '',
+            geomWkt: zone.geomWkt ?? '',
+            routeIds: zone.routeIds ?? zone.recorridos ?? [],
+          }))
+        : [],
+      distanceMeters: result.distanciaMetros ?? null,
+    };
+  },
+
   async save(route) {
     const dto = toDto(route);
     if (route.id) {

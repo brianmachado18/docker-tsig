@@ -106,12 +106,31 @@
     },
     "query": {
       "title": "Zone queries",
-      "subtitle": "Query by map click or by address from the same panel.",
+      "subtitle": "Query by map click, address, or street intersection from the same panel.",
       "enterMode": "Query",
       "exitMode": "Exit",
       "routesTab": "By zone",
       "addressTab": "By address",
+      "intersectionTab": "Intersection",
+      "activeZonesTab": "Active zones",
       "hiddenUntilSelection": "Enable the query to choose a zone or search for an address."
+    },
+    "activeZonesQuery": {
+      "title": "Zones with the most active routes",
+      "loadButton": "Load report",
+      "loading": "Loading...",
+      "emptyState": "Load the report and click a zone to inspect its active routes.",
+      "empty": "No zones were found for the report.",
+      "waitingSelection": "Click a colored zone to see how many active routes it has and which ones they are.",
+      "selectedZone": "Selected active zone",
+      "singleZoneResult": "1 zone in the report",
+      "multiZoneResult": "{count} zones in the report",
+      "singleRouteResult": "1 active route",
+      "multiRouteResult": "{count} active routes",
+      "mapResultHint": "The map colors every zone by active route count and draws the routes for the selected zone.",
+      "clear": "Clear query",
+      "noDescription": "No description",
+      "noRoutes": "This zone has no active routes right now."
     },
     "addressQuery": {
       "inputLabel": "Address",
@@ -121,6 +140,22 @@
       "waitingInput": "Type an address and only the matching zone will remain visible.",
       "foundZone": "Found zone",
       "mapResultHint": "The map hides every other zone and keeps visible only the one matching the address.",
+      "clear": "Clear query",
+      "noDescription": "No description"
+    },
+    "intersectionQuery": {
+      "street1Label": "Street 1",
+      "street1Placeholder": "Ex: 18 de Julio",
+      "street2Label": "Street 2",
+      "street2Placeholder": "Ex: Ejido",
+      "search": "Search intersection",
+      "loading": "Searching...",
+      "waitingInput": "Enter two streets to find the nearest route.",
+      "foundRoute": "Found route",
+      "distanceLabel": "Distance: {distance} m",
+      "routeZones": "Zones crossed by the route",
+      "noZones": "The route has no associated zones.",
+      "mapResultHint": "The map keeps visible the zones associated with the found route.",
       "clear": "Clear query",
       "noDescription": "No description"
     }

@@ -79,5 +79,17 @@ public class GeocodingService {
         return new GeocodedPoint(lon, lat, firstResult.path("display_name").asText(normalizedAddress));
     }
 
+    public GeocodedPoint geocodeIntersection(String calle1, String calle2) throws Exception {
+        if (calle1 == null || calle1.trim().isEmpty()) {
+            throw new Exception("Calle 1 requerida.");
+        }
+        if (calle2 == null || calle2.trim().isEmpty()) {
+            throw new Exception("Calle 2 requerida.");
+        }
+
+        String direccion = calle1.trim() + " y " + calle2.trim();
+        return geocode(direccion);
+    }
+
     public record GeocodedPoint(double lon, double lat, String label) {}
 }
