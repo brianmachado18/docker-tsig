@@ -64,15 +64,24 @@ const GuestPortal = () => {
       case 'MUSEO':
       case 'MUSEUM':
         return t('attractions.museum');
-      case 'PARQUE':
-      case 'PARK':
-        return t('attractions.park');
+      case 'TEATRO':
+      case 'THEATER':
+        return t('attractions.theater');
       case 'MONUMENTO':
       case 'MONUMENT':
         return t('attractions.monument');
-      case 'LANDMARK':
-      case 'PUNTO_DE_REFERENCIA':
-        return t('attractions.landmark');
+      case 'PLAZA':
+      case 'SQUARE':
+        return t('attractions.square');
+      case 'GASTRONOMIA':
+      case 'GASTRONOMY':
+        return t('attractions.gastronomy');
+      case 'PLAYA':
+      case 'BEACH':
+        return t('attractions.beach');
+      case 'PARQUE':
+      case 'PARK':
+        return t('attractions.park');
       default:
         return String(category || '').replace(/_/g, ' ') || t('attractions.category');
     }
