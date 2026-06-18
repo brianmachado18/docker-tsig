@@ -26,3 +26,8 @@ geocoding:
   nominatim:
     url: ${GEOCODING_NOMINATIM_URL:https://nominatim.openstreetmap.org}
     user-agent: ${GEOCODING_USER_AGENT:GeoTravel/1.0 (tsig local project)}
+
+recorrido:
+  busqueda:
+    interseccion:
+      umbral-metros: ${RECORRIDO_BUSQUEDA_INTERSECCION_UMBRAL_METROS:1000}

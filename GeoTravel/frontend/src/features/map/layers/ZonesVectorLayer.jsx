@@ -70,7 +70,7 @@ const ZonesVectorLayer = ({ map, zones = [], visibleZoneIds = null, zIndex = 10 
       source,
       style: (feature) => {
         const visibleIds = visibleIdsRef.current;
-        if (!visibleIds || !visibleIds.length) {
+        if (visibleIds === null) {
           return zoneStyle;
         }
 

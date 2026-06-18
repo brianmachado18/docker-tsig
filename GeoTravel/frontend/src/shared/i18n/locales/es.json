@@ -93,11 +93,12 @@
     },
     "query": {
       "title": "Consultas de zona",
-      "subtitle": "Consulta por click o por direcci?n desde el mismo panel.",
+      "subtitle": "Consulta por click, direccion o interseccion desde el mismo panel.",
       "enterMode": "Consultar",
       "exitMode": "Salir",
       "routesTab": "Por zona",
       "addressTab": "Por direccion",
+      "intersectionTab": "Interseccion",
       "hiddenUntilSelection": "Activa la consulta para elegir una zona o buscar una direccion."
     },
     "addressQuery": {
@@ -108,6 +109,22 @@
       "waitingInput": "Escribe una direccion y se mostrara solo la zona encontrada.",
       "foundZone": "Zona encontrada",
       "mapResultHint": "El mapa oculta las demas zonas y deja visible solo la correspondiente a la direccion.",
+      "clear": "Limpiar consulta",
+      "noDescription": "Sin descripcion"
+    },
+    "intersectionQuery": {
+      "street1Label": "Calle 1",
+      "street1Placeholder": "Ej: 18 de Julio",
+      "street2Label": "Calle 2",
+      "street2Placeholder": "Ej: Ejido",
+      "search": "Buscar interseccion",
+      "loading": "Buscando...",
+      "waitingInput": "Ingresa dos calles para encontrar el recorrido mas cercano.",
+      "foundRoute": "Recorrido encontrado",
+      "distanceLabel": "Distancia: {distance} m",
+      "routeZones": "Zonas por las que pasa",
+      "noZones": "El recorrido no tiene zonas asociadas.",
+      "mapResultHint": "El mapa deja visibles las zonas asociadas al recorrido encontrado.",
       "clear": "Limpiar consulta",
       "noDescription": "Sin descripcion"
     }

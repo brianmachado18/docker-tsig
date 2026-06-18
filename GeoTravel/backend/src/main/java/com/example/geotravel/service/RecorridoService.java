@@ -1,6 +1,8 @@
 package com.example.geotravel.service;
 
 import com.example.geotravel.dto.DTRecorrido;
+import com.example.geotravel.dto.DTBusquedaRecorridoInterseccion;
+import com.example.geotravel.dto.DTZona;
 import com.example.geotravel.enums.Estado;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.RecorridoAtracciones;
@@ -10,6 +12,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,12 @@ public class RecorridoService {
 
     @Autowired
     private HistoricoService historicoService;
+
+    @Autowired
+    private GeocodingService geocodingService;
+
+    @Value("${recorrido.busqueda.interseccion.umbral-metros:1000}")
+    private double umbralBusquedaInterseccionMetros;
 
     public void alta(DTRecorrido dtRecorrido) throws Exception {
         validarRecorrido(dtRecorrido); // Validar los datos del recorrido
@@ -147,6 +156,39 @@ public class RecorridoService {
         return recorridoRepository.findByIdRecorrido(id);
     }
 
+    @Transactional(readOnly = true)
+    public DTBusquedaRecorridoInterseccion obtenerPorInterseccion(String calle1, String calle2) throws Exception {
+        GeocodingService.GeocodedPoint geocodedPoint = geocodingService.geocodeIntersection(calle1, calle2);
+
+        Long idRecorrido = recorridoRepository.findNearestRecorridoId(geocodedPoint.lon(), geocodedPoint.lat());
+        if (idRecorrido == null) {
+            throw new Exception("No hay recorridos registrados para evaluar cercania.");
+        }
+
+        Double distanciaMetros = recorridoRepository.findDistanceToPoint(
+                idRecorrido,
+                geocodedPoint.lon(),
+                geocodedPoint.lat()
+        );
+
+        if (distanciaMetros == null || distanciaMetros > umbralBusquedaInterseccionMetros) {
+            throw new Exception("No se encontro un recorrido cercano.");
+        }
+
+        Recorrido recorrido = recorridoRepository.findByIdRecorrido(idRecorrido);
+        if (recorrido == null) {
+            throw new Exception("Recorrido no encontrado.");
+        }
+
+        List<DTZona> zonas = zonasToDto(zonaRepository.findAllByRecorridoIntersects(idRecorrido));
+
+        return new DTBusquedaRecorridoInterseccion(
+                objToDto(recorrido),
+                zonas,
+                distanciaMetros
+        );
+    }
+
     public Recorrido dtoToObj(DTRecorrido dtRecorrido) {
         Recorrido recorrido = new Recorrido();
         recorrido.setIdRecorrido(dtRecorrido.getIdRecorrido());
@@ -194,10 +236,9 @@ public class RecorridoService {
         dtRecorrido.setDiaFin(recorrido.getFechaFin().getDayOfMonth());
         dtRecorrido.setMesFin(recorrido.getFechaFin().getMonthValue());
 
-        // Zonas por las que pasa el recorrido
         List<Long> zonasIds = new ArrayList<>();
-        if (recorrido.getZonas() != null) {
-            for (Zona z : recorrido.getZonas()) {
+        for (Zona z : zonaRepository.findAllByRecorridoIntersects(recorrido.getIdRecorrido())) {
+            if (z != null && z.getIdZona() != null) {
                 zonasIds.add(z.getIdZona());
             }
         }
@@ -212,6 +253,31 @@ public class RecorridoService {
 
         dtRecorrido.setGeomWkt(recorrido.getGeomWkt().toString());
         return dtRecorrido;
+    }
+
+    private List<DTZona> zonasToDto(List<Zona> zonas) {
+        List<DTZona> zonasDto = new ArrayList<>();
+        if (zonas == null) {
+            return zonasDto;
+        }
+
+        for (Zona zona : zonas) {
+            if (zona == null) {
+                continue;
+            }
+
+            DTZona dtZona = new DTZona();
+            dtZona.setIdZona(zona.getIdZona());
+            dtZona.setNombre(zona.getNombre());
+            dtZona.setDescripcion(zona.getDescripcion());
+            dtZona.setNivelAtractivo(zona.getNivelAtractivo());
+            dtZona.setObservaciones(zona.getObservaciones());
+            dtZona.setGeomWkt(zona.getGeomWkt() != null ? zona.getGeomWkt().toString() : null);
+            dtZona.setRecorridos(new ArrayList<>());
+            zonasDto.add(dtZona);
+        }
+
+        return zonasDto;
     }
 
     public void existeRecorrido(Long idRecorrido) throws Exception {

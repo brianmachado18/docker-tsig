@@ -17,4 +17,29 @@ public interface RecorridoRepository extends JpaRepository<Recorrido, Long> {
     @Query("SELECT DISTINCT r FROM Recorrido r, Zona z WHERE z.idZona = :idZona AND ST_Intersects(r.geomWkt, z.geomWkt)")
     List<Recorrido> findAllByZonaGeom(@Param("idZona") Long idZona);
 
+    @Query(value = """
+            SELECT r.id_recorrido
+            FROM recorrido r
+            ORDER BY ST_Distance(
+                r.geom_wkt::geography,
+                ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
+            ) ASC
+            LIMIT 1
+            """, nativeQuery = true)
+    Long findNearestRecorridoId(@Param("lon") double lon, @Param("lat") double lat);
+
+    @Query(value = """
+            SELECT ST_Distance(
+                r.geom_wkt::geography,
+                ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
+            )
+            FROM recorrido r
+            WHERE r.id_recorrido = :idRecorrido
+            """, nativeQuery = true)
+    Double findDistanceToPoint(
+            @Param("idRecorrido") Long idRecorrido,
+            @Param("lon") double lon,
+            @Param("lat") double lat
+    );
+
 }

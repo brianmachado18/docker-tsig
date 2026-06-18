@@ -13,20 +13,27 @@ const ZoneRoutesQueryCard = () => {
     setZoneQueryType,
     selectedZoneForRoutes,
     selectedZoneByAddress,
+    intersectionRouteResult,
     zoneRoutes,
     isLoadingZoneRoutes,
     isLoadingAddressZone,
+    isLoadingIntersectionRoute,
     routeQueryError,
     addressQueryError,
+    intersectionQueryError,
     searchZoneByAddress,
+    searchRouteByIntersection,
     clearZoneQueries,
   } = useZonesStore();
   const { t } = useLangStore();
   const [address, setAddress] = useState('');
+  const [street1, setStreet1] = useState('');
+  const [street2, setStreet2] = useState('');
 
   const isQueryMode = activeTool === 'zone-query';
   const routeQueryErrorMessage = getApiErrorMessage(routeQueryError, t('common.error'));
   const addressQueryErrorMessage = getApiErrorMessage(addressQueryError, t('common.error'));
+  const intersectionQueryErrorMessage = getApiErrorMessage(intersectionQueryError, t('common.error'));
   const routeCountLabel =
     zoneRoutes.length === 1
       ? t('zones.routesQuery.singleResult')
@@ -34,10 +41,18 @@ const ZoneRoutesQueryCard = () => {
   const addressResultLabel = selectedZoneByAddress
     ? selectedZoneByAddress.name || `${t('common.zones')} #${selectedZoneByAddress.id}`
     : '';
+  const intersectionRoute = intersectionRouteResult?.route || null;
+  const intersectionZones = Array.isArray(intersectionRouteResult?.zones) ? intersectionRouteResult.zones : [];
+  const intersectionDistanceLabel =
+    intersectionRouteResult?.distanceMeters !== null && intersectionRouteResult?.distanceMeters !== undefined
+      ? Number(intersectionRouteResult.distanceMeters).toFixed(2)
+      : null;
 
   useEffect(() => {
     if (!isQueryMode) {
       setAddress('');
+      setStreet1('');
+      setStreet2('');
     }
   }, [isQueryMode]);
 
@@ -70,6 +85,14 @@ const ZoneRoutesQueryCard = () => {
     await searchZoneByAddress(address);
   };
 
+  const handleIntersectionSubmit = async (event) => {
+    event.preventDefault();
+    if (!isQueryMode) {
+      setActiveTool('zone-query');
+    }
+    await searchRouteByIntersection(street1, street2);
+  };
+
   return (
     <section className="absolute left-4 right-4 bottom-24 md:left-auto md:right-4 md:bottom-auto md:top-24 z-40 md:w-[340px] max-h-[42dvh] md:max-h-[calc(100dvh-7rem)] overflow-y-auto rounded-2xl border border-outline-variant bg-surface/95 backdrop-blur-md shadow-lg p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
@@ -92,7 +115,7 @@ const ZoneRoutesQueryCard = () => {
       </div>
 
       {isQueryMode && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => handleChangeQueryType('routes')}
@@ -114,6 +137,17 @@ const ZoneRoutesQueryCard = () => {
             }`}
           >
             {t('zones.query.addressTab')}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleChangeQueryType('intersection')}
+            className={`rounded-lg px-3 py-2 text-sm ${
+              zoneQueryType === 'intersection'
+                ? 'bg-primary text-on-primary'
+                : 'border border-outline text-on-surface hover:bg-surface-container'
+            }`}
+          >
+            {t('zones.query.intersectionTab')}
           </button>
         </div>
       )}
@@ -239,6 +273,106 @@ const ZoneRoutesQueryCard = () => {
                 className="self-end px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container text-sm"
               >
                 {t('zones.addressQuery.clear')}
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {isQueryMode && zoneQueryType === 'intersection' && (
+        <>
+          <form className="flex flex-col gap-3" onSubmit={handleIntersectionSubmit}>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm text-on-surface">{t('zones.intersectionQuery.street1Label')}</span>
+              <input
+                type="text"
+                value={street1}
+                onChange={(event) => setStreet1(event.target.value)}
+                placeholder={t('zones.intersectionQuery.street1Placeholder')}
+                className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="text-sm text-on-surface">{t('zones.intersectionQuery.street2Label')}</span>
+              <input
+                type="text"
+                value={street2}
+                onChange={(event) => setStreet2(event.target.value)}
+                placeholder={t('zones.intersectionQuery.street2Placeholder')}
+                className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface"
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={isLoadingIntersectionRoute}
+              className="self-end px-3 py-2 rounded-lg bg-primary text-on-primary text-sm disabled:opacity-60"
+            >
+              {isLoadingIntersectionRoute
+                ? t('zones.intersectionQuery.loading')
+                : t('zones.intersectionQuery.search')}
+            </button>
+          </form>
+
+          {!intersectionRoute && !isLoadingIntersectionRoute && !intersectionQueryErrorMessage && (
+            <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.waitingInput')}</p>
+          )}
+
+          {intersectionQueryErrorMessage && (
+            <p className="text-sm text-error">{intersectionQueryErrorMessage}</p>
+          )}
+
+          {intersectionRoute && !isLoadingIntersectionRoute && !intersectionQueryErrorMessage && (
+            <>
+              <div className="rounded-xl bg-surface-container p-3">
+                <p className="text-xs uppercase tracking-wide text-on-surface-variant">
+                  {t('zones.intersectionQuery.foundRoute')}
+                </p>
+                <p className="mt-1 font-title-sm text-title-sm text-on-surface">
+                  {intersectionRoute.name || `${t('common.routes')} #${intersectionRoute.id}`}
+                </p>
+                <p className="mt-1 text-sm text-on-surface-variant">
+                  {intersectionRoute.description || t('zones.intersectionQuery.noDescription')}
+                </p>
+                {intersectionDistanceLabel && (
+                  <p className="mt-2 text-sm text-on-surface">
+                    {t('zones.intersectionQuery.distanceLabel').replace('{distance}', intersectionDistanceLabel)}
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-xl bg-surface-container-low p-3">
+                <p className="text-xs uppercase tracking-wide text-on-surface-variant">
+                  {t('zones.intersectionQuery.routeZones')}
+                </p>
+
+                {intersectionZones.length ? (
+                  <ul className="mt-2 space-y-2">
+                    {intersectionZones.map((zone) => (
+                      <li key={zone.id} className="rounded-lg border border-outline-variant bg-surface p-2">
+                        <p className="font-label-lg text-label-lg text-on-surface">
+                          {zone.name || `${t('common.zones')} #${zone.id}`}
+                        </p>
+                        <p className="mt-1 text-xs text-on-surface-variant">
+                          {zone.description || t('zones.intersectionQuery.noDescription')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-on-surface-variant">{t('zones.intersectionQuery.noZones')}</p>
+                )}
+              </div>
+
+              <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.mapResultHint')}</p>
+
+              <button
+                type="button"
+                onClick={handleClear}
+                className="self-end px-3 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container text-sm"
+              >
+                {t('zones.intersectionQuery.clear')}
               </button>
             </>
           )}

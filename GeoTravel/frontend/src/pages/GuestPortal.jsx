@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
+import useMapStore from '@/features/map/mapStore';
 import useRouteFilterStore from '@/features/map/routeFilterStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
@@ -18,6 +19,7 @@ const GuestPortal = () => {
   } = useAttractionsStore();
   const { routes, isLoading: isRoutesLoading, error: routesError, fetchRoutes } = useRoutesStore();
   const { zones, isLoading: isZonesLoading, error: zonesError, fetchZones } = useZonesStore();
+  const flyTo = useMapStore((state) => state.flyTo);
   const [routeStatusFilter, setRouteStatusFilter] = useState('all');
   const [experienceFilter, setExperienceFilter] = useState('all');
   const [selectedMapItem, setSelectedMapItem] = useState(null);
@@ -34,6 +36,14 @@ const GuestPortal = () => {
     fetchRoutes();
     fetchZones();
   }, [fetchAttractions, fetchRoutes, fetchZones]);
+
+  useEffect(() => {
+    if (selectedMapItem?.type !== 'attraction' || !selectedMapItem.item?.coordinates) {
+      return;
+    }
+
+    flyTo(selectedMapItem.item.coordinates);
+  }, [flyTo, selectedMapItem]);
 
   const isLoading = isAttractionsLoading || isRoutesLoading || isZonesLoading;
   const error = attractionsError || routesError || zonesError;
@@ -164,6 +174,13 @@ const GuestPortal = () => {
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
+            {selectedMapItem.type === 'attraction' && selectedMapItem.item?.imageUrl && (
+              <img
+                alt={getMapSelectionName(selectedMapItem)}
+                className="w-full h-40 object-cover rounded-xl border border-outline-variant/40"
+                src={selectedMapItem.item.imageUrl}
+              />
+            )}
             {selectedMapItem.item?.description && (
               <p className="font-body-md text-body-md text-on-surface-variant">
                 {selectedMapItem.item.description}
@@ -308,19 +325,32 @@ const GuestPortal = () => {
               )}
               <div className="grid grid-cols-1 gap-3">
                 {featuredAttractions.map((attraction) => (
-                  <div key={attraction.id} className="bg-surface rounded-xl border border-outline-variant/50 p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h5 className="font-headline-md text-[15px] leading-tight text-primary font-semibold">
-                          {attraction.title}
-                        </h5>
-                        <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1">
-                          {attraction.description}
-                        </p>
+                  <div key={attraction.id} className="bg-surface rounded-xl border border-outline-variant/50 overflow-hidden shadow-sm">
+                    <div className="h-36 w-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                      {attraction.imageUrl ? (
+                        <img
+                          alt={attraction.title}
+                          className="w-full h-full object-cover"
+                          src={attraction.imageUrl}
+                        />
+                      ) : (
+                        <span className="material-symbols-outlined text-[40px] text-outline opacity-30">image_not_supported</span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h5 className="font-headline-md text-[15px] leading-tight text-primary font-semibold">
+                            {attraction.title}
+                          </h5>
+                          <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1">
+                            {attraction.description}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full border border-outline-variant bg-surface-variant px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
+                          {getAttractionCategoryLabel(attraction.category)}
+                        </span>
                       </div>
-                      <span className="shrink-0 rounded-full border border-outline-variant bg-surface-variant px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
-                        {getAttractionCategoryLabel(attraction.category)}
-                      </span>
                     </div>
                   </div>
                 ))}
