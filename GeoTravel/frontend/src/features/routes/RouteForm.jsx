@@ -695,7 +695,7 @@ return (
 
       {/* Zonas incluidas */}
       <div className="flex flex-col gap-2">
-        <span className="font-label-md text-label-md text-on-surface-variant">Zonas incluidas (opcional)</span>
+        <span className="font-label-md text-label-md text-on-surface-variant">Zonas incluidas (autogenerado)</span>
         <div className="max-h-28 overflow-y-auto border border-outline rounded p-2 bg-surface">
           {!includedZones.length && <p className="text-xs text-outline">Sin zonas incluidas.</p>}
           {includedZones.map((item) => (
