@@ -109,6 +109,10 @@ public class ZonaService {
         dtZona.setNivelAtractivo(zona.getNivelAtractivo());
         dtZona.setGeomWkt(zona.getGeomWkt().toString());
 
+        dtZona.setRecorridos(new ArrayList<>());
+        for (Recorrido r : recorridoRepository.findByZonaGeom(dtZona.getIdZona()))
+            dtZona.getRecorridos().add(r.getIdRecorrido());
+
         return dtZona;
     }
 
