@@ -137,7 +137,7 @@ public class RecorridoService {
             throw new Exception("Zona no encontrada.");
 
         List<DTRecorrido> listDto = new ArrayList<>();
-        for (Recorrido r : recorridoRepository.findAllByZonaGeom(idZona)) {
+        for (Recorrido r : recorridoRepository.findByZonaGeom(idZona)) {
             listDto.add(objToDto(r));
         }
         return listDto;
@@ -159,15 +159,7 @@ public class RecorridoService {
         recorrido.setFechaInicio(LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesInicio(), dtRecorrido.getDiaInicio()));
         recorrido.setFechaFin(LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesFin(), dtRecorrido.getDiaFin()));
 
-        if (dtRecorrido.getZonas() == null) {
-            recorrido.setZonas(new ArrayList<>());
-        } else {
-            List<Zona> zonasList = new ArrayList<>();
-            for (Long z : dtRecorrido.getZonas()) {
-                zonasList.add(zonaRepository.findByIdZona(z));
-            }
-            recorrido.setZonas(zonasList);
-        }
+        recorrido.setZonas(zonaRepository.findByLinestring(dtRecorrido.getGeomWkt()));
 
         WKTReader reader = new WKTReader();
         try {
@@ -244,6 +236,8 @@ public class RecorridoService {
         } catch (DateTimeException e) {
             throw new Exception("Fecha de fin invalida.");
         }
+        if (dtRecorrido.getMesInicio() == dtRecorrido.getMesFin() && dtRecorrido.getDiaInicio() == dtRecorrido.getDiaFin())
+            throw new Exception("Las fechas de estacionalidad no pueden ser iguales.");
         try {
             WKTReader reader = new WKTReader();
             LineString l = (LineString) reader.read(dtRecorrido.getGeomWkt());

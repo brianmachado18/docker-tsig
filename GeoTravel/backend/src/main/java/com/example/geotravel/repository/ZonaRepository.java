@@ -16,7 +16,16 @@ public interface ZonaRepository extends JpaRepository<Zona, Long> {
     List<Zona> findAll();
 
     @Query("SELECT COUNT(z) FROM Zona z WHERE ST_Overlaps(z.geomWkt, ST_GeomFromText(:geomWkt, 4326)) OR ST_Contains(z.geomWkt, ST_GeomFromText(:geomWkt, 4326))")
-    Long countInterseccion(@Param("geomWkt") String geomWkt);
+    Long countIntersection(@Param("geomWkt") String geomWkt);
+
+    @Query("SELECT COUNT(z) FROM Zona z WHERE z.idZona != :idZona AND (ST_Overlaps(z.geomWkt, ST_GeomFromText(:geomWkt, 4326)) OR ST_Contains(z.geomWkt, ST_GeomFromText(:geomWkt, 4326)))")
+    Long countIntersectionExceptOne(@Param("geomWkt") String geomWkt, @Param("idZona") Long idZona);
+
+    @Query("SELECT z FROM Zona z WHERE ST_Crosses(z.geomWkt, ST_GeomFromText(:geomWkt, 4326))")
+    List<Zona> findByLinestring(@Param("geomWkt") String geomWkt);
+
+    @Query("SELECT z FROM Zona z WHERE z.idZona != :idZona AND ST_Crosses(z.geomWkt, ST_GeomFromText(:geomWkt, 4326))")
+    List<Zona> findByLinestringExceptOne(@Param("geomWkt") String geomWkt, @Param("idZona") Long idZona);
 
     @Query("""
             SELECT COUNT(z)

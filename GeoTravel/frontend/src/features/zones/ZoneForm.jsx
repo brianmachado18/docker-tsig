@@ -59,11 +59,10 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     closeForm();
   };
 
-  const toggleRoute = (routeId) => {
-    setRouteIds((current) =>
-      current.includes(routeId) ? current.filter((id) => id !== routeId) : [...current, routeId]
-    );
-  };
+  const linkedRoutes = useMemo(
+    () => routes.filter((route) => routeIds.includes(route.id)),
+    [routes, routeIds]
+  );
 
   const handleStartGeometryEdit = () => {
     startGeometryEdit({
@@ -204,18 +203,14 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="font-label-md text-label-md text-on-surface">Recorridos vinculados (opcional)</span>
+          <span className="font-label-md text-label-md text-on-surface">Recorridos vinculados (autogenerado)</span>
           <div className="max-h-32 overflow-y-auto border border-outline rounded-lg p-2 bg-surface">
-            {!routes.length && <p className="text-xs text-outline">Sin recorridos para vincular.</p>}
-            {routes.map((route) => (
-              <label key={route.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
-                <input
-                  type="checkbox"
-                  checked={routeIds.includes(route.id)}
-                  onChange={() => toggleRoute(route.id)}
-                />
+            {!linkedRoutes.length && <p className="text-xs text-outline">Sin recorridos vinculados.</p>}
+            {linkedRoutes.map((route) => (
+              <div key={route.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
+                <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
                 <span>{route.name || `Recorrido ${route.id}`}</span>
-              </label>
+              </div>
             ))}
           </div>
         </div>
