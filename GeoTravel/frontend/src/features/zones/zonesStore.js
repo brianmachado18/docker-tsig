@@ -15,12 +15,14 @@ const getVisibleZoneIdsFromRoutes = (routes = []) => {
 
 const useZonesStore = create((set, get) => ({
   zones: [],
+  activeZonesReport: [],
   selectedZone: null,
   geometryEditZone: null,
   geometryEditOriginalGeomWkt: '',
   geometryEditDraftGeomWkt: '',
   selectedZoneForRoutes: null,
   selectedZoneByAddress: null,
+  selectedActiveZone: null,
   intersectionRouteResult: null,
   zoneRoutes: [],
   visibleZoneIds: null,
@@ -30,10 +32,12 @@ const useZonesStore = create((set, get) => ({
   isDeleting: false,
   isLoadingZoneRoutes: false,
   isLoadingAddressZone: false,
+  isLoadingActiveZonesReport: false,
   isLoadingIntersectionRoute: false,
   error: null,
   routeQueryError: null,
   addressQueryError: null,
+  activeZonesReportError: null,
   intersectionQueryError: null,
   zoneQueryType: 'routes',
 
@@ -99,14 +103,18 @@ const useZonesStore = create((set, get) => ({
       zoneQueryType,
       selectedZoneForRoutes: null,
       selectedZoneByAddress: null,
+      selectedActiveZone: null,
+      activeZonesReport: [],
       intersectionRouteResult: null,
       zoneRoutes: [],
       visibleZoneIds: null,
       isLoadingZoneRoutes: false,
       isLoadingAddressZone: false,
+      isLoadingActiveZonesReport: false,
       isLoadingIntersectionRoute: false,
       routeQueryError: null,
       addressQueryError: null,
+      activeZonesReportError: null,
       intersectionQueryError: null,
     }),
   clearZoneQueries: () =>
@@ -114,14 +122,18 @@ const useZonesStore = create((set, get) => ({
       zoneQueryType: 'routes',
       selectedZoneForRoutes: null,
       selectedZoneByAddress: null,
+      selectedActiveZone: null,
+      activeZonesReport: [],
       intersectionRouteResult: null,
       zoneRoutes: [],
       visibleZoneIds: null,
       isLoadingZoneRoutes: false,
       isLoadingAddressZone: false,
+      isLoadingActiveZonesReport: false,
       isLoadingIntersectionRoute: false,
       routeQueryError: null,
       addressQueryError: null,
+      activeZonesReportError: null,
       intersectionQueryError: null,
     }),
 
@@ -197,6 +209,8 @@ const useZonesStore = create((set, get) => ({
         zoneQueryType: 'routes',
         selectedZoneForRoutes: zone,
         selectedZoneByAddress: null,
+        selectedActiveZone: null,
+        activeZonesReport: [],
         intersectionRouteResult: null,
         zoneRoutes,
         visibleZoneIds,
@@ -249,6 +263,7 @@ const useZonesStore = create((set, get) => ({
       set({
         zoneQueryType: 'address',
         selectedZoneByAddress: zone,
+        selectedActiveZone: null,
         visibleZoneIds: zone?.id ? [zone.id] : null,
         isLoadingAddressZone: false,
       });
@@ -292,6 +307,8 @@ const useZonesStore = create((set, get) => ({
       zoneQueryType: 'intersection',
       selectedZoneForRoutes: null,
       selectedZoneByAddress: null,
+      selectedActiveZone: null,
+      activeZonesReport: [],
       intersectionRouteResult: null,
       zoneRoutes: [],
       visibleZoneIds: null,
@@ -328,6 +345,65 @@ const useZonesStore = create((set, get) => ({
       });
       return null;
     }
+  },
+
+  fetchActiveZonesReport: async () => {
+    set({
+      zoneQueryType: 'active-zones',
+      selectedZoneForRoutes: null,
+      selectedZoneByAddress: null,
+      selectedActiveZone: null,
+      intersectionRouteResult: null,
+      zoneRoutes: [],
+      visibleZoneIds: null,
+      isLoadingZoneRoutes: false,
+      isLoadingAddressZone: false,
+      isLoadingActiveZonesReport: true,
+      isLoadingIntersectionRoute: false,
+      routeQueryError: null,
+      addressQueryError: null,
+      activeZonesReportError: null,
+      intersectionQueryError: null,
+    });
+
+    try {
+      const activeZonesReport = await zonesService.listActiveZones();
+      set({
+        zoneQueryType: 'active-zones',
+        activeZonesReport,
+        isLoadingActiveZonesReport: false,
+      });
+      return activeZonesReport;
+    } catch (error) {
+      set({
+        activeZonesReport: [],
+        selectedActiveZone: null,
+        zoneRoutes: [],
+        isLoadingActiveZonesReport: false,
+        activeZonesReportError: error,
+      });
+      return [];
+    }
+  },
+
+  selectActiveZone: (zoneId) => {
+    const activeZone = get().activeZonesReport.find((zone) => String(zone?.id) === String(zoneId)) || null;
+
+    set({
+      zoneQueryType: 'active-zones',
+      selectedZoneForRoutes: null,
+      selectedZoneByAddress: null,
+      selectedActiveZone: activeZone,
+      intersectionRouteResult: null,
+      zoneRoutes: activeZone?.activeRoutes ?? [],
+      visibleZoneIds: null,
+      routeQueryError: null,
+      addressQueryError: null,
+      activeZonesReportError: null,
+      intersectionQueryError: null,
+    });
+
+    return activeZone;
   },
 }));
 

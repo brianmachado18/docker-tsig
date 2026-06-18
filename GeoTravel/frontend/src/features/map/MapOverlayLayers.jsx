@@ -8,14 +8,29 @@ import ZonesWfsLayer from '@/features/map/layers/ZonesWfsLayer';
 import ZonesWmsLayer from '@/features/map/layers/ZonesWmsLayer';
 import { getMapLayerStrategy } from '@/shared/config/mapLayers';
 
-const MapOverlayLayers = ({ map, screenId, zones = [], routes = [], attractions = [], visibleZoneIds = null }) => {
+const MapOverlayLayers = ({
+  map,
+  screenId,
+  zones = [],
+  routes = [],
+  attractions = [],
+  visibleZoneIds = null,
+  selectedZoneId = null,
+  zoneThemeMode = 'default',
+}) => {
   const strategy = getMapLayerStrategy(screenId);
   const showZonesWms = strategy.zones === 'wms' || strategy.zonesSupport === 'wms';
 
   return (
     <>
       {strategy.zones === 'vector-primary' && (
-        <ZonesVectorLayer map={map} zones={zones} visibleZoneIds={visibleZoneIds} />
+        <ZonesVectorLayer
+          map={map}
+          zones={zones}
+          visibleZoneIds={visibleZoneIds}
+          selectedZoneId={selectedZoneId}
+          themeMode={zoneThemeMode}
+        />
       )}
       {strategy.zones === 'wfs' && <ZonesWfsLayer map={map} visibleZoneIds={visibleZoneIds} />}
       {showZonesWms && <ZonesWmsLayer map={map} />}

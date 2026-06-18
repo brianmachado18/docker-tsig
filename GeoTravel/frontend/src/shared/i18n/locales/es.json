@@ -99,7 +99,25 @@
       "routesTab": "Por zona",
       "addressTab": "Por direccion",
       "intersectionTab": "Interseccion",
+      "activeZonesTab": "Zonas activas",
       "hiddenUntilSelection": "Activa la consulta para elegir una zona o buscar una direccion."
+    },
+    "activeZonesQuery": {
+      "title": "Zonas con mas recorridos activos",
+      "loadButton": "Ver reporte",
+      "loading": "Cargando...",
+      "emptyState": "Carga el reporte y haz clic en una zona para ver sus recorridos activos.",
+      "empty": "No se encontraron zonas para mostrar en el reporte.",
+      "waitingSelection": "Haz clic en una zona coloreada para ver cuantos recorridos activos tiene y cuales son.",
+      "selectedZone": "Zona activa seleccionada",
+      "singleZoneResult": "1 zona en el reporte",
+      "multiZoneResult": "{count} zonas en el reporte",
+      "singleRouteResult": "1 recorrido activo",
+      "multiRouteResult": "{count} recorridos activos",
+      "mapResultHint": "El mapa colorea todas las zonas por cantidad de recorridos activos y dibuja los recorridos de la zona seleccionada.",
+      "clear": "Limpiar consulta",
+      "noDescription": "Sin descripcion",
+      "noRoutes": "Esta zona no tiene recorridos activos en este momento."
     },
     "addressQuery": {
       "inputLabel": "Direccion",

@@ -70,9 +70,14 @@ const restoreZoneFeatureGeometry = (map, zone, geomWkt) => {
 const ZoneManagement = () => {
   const {
     zones,
+    activeZonesReport,
     zoneRoutes,
     visibleZoneIds,
     selectedZone,
+    selectedZoneForRoutes,
+    selectedZoneByAddress,
+    selectedActiveZone,
+    zoneQueryType,
     isFormOpen,
     geometryEditZone,
     geometryEditOriginalGeomWkt,
@@ -86,6 +91,13 @@ const ZoneManagement = () => {
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const activeTool = useMapStore((state) => state.activeTool);
   const refreshZoneLayers = useRefreshEntityLayer('zones');
+  const displayedZones = activeTool === 'zone-query' && zoneQueryType === 'active-zones' ? activeZonesReport : zones;
+  const selectedZoneId =
+    selectedActiveZone?.id ??
+    selectedZoneForRoutes?.id ??
+    selectedZoneByAddress?.id ??
+    null;
+  const zoneThemeMode = activeTool === 'zone-query' && zoneQueryType === 'active-zones' ? 'active-routes' : 'default';
 
   useEffect(() => {
     setActiveTool('select');
@@ -120,11 +132,13 @@ const ZoneManagement = () => {
       <TopAppBar />
       <MapCanvas
         screenId="zoneManagement"
-        zones={zones}
+        zones={displayedZones}
         routes={zoneRoutes}
         visibleZoneIds={visibleZoneIds}
+        selectedZoneId={selectedZoneId}
+        zoneThemeMode={zoneThemeMode}
       />
-      <ZoneMapInteractions zones={zones} />
+      <ZoneMapInteractions zones={displayedZones} />
       {!geometryEditZone && <MapControls />}
       {!geometryEditZone && <ZoneRoutesQueryCard />}
 

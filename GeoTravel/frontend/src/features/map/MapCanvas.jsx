@@ -14,7 +14,9 @@ const MapCanvas = ({
   attractions = [],
   className = '',
   onFeatureSelect,
-  visibleZoneIds = null
+  visibleZoneIds = null,
+  selectedZoneId = null,
+  zoneThemeMode = 'default',
 }) => {
   const mapElementRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -68,6 +70,8 @@ const MapCanvas = ({
           routes={routes}
           attractions={attractions}
           visibleZoneIds={visibleZoneIds}
+          selectedZoneId={selectedZoneId}
+          zoneThemeMode={zoneThemeMode}
         />
       )}
       {mapInstance && onFeatureSelect && (
