@@ -49,10 +49,6 @@ public class ZonaService {
         zonaRepository.delete(z);
     }
 
-    public Boolean existe(Long idZona){
-        return zonaRepository.existsByIdZona(idZona);
-    }
-
     public List<DTZona> obtenerTodos(){
         List<DTZona> listDto = new ArrayList<>();
         for (Zona z : zonaRepository.findAll()){

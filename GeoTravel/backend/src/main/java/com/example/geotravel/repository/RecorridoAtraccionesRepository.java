@@ -8,10 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface RecorridoAtraccionesRepository extends JpaRepository<RecorridoAtracciones, Long> {
-    Boolean existsByIdRecorridoAtracciones(Long idRecorridoAtracciones);
-    Boolean existsByRecorridoAndAtraccion(Recorrido recorrido, Atraccion atraccion);
     Boolean existsByAtraccion(Atraccion atraccion);
-    Boolean existsByRecorridoAndOrden(Recorrido recorrido, int orden);
-    RecorridoAtracciones findByIdRecorridoAtracciones(Long idRecorridoAtracciones);
     List<RecorridoAtracciones> findByRecorridoOrderByOrden(Recorrido recorrido);
 }
