@@ -112,9 +112,9 @@ export const routesService = {
     return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
   },
 
-  async findByIntersection(street1, street2) {
+  async findByIntersection(via1, via2) {
     const result = await apiClient.get(
-      `/recorrido/buscar/porInterseccion?calle1=${encodeURIComponent(street1)}&calle2=${encodeURIComponent(street2)}`
+      `/recorrido/buscar/porInterseccion?via1=${encodeURIComponent(via1)}&via2=${encodeURIComponent(via2)}`
     );
 
     if (!result) {
@@ -135,6 +135,10 @@ export const routesService = {
           }))
         : [],
       distanceMeters: result.distanciaMetros ?? null,
+      totalRoutesEvaluated: result.totalRecorridosEvaluados ?? null,
+      intersectionPointWkt: result.puntoInterseccionWkt ?? null,
+      kmRoute1: result.kmRuta1 ?? null,
+      kmRoute2: result.kmRuta2 ?? null,
     };
   },
 

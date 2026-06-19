@@ -93,7 +93,7 @@
     },
     "query": {
       "title": "Consultas de zona",
-      "subtitle": "Consulta por click, direccion o interseccion desde el mismo panel.",
+      "subtitle": "Consulta por click, direccion o interseccion vial desde el mismo panel.",
       "enterMode": "Consultar",
       "exitMode": "Salir",
       "routesTab": "Por zona",
@@ -131,18 +131,18 @@
       "noDescription": "Sin descripcion"
     },
     "intersectionQuery": {
-      "street1Label": "Calle 1",
-      "street1Placeholder": "Ej: 18 de Julio",
-      "street2Label": "Calle 2",
-      "street2Placeholder": "Ej: Ejido",
+      "via1Label": "Via o referencia 1",
+      "via1Placeholder": "Ej: Ruta 5 o Bulevar Artigas",
+      "via2Label": "Via o referencia 2",
+      "via2Placeholder": "Ej: Ruta 8 o Rivera",
       "search": "Buscar interseccion",
       "loading": "Buscando...",
-      "waitingInput": "Ingresa dos calles para encontrar el recorrido mas cercano.",
+      "waitingInput": "Ingresa dos vias o referencias para encontrar el recorrido mas cercano.",
       "foundRoute": "Recorrido encontrado",
       "distanceLabel": "Distancia: {distance} m",
       "routeZones": "Zonas por las que pasa",
       "noZones": "El recorrido no tiene zonas asociadas.",
-      "mapResultHint": "El mapa deja visibles las zonas asociadas al recorrido encontrado.",
+      "mapResultHint": "El mapa deja visibles las zonas asociadas al recorrido encontrado desde una resolucion vial local o por geocodificacion.",
       "clear": "Limpiar consulta",
       "noDescription": "Sin descripcion"
     }

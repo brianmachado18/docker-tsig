@@ -80,7 +80,9 @@ const RouteMapInteractions = ({ routes = [] }) => {
   const map = useMapStore((state) => state.mapInstance);
   const activeTool = useMapStore((state) => state.activeTool);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
-  const openForm = useRoutesStore((state) => state.openForm);
+  const creationMode = useRoutesStore((state) => state.creationMode);
+  const draftCleanupVersion = useRoutesStore((state) => state.draftCleanupVersion);
+  const finishDrawRouteCreation = useRoutesStore((state) => state.finishDrawRouteCreation);
   const openPopup = useMapPopupStore((state) => state.openPopup);
   const fitToExtent = useMapStore((state) => state.fitToExtent);
 
@@ -114,11 +116,11 @@ const RouteMapInteractions = ({ routes = [] }) => {
         const feature = event.feature;
         feature.set('isDraftRoute', true);
         feature.set('name', 'Nuevo recorrido');
-
-        openForm({
+        finishDrawRouteCreation({
           geomWkt: getGeometryWkt(feature),
           zoneIds: [],
           attractionIds: [],
+          creationMode: 'draw',
         });
         setActiveTool('select');
       });
@@ -159,7 +161,21 @@ const RouteMapInteractions = ({ routes = [] }) => {
     }
 
     return undefined;
-  }, [activeTool, fitToExtent, layerLookupAttempt, map, openForm, openPopup, routes, setActiveTool]);
+  }, [activeTool, creationMode, finishDrawRouteCreation, fitToExtent, layerLookupAttempt, map, openPopup, routes, setActiveTool]);
+
+  useEffect(() => {
+    if (!map) {
+      return;
+    }
+
+    const layer = getRoutesVectorLayer(map);
+    const source = layer?.getSource?.();
+    if (!source) {
+      return;
+    }
+
+    removeDraftRoutes(source);
+  }, [draftCleanupVersion, map]);
 
   return null;
 };

@@ -76,9 +76,16 @@ public class RecorridoController {
     }
 
     @GetMapping("/buscar/porInterseccion")
-    public ResponseEntity<?> obtenerPorInterseccion(@RequestParam String calle1, @RequestParam String calle2) {
+    public ResponseEntity<?> obtenerPorInterseccion(
+            @RequestParam(required = false) String via1,
+            @RequestParam(required = false) String via2,
+            @RequestParam(required = false) String ruta1,
+            @RequestParam(required = false) String ruta2
+    ) {
         try {
-            DTBusquedaRecorridoInterseccion resultado = recorridoService.obtenerPorInterseccion(calle1, calle2);
+            String referencia1 = via1 != null ? via1 : ruta1;
+            String referencia2 = via2 != null ? via2 : ruta2;
+            DTBusquedaRecorridoInterseccion resultado = recorridoService.obtenerPorInterseccion(referencia1, referencia2);
             return ResponseEntity.ok().body(resultado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

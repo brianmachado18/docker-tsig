@@ -32,8 +32,8 @@ const ZoneRoutesQueryCard = () => {
   } = useZonesStore();
   const { t } = useLangStore();
   const [address, setAddress] = useState('');
-  const [street1, setStreet1] = useState('');
-  const [street2, setStreet2] = useState('');
+  const [via1, setVia1] = useState('');
+  const [via2, setVia2] = useState('');
 
   const isQueryMode = activeTool === 'zone-query';
   const routeQueryErrorMessage = getApiErrorMessage(routeQueryError, t('common.error'));
@@ -68,8 +68,8 @@ const ZoneRoutesQueryCard = () => {
   useEffect(() => {
     if (!isQueryMode) {
       setAddress('');
-      setStreet1('');
-      setStreet2('');
+      setVia1('');
+      setVia2('');
     }
   }, [isQueryMode]);
 
@@ -110,7 +110,7 @@ const ZoneRoutesQueryCard = () => {
     if (!isQueryMode) {
       setActiveTool('zone-query');
     }
-    await searchRouteByIntersection(street1, street2);
+    await searchRouteByIntersection(via1, via2);
   };
 
   return (
@@ -314,23 +314,23 @@ const ZoneRoutesQueryCard = () => {
         <>
           <form className="flex flex-col gap-3" onSubmit={handleIntersectionSubmit}>
             <label className="flex flex-col gap-1">
-              <span className="text-sm text-on-surface">{t('zones.intersectionQuery.street1Label')}</span>
+              <span className="text-sm text-on-surface">{t('zones.intersectionQuery.via1Label')}</span>
               <input
                 type="text"
-                value={street1}
-                onChange={(event) => setStreet1(event.target.value)}
-                placeholder={t('zones.intersectionQuery.street1Placeholder')}
+                value={via1}
+                onChange={(event) => setVia1(event.target.value)}
+                placeholder={t('zones.intersectionQuery.via1Placeholder')}
                 className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface"
               />
             </label>
 
             <label className="flex flex-col gap-1">
-              <span className="text-sm text-on-surface">{t('zones.intersectionQuery.street2Label')}</span>
+              <span className="text-sm text-on-surface">{t('zones.intersectionQuery.via2Label')}</span>
               <input
                 type="text"
-                value={street2}
-                onChange={(event) => setStreet2(event.target.value)}
-                placeholder={t('zones.intersectionQuery.street2Placeholder')}
+                value={via2}
+                onChange={(event) => setVia2(event.target.value)}
+                placeholder={t('zones.intersectionQuery.via2Placeholder')}
                 className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface"
               />
             </label>

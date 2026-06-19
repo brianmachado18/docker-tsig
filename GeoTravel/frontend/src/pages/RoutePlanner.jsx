@@ -5,6 +5,7 @@ import MapFeaturePopup from '@/features/map/MapFeaturePopup';
 import RouteMapInteractions from '@/features/map/interactions/RouteMapInteractions';
 import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
+import RouteCreationModePicker from '@/features/routes/RouteCreationModePicker';
 import RouteForm from '@/features/routes/RouteForm';
 import useRoutesStore from '@/features/routes/routesStore';
 import AdminLayout from '@/shared/components/AdminLayout';
@@ -17,7 +18,11 @@ const RoutePlanner = () => {
     routes,
     selectedRoute,
     isFormOpen,
-    openForm,
+    isModePickerOpen,
+    openModePicker,
+    closeModePicker,
+    startPointRouteCreation,
+    startDrawRouteCreation,
     closeForm,
     fetchRoutes,
   } = useRoutesStore();
@@ -43,7 +48,7 @@ const RoutePlanner = () => {
       {/* Crear un recorrido sin dibujar: la línea se arma desde las paradas. */}
       <button
         type="button"
-        onClick={() => openForm()}
+        onClick={openModePicker}
         className="absolute top-4 right-4 lg:top-20 z-40 px-3 sm:px-4 py-2 rounded-lg bg-primary text-on-primary shadow-md flex items-center gap-1 hover:opacity-90 transition-opacity"
       >
         <span className="material-symbols-outlined text-[18px]">add</span>
@@ -51,6 +56,16 @@ const RoutePlanner = () => {
       </button>
 
       <MapFeaturePopup />
+      <Modal isOpen={isModePickerOpen} onClose={closeModePicker}>
+        <RouteCreationModePicker
+          onClose={closeModePicker}
+          onSelectPoints={startPointRouteCreation}
+          onSelectDraw={() => {
+            startDrawRouteCreation();
+            setActiveTool('draw');
+          }}
+        />
+      </Modal>
       <Modal isOpen={isFormOpen} onClose={closeForm}>
         <RouteForm
           route={selectedRoute}

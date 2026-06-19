@@ -151,6 +151,7 @@ const isValidCoordinate = (coordinates) =>
 const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const { t } = useLangStore();
   const {
+    creationMode,
     closeForm, saveRoute, deleteRoute,
     isSaving, isDeleting, error, clearError,
   } = useRoutesStore();
@@ -174,7 +175,6 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
 
   // Modo y paradas
   const [routeMode, setRouteMode] = useState('points');
-  const [hasChosenMode, setHasChosenMode] = useState(!!route?.id); // splash solo para nuevos
   const [startStop, setStartStop] = useState(null);
   const [endStop, setEndStop] = useState(null);
   const [intermediateStops, setIntermediateStops] = useState([]);
@@ -222,9 +222,11 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       setOriginalIntermediates(null);
       clearError();
 
-      // Modo: si tiene geometría dibujada, empezar en draw
-      setHasChosenMode(!!route?.id);
-      if (route?.geomWkt && !route?.attractionIds?.length) {
+      if (!route?.id && creationMode === 'draw') {
+        setRouteMode('draw');
+      } else if (!route?.id && creationMode === 'points') {
+        setRouteMode('points');
+      } else if (route?.geomWkt && !route?.attractionIds?.length) {
         setRouteMode('draw');
       } else {
         setRouteMode('points');
@@ -249,7 +251,7 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
       }
     };
     loadAll();
-  }, [route, clearError]);
+  }, [route, creationMode, clearError]);
   const apiError = useMemo(() => getApiErrorMessage(error, t('common.error')), [error, t]);
 
   const moveIntermediate = (index, dir) => {
@@ -396,66 +398,13 @@ const RouteForm = ({ route, onClose, onSaved, onDeleted }) => {
   const canOptimize = !!(startStop && endStop && intermediateStops.length >= 2);
   const isSubmitting = isSaving || isDeleting || isRoutingLoading || isOptimizing;
 
-// ── Splash: selección de modo (solo para recorridos nuevos) ──────────────────
-if (!hasChosenMode) {
-  return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between bg-surface-bright shrink-0">
-        <h3 className="font-headline-lg text-headline-lg text-on-surface">{t('routes.newRoute')}</h3>
-        <button onClick={handleClose} className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container" type="button">
-          <span className="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
-        <p className="text-on-surface-variant text-sm text-center">¿Cómo querés definir el recorrido?</p>
-        <div className="grid grid-cols-2 gap-4 w-full">
-          <button
-            type="button"
-            onClick={() => { setRouteMode('draw'); setHasChosenMode(true); }}
-            className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-outline-variant hover:border-primary hover:bg-primary/5 transition-all group"
-          >
-            <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary/10">
-              <span className="material-symbols-outlined text-primary text-[32px]">edit</span>
-            </div>
-            <div className="text-center">
-              <p className="font-semibold text-on-surface text-sm">Dibujar en el mapa</p>
-              <p className="text-xs text-on-surface-variant mt-1">Trazá la línea a mano sobre el mapa</p>
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRouteMode('points'); setHasChosenMode(true); }}
-            className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-outline-variant hover:border-primary hover:bg-primary/5 transition-all group"
-          >
-            <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary/10">
-              <span className="material-symbols-outlined text-primary text-[32px]">route</span>
-            </div>
-            <div className="text-center">
-              <p className="font-semibold text-on-surface text-sm">Seleccionar puntos</p>
-              <p className="text-xs text-on-surface-variant mt-1">Elegí atracciones o zonas como paradas</p>
-            </div>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+  const isManualDrawCreation = creationMode === 'draw' && !route?.id;
 
 // ── Formulario principal ─────────────────────────────────────────────────────
 return (
   <div className="flex flex-col flex-1 min-h-0">
     <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between bg-surface-bright shrink-0">
       <div className="flex items-center gap-3">
-        {/* Volver al splash si es recorrido nuevo */}
-        {!route?.id && (
-          <button
-            type="button"
-            onClick={() => setHasChosenMode(false)}
-            className="text-on-surface-variant hover:text-primary p-1 rounded-full hover:bg-surface-container"
-          >
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-          </button>
-        )}
         <h3 className="font-headline-lg text-headline-lg text-on-surface">
           {route?.id ? t('routes.design') : t('routes.newRoute')}
         </h3>
@@ -586,26 +535,35 @@ return (
       </div>
 
       {/* ── Recorrido ─────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span className="font-label-md text-label-md text-on-surface-variant">Recorrido</span>
-          <span className="text-xs text-outline border border-outline-variant rounded-full px-2 py-0.5">
-            {routeMode === 'draw' ? 'Dibujado en mapa' : 'Por puntos'}
+      {isManualDrawCreation ? (
+        <div className="flex items-start gap-3 bg-surface-container p-3 rounded-lg text-sm text-on-surface-variant">
+          <span className="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">check_circle</span>
+          <span>
+            El recorrido manual ya quedó trazado en el mapa.
+            <span className="block text-primary font-medium mt-1">Completá los datos para guardarlo.</span>
           </span>
         </div>
-
-        {routeMode === 'draw' && (
-          <div className="flex items-start gap-3 bg-surface-container p-3 rounded-lg text-sm text-on-surface-variant">
-            <span className="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">info</span>
-            <span>
-              Usá la herramienta de dibujo del mapa para trazar la línea.
-              {geomWkt?.trim() && <span className="block text-primary font-medium mt-1">✓ Recorrido dibujado</span>}
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="font-label-md text-label-md text-on-surface-variant">Recorrido</span>
+            <span className="text-xs text-outline border border-outline-variant rounded-full px-2 py-0.5">
+              {routeMode === 'draw' ? 'Dibujado en mapa' : 'Por puntos'}
             </span>
           </div>
-        )}
 
-        {routeMode === 'points' && (
-          <div className="flex flex-col gap-4 p-3 bg-surface-container/40 rounded-xl border border-outline-variant/50">
+          {routeMode === 'draw' && (
+            <div className="flex items-start gap-3 bg-surface-container p-3 rounded-lg text-sm text-on-surface-variant">
+              <span className="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">info</span>
+              <span>
+                Usá la herramienta de dibujo del mapa para trazar la línea.
+                {geomWkt?.trim() && <span className="block text-primary font-medium mt-1">✓ Recorrido dibujado</span>}
+              </span>
+            </div>
+          )}
+
+          {routeMode === 'points' && (
+            <div className="flex flex-col gap-4 p-3 bg-surface-container/40 rounded-xl border border-outline-variant/50">
 
             {/* Punto inicial */}
             <div className="flex flex-col gap-1.5">
@@ -689,9 +647,10 @@ return (
               </div>
               <StopPicker value={endStop} onChange={setEndStop} attractions={availableAttractions} zones={availableZones} />
             </div>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Zonas incluidas */}
       <div className="flex flex-col gap-2">
