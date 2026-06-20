@@ -2,24 +2,15 @@ import React from 'react';
 import useLangStore from '@/shared/i18n/langStore';
 
 const AttractionCard = ({
-  title = 'Palacio Salvo',
-  description = 'Iconic building in Plaza Independencia, designed by architect Mario Palanti. A must-see architectural landmark.',
-  tag = 'CULTURAL',
-  tagIcon = 'account_balance',
-  status = 'Configured',
-  zone = '-',
+  title,
+  description,
+  tag,
+  tagIcon,
   imageUrl,
-  onEdit,
   onViewOnMap,
 }) => {
   const { t } = useLangStore();
-  const isOffSeason = status.toLowerCase().includes('off');
   const hasImage = Boolean(imageUrl);
-
-  const handleEditClick = (event) => {
-    event.stopPropagation();
-    if (onEdit) onEdit();
-  };
 
   const handleViewOnMapClick = (event) => {
     event.stopPropagation();
@@ -41,17 +32,11 @@ const AttractionCard = ({
             <span className="font-mono-label text-mono-label">{t('attractions.noImage')}</span>
           </div>
         )}
-
+        
         <div className="absolute top-3 left-3 flex gap-2">
           <span className="bg-surface/90 backdrop-blur-sm px-2 py-1 rounded-md text-on-surface font-mono-label text-mono-label flex items-center gap-1 border border-outline-variant/50">
             <span className="material-symbols-outlined text-[14px] text-attraction-marker">{tagIcon}</span>
             {tag}
-          </span>
-        </div>
-
-        <div className="absolute top-3 right-3">
-          <span className={`px-2 py-1 rounded-md font-label-md text-label-md backdrop-blur-sm border ${isOffSeason ? 'bg-status-off-season/10 text-status-off-season border-status-off-season/20' : 'bg-status-available/10 text-status-available border-status-available/20'}`}>
-            {status}
           </span>
         </div>
       </div>
@@ -65,25 +50,11 @@ const AttractionCard = ({
             title={t('attractions.viewOnMap')}
             type="button"
           >
-            <span className="material-symbols-outlined text-[20px]">location_on</span>
           </button>
         </div>
         <p className="font-body-md text-body-md text-on-surface-variant mb-4 line-clamp-2 text-sm flex-1">
           {description}
         </p>
-        <div className="pt-3 border-t border-surface-variant flex justify-between items-center">
-          <span className="font-mono-label text-mono-label text-outline flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">map</span>
-            {`${t('common.zones')}: ${zone}`}
-          </span>
-          <button
-            className="text-primary hover:text-primary-fixed-dim font-label-md text-label-md transition-colors"
-            onClick={handleEditClick}
-            type="button"
-          >
-            {t('attractions.edit')}
-          </button>
-        </div>
       </div>
     </div>
   );

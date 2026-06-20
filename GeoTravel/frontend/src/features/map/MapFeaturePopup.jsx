@@ -257,6 +257,7 @@ const MapFeaturePopup = ({ editable = true }) => {
   const [navRoutes, setNavRoutes] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
   const sessionIdRef = useRef(0);
   const geoTimerRef = useRef(null);
 
@@ -341,9 +342,11 @@ const MapFeaturePopup = ({ editable = true }) => {
 
     setIsDeleting(false);
     if (!ok) {
+      setErrorMsg('ERROR: La atraccion se encuentra presente en un recorrido.');
       return;
     }
 
+    setErrorMsg('');
     refreshMapLayer(isRoute ? 'routes-wfs' : 'attractions-wfs');
     handleClose();
   };
@@ -764,6 +767,7 @@ const MapFeaturePopup = ({ editable = true }) => {
           <div className="relative z-10 bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant w-[280px] mx-4">
             <p className="font-semibold text-on-surface text-[15px] mb-1">{deleteDialogTitle}</p>
             <p className="text-sm text-on-surface-variant mb-5">{deleteDialogDescription}</p>
+            <p className="text-red-600 dark:text-red-400 mb-5">{errorMsg}</p>
             <div className="flex gap-2">
               <button
                 type="button"
