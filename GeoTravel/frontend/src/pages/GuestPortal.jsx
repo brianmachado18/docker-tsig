@@ -2,15 +2,63 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
 import useMapStore from '@/features/map/mapStore';
-import useRouteFilterStore from '@/features/map/routeFilterStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
 import useZonesStore from '@/features/zones/zonesStore';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
 
+const getSeasonBounds = (route, startYear) => {
+  const startMonth = Number(route.startMonth);
+  const startDay = Number(route.startDay);
+  const endMonth = Number(route.endMonth);
+  const endDay = Number(route.endDay);
+
+  if (!startMonth || !startDay || !endMonth || !endDay) {
+    return null;
+  }
+
+  const crossesYear = endMonth < startMonth || (endMonth === startMonth && endDay < startDay);
+  const start = new Date(startYear, startMonth - 1, startDay);
+  const end = new Date(startYear + (crossesYear ? 1 : 0), endMonth - 1, endDay, 23, 59, 59, 999);
+  const hasValidDates = start.getMonth() === startMonth - 1
+    && start.getDate() === startDay
+    && end.getMonth() === endMonth - 1
+    && end.getDate() === endDay;
+
+  return hasValidDates ? { start, end } : null;
+};
+
+const isRouteInSeasonOn = (route, date) => {
+  const currentYear = date.getFullYear();
+  return [currentYear - 1, currentYear].some((year) => {
+    const season = getSeasonBounds(route, year);
+    return season && date >= season.start && date <= season.end;
+  });
+};
+
+const getMonthDayDate = (day, month, year, endOfDay = false) => {
+  const numericDay = Number(day);
+  const numericMonth = Number(month);
+  if (!numericDay || !numericMonth) return null;
+
+  const date = new Date(
+    year,
+    numericMonth - 1,
+    numericDay,
+    ...(endOfDay ? [23, 59, 59, 999] : []),
+  );
+  return date.getMonth() === numericMonth - 1 && date.getDate() === numericDay ? date : null;
+};
+
+const isRouteInSeasonOnMonthDay = (route, day, month) => {
+  if (!day || !month) return true;
+  const requestedDate = getMonthDayDate(day, month, 2000);
+  return requestedDate ? isRouteInSeasonOn(route, requestedDate) : false;
+};
+
 const GuestPortal = () => {
-  const { t } = useLangStore();
+  const { t, lang } = useLangStore();
   const {
     attractions,
     isLoading: isAttractionsLoading,
@@ -21,14 +69,19 @@ const GuestPortal = () => {
   const { zones, isLoading: isZonesLoading, error: zonesError, fetchZones } = useZonesStore();
   const flyTo = useMapStore((state) => state.flyTo);
   const [routeStatusFilter, setRouteStatusFilter] = useState('all');
-  const [experienceFilter, setExperienceFilter] = useState('all');
+  const [requestedDay, setRequestedDay] = useState('');
+  const [requestedMonth, setRequestedMonth] = useState('');
   const [selectedMapItem, setSelectedMapItem] = useState(null);
+
+  const monthOptions = useMemo(() => Array.from({ length: 12 }, (_, index) => ({
+    value: String(index + 1),
+    label: new Intl.DateTimeFormat(lang === 'es' ? 'es-UY' : 'en-US', { month: 'long' })
+      .format(new Date(2000, index, 1)),
+  })), [lang]);
 
   const routeStatusOptions = [
     { id: 'available', label: t('routes.available'), icon: 'check_circle' },
-    // { id: 'pending', label: t('routes.pending'), icon: 'pending' },
-    { id: 'off-season', label: t('guest.offSeason'), icon: 'event_busy' },
-    { id: 'cancelled', label: t('routes.cancelled'), icon: 'cancel' },
+    { id: 'in-season', label: t('guest.inSeason'), icon: 'today' },
   ];
 
   useEffect(() => {
@@ -49,15 +102,21 @@ const GuestPortal = () => {
   const error = attractionsError || routesError || zonesError;
 
   const filteredRoutes = useMemo(() => {
+    const today = new Date();
+
     return routes.filter((route) => {
-      const statusMatch = route.status !== 'pending' && (routeStatusFilter === 'all' || route.status === routeStatusFilter);
-      const experienceMatch = experienceFilter === 'all' || route.experienceType === experienceFilter;
-      return statusMatch && experienceMatch;
+      const isPublicRoute = route.status !== 'pending' && route.status !== 'cancelled';
+      const statusMatch = isPublicRoute && (
+        routeStatusFilter === 'all'
+        || (routeStatusFilter === 'in-season'
+          ? isRouteInSeasonOn(route, today)
+          : route.status === routeStatusFilter)
+      );
+      return statusMatch && isRouteInSeasonOnMonthDay(route, requestedDay, requestedMonth);
     });
-  }, [routes, routeStatusFilter, experienceFilter]);
+  }, [routes, routeStatusFilter, requestedDay, requestedMonth]);
 
   const featuredRoutes = filteredRoutes//.slice(0, 2);
-  const featuredAttractions = attractions.slice(0, 4);
 
   const getAttractionCategoryLabel = (category) => {
     switch (String(category || '').toUpperCase()) {
@@ -145,7 +204,8 @@ const GuestPortal = () => {
 
   const clearFilters = () => {
     setRouteStatusFilter('all');
-    setExperienceFilter('all');
+    setRequestedDay('');
+    setRequestedMonth('');
   };
 
   return (
@@ -258,24 +318,35 @@ const GuestPortal = () => {
               </div>
 
               <div className="flex flex-col gap-2 mt-2">
-                <label className="font-label-md text-label-md text-on-surface">{t('guest.experienceType')}</label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: 'cultural', label: t('guest.cultural') },
-                    { id: 'gastronomic', label: t('guest.gastronomic') },
-                    { id: 'natural', label: t('guest.natural') },
-                    { id: 'historical', label: t('guest.historical') },
-                  ].map((type) => (
-                    <button
-                      key={type.id}
-                      className={`px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors ${experienceFilter === type.id ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface border border-outline-variant text-on-surface hover:bg-surface-variant'}`}
-                      onClick={() => setExperienceFilter(experienceFilter === type.id ? 'all' : type.id)}
+                <span className="font-label-md text-label-md text-on-surface">{t('guest.requestedDate')}</span>
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-3">
+                  <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                    {t('guest.day')}
+                    <input
+                      className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={requestedDay}
+                      onChange={(event) => setRequestedDay(event.target.value)}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                    {t('guest.month')}
+                    <select
+                      className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
+                      value={requestedMonth}
+                      onChange={(event) => setRequestedMonth(event.target.value)}
                     >
-                      {type.label}
-                    </button>
-                  ))}
+                      <option value="" />
+                      {monthOptions.map((month) => (
+                        <option key={month.value} value={month.value}>{month.label}</option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
               </div>
+
             </section>
           </div>
           <div className="p-6 flex flex-col gap-8">
@@ -317,47 +388,6 @@ const GuestPortal = () => {
                         <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
                           <span className="material-symbols-outlined text-[14px]">timer</span>
                           {route.durationHours} {t('guest.hours')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <hr className="border-outline-variant/30" />
-
-            <section className="flex flex-col gap-4 pb-4">
-              <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('common.attractions')}</h4>
-              {!isLoading && featuredAttractions.length === 0 && (
-                <div className="text-sm text-outline">{t('attractions.noAttractions')}</div>
-              )}
-              <div className="grid grid-cols-1 gap-3">
-                {featuredAttractions.map((attraction) => (
-                  <div key={attraction.id} className="bg-surface rounded-xl border border-outline-variant/50 overflow-hidden shadow-sm">
-                    <div className="h-36 w-full bg-surface-variant flex items-center justify-center overflow-hidden">
-                      {attraction.imageUrl ? (
-                        <img
-                          alt={attraction.title}
-                          className="w-full h-full object-cover"
-                          src={attraction.imageUrl}
-                        />
-                      ) : (
-                        <span className="material-symbols-outlined text-[40px] text-outline opacity-30">image_not_supported</span>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h5 className="font-headline-md text-[15px] leading-tight text-primary font-semibold">
-                            {attraction.title}
-                          </h5>
-                          <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1">
-                            {attraction.description}
-                          </p>
-                        </div>
-                        <span className="shrink-0 rounded-full border border-outline-variant bg-surface-variant px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
-                          {getAttractionCategoryLabel(attraction.category)}
                         </span>
                       </div>
                     </div>
