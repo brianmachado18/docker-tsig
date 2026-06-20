@@ -106,7 +106,7 @@
     },
     "query": {
       "title": "Zone queries",
-      "subtitle": "Query by map click, address, or street intersection from the same panel.",
+      "subtitle": "Query by map click, address, or road intersection from the same panel.",
       "enterMode": "Query",
       "exitMode": "Exit",
       "routesTab": "By zone",
@@ -144,18 +144,18 @@
       "noDescription": "No description"
     },
     "intersectionQuery": {
-      "street1Label": "Street 1",
-      "street1Placeholder": "Ex: 18 de Julio",
-      "street2Label": "Street 2",
-      "street2Placeholder": "Ex: Ejido",
+      "via1Label": "Road or reference 1",
+      "via1Placeholder": "Ex: Route 5 or Bulevar Artigas",
+      "via2Label": "Road or reference 2",
+      "via2Placeholder": "Ex: Route 8 or Rivera",
       "search": "Search intersection",
       "loading": "Searching...",
-      "waitingInput": "Enter two streets to find the nearest route.",
+      "waitingInput": "Enter two roads or references to find the nearest route.",
       "foundRoute": "Found route",
       "distanceLabel": "Distance: {distance} m",
       "routeZones": "Zones crossed by the route",
       "noZones": "The route has no associated zones.",
-      "mapResultHint": "The map keeps visible the zones associated with the found route.",
+      "mapResultHint": "The map keeps visible the zones associated with the route found from local road resolution or geocoding fallback.",
       "clear": "Clear query",
       "noDescription": "No description"
     }

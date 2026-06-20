@@ -12,7 +12,6 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,10 +39,10 @@ public class RecorridoService {
     private HistoricoService historicoService;
 
     @Autowired
-    private GeocodingService geocodingService;
+    private InfraestructuraVialRepository infraestructuraVialRepository;
 
-    @Value("${recorrido.busqueda.interseccion.umbral-metros:1000}")
-    private double umbralBusquedaInterseccionMetros;
+    @Autowired
+    private GeocodingService geocodingService;
 
     public void alta(DTRecorrido dtRecorrido) throws Exception {
         validarRecorrido(dtRecorrido); // Validar los datos del recorrido
@@ -157,9 +156,42 @@ public class RecorridoService {
     }
 
     @Transactional(readOnly = true)
-    public DTBusquedaRecorridoInterseccion obtenerPorInterseccion(String calle1, String calle2) throws Exception {
-        GeocodingService.GeocodedPoint geocodedPoint = geocodingService.geocodeIntersection(calle1, calle2);
+    public DTBusquedaRecorridoInterseccion obtenerPorInterseccion(String via1, String via2) throws Exception {
+        String normalizedVia1 = String.valueOf(via1 == null ? "" : via1).trim();
+        String normalizedVia2 = String.valueOf(via2 == null ? "" : via2).trim();
 
+        if (normalizedVia1.isBlank()) {
+            throw new Exception("Via 1 requerida.");
+        }
+        if (normalizedVia2.isBlank()) {
+            throw new Exception("Via 2 requerida.");
+        }
+        if (normalizedVia1.equalsIgnoreCase(normalizedVia2)) {
+            throw new Exception("Las referencias deben ser distintas.");
+        }
+
+        if (recorridoRepository.count() == 0) {
+            throw new Exception("No hay recorridos registrados para evaluar cercania.");
+        }
+
+        InfraestructuraVialRepository.RoadReferenceMatch via1Local = resolveRoadReference(normalizedVia1);
+        InfraestructuraVialRepository.RoadReferenceMatch via2Local = resolveRoadReference(normalizedVia2);
+
+        if (via1Local != null && via2Local != null) {
+            InfraestructuraVialRepository.RouteIntersectionResult interseccion =
+                    infraestructuraVialRepository.findNearestRouteByRepresentativeIntersection(
+                            via1Local.geometryWkt(),
+                            via2Local.geometryWkt(),
+                            via1Local.routeNumber(),
+                            via2Local.routeNumber()
+                    );
+            if (interseccion == null || interseccion.routeId() == null) {
+                throw new Exception("No se encontro una interseccion representativa entre las referencias ingresadas.");
+            }
+            return buildIntersectionResult(interseccion);
+        }
+
+        GeocodingService.GeocodedPoint geocodedPoint = geocodingService.geocodeIntersection(normalizedVia1, normalizedVia2);
         Long idRecorrido = recorridoRepository.findNearestRecorridoId(geocodedPoint.lon(), geocodedPoint.lat());
         if (idRecorrido == null) {
             throw new Exception("No hay recorridos registrados para evaluar cercania.");
@@ -171,22 +203,66 @@ public class RecorridoService {
                 geocodedPoint.lat()
         );
 
-        if (distanciaMetros == null || distanciaMetros > umbralBusquedaInterseccionMetros) {
-            throw new Exception("No se encontro un recorrido cercano.");
-        }
+        return buildIntersectionResult(new InfraestructuraVialRepository.RouteIntersectionResult(
+                idRecorrido,
+                distanciaMetros,
+                recorridoRepository.count(),
+                "POINT(" + geocodedPoint.lon() + " " + geocodedPoint.lat() + ")",
+                null,
+                null
+        ));
+    }
 
-        Recorrido recorrido = recorridoRepository.findByIdRecorrido(idRecorrido);
+    private DTBusquedaRecorridoInterseccion buildIntersectionResult(
+            InfraestructuraVialRepository.RouteIntersectionResult interseccion
+    ) throws Exception {
+        Recorrido recorrido = recorridoRepository.findByIdRecorrido(interseccion.routeId());
         if (recorrido == null) {
             throw new Exception("Recorrido no encontrado.");
         }
 
-        List<DTZona> zonas = zonasToDto(zonaRepository.findAllByRecorridoIntersects(idRecorrido));
+        List<DTZona> zonas = zonasToDto(zonaRepository.findAllByRecorridoIntersects(interseccion.routeId()));
 
         return new DTBusquedaRecorridoInterseccion(
                 objToDto(recorrido),
                 zonas,
-                distanciaMetros
+                interseccion.distanceMeters(),
+                interseccion.totalRoutesEvaluated(),
+                interseccion.representativePointWkt(),
+                interseccion.kmRoute1(),
+                interseccion.kmRoute2()
         );
+    }
+
+    private InfraestructuraVialRepository.RoadReferenceMatch resolveRoadReference(String reference) {
+        Integer routeNumber = tryExtractRouteNumber(reference);
+        if (routeNumber != null) {
+            InfraestructuraVialRepository.RoadReferenceMatch byNumber =
+                    infraestructuraVialRepository.findRoadReferenceByNumber(routeNumber);
+            if (byNumber != null) {
+                return byNumber;
+            }
+        }
+
+        return infraestructuraVialRepository.findRoadReferenceByName(reference);
+    }
+
+    private Integer tryExtractRouteNumber(String reference) {
+        if (reference == null) {
+            return null;
+        }
+
+        String normalized = reference.trim().toLowerCase();
+        if (normalized.matches("^\\d+$")) {
+            return Integer.parseInt(normalized);
+        }
+
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^ruta\\s+(\\d+)$").matcher(normalized);
+        if (matcher.matches()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+
+        return null;
     }
 
     public Recorrido dtoToObj(DTRecorrido dtRecorrido) {

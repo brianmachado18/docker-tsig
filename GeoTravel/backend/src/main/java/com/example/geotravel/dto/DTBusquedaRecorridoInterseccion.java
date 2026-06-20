@@ -13,4 +13,8 @@ public class DTBusquedaRecorridoInterseccion {
     private DTRecorrido recorrido;
     private List<DTZona> zonas;
     private double distanciaMetros;
+    private long totalRecorridosEvaluados;
+    private String puntoInterseccionWkt;
+    private Integer kmRuta1;
+    private Integer kmRuta2;
 }

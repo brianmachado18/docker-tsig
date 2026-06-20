@@ -279,26 +279,26 @@ const useZonesStore = create((set, get) => ({
     }
   },
 
-  searchRouteByIntersection: async (street1, street2) => {
-    const normalizedStreet1 = String(street1 || '').trim();
-    const normalizedStreet2 = String(street2 || '').trim();
+  searchRouteByIntersection: async (via1, via2) => {
+    const normalizedVia1 = String(via1 || '').trim();
+    const normalizedVia2 = String(via2 || '').trim();
 
-    if (!normalizedStreet1) {
+    if (!normalizedVia1) {
       set({
         intersectionRouteResult: null,
         zoneRoutes: [],
         visibleZoneIds: null,
-        intersectionQueryError: { message: 'Calle 1 requerida.' },
+        intersectionQueryError: { message: 'Via 1 requerida.' },
       });
       return null;
     }
 
-    if (!normalizedStreet2) {
+    if (!normalizedVia2) {
       set({
         intersectionRouteResult: null,
         zoneRoutes: [],
         visibleZoneIds: null,
-        intersectionQueryError: { message: 'Calle 2 requerida.' },
+        intersectionQueryError: { message: 'Via 2 requerida.' },
       });
       return null;
     }
@@ -322,7 +322,7 @@ const useZonesStore = create((set, get) => ({
 
     try {
       const { routesService } = await import('@/features/routes/routesService');
-      const intersectionRouteResult = await routesService.findByIntersection(normalizedStreet1, normalizedStreet2);
+      const intersectionRouteResult = await routesService.findByIntersection(normalizedVia1, normalizedVia2);
       const zoneRoutes = intersectionRouteResult?.route ? [intersectionRouteResult.route] : [];
       const visibleZoneIds = getVisibleZoneIdsFromRoutes(zoneRoutes);
 

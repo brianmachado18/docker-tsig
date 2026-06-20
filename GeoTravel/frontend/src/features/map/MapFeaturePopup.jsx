@@ -261,10 +261,11 @@ const MapFeaturePopup = ({ editable = true }) => {
   const geoTimerRef = useRef(null);
 
   const isRoute = entityType === 'route';
+  const isAttraction = entityType === 'attraction';
   const displayStatus = localStatus ?? entity?.status;
   const title = entity?.title || entity?.name || 'Elemento';
   const showRouteActions = editable && isRoute;
-  const showAttractionActions = editable && entityType === 'attraction';
+  const showAttractionActions = editable && isAttraction;
 
   const subtitle = useMemo(() => {
     if (!entity) return '';
@@ -346,6 +347,11 @@ const MapFeaturePopup = ({ editable = true }) => {
     refreshMapLayer(isRoute ? 'routes-wfs' : 'attractions-wfs');
     handleClose();
   };
+
+  const deleteDialogTitle = isRoute ? 'Eliminar recorrido' : 'Eliminar atracción';
+  const deleteDialogDescription = isRoute
+    ? '¿Estás seguro? Esta acción no se puede deshacer.'
+    : '¿Estás seguro de eliminar esta atracción? Esta acción no se puede deshacer.';
 
   const handleStatusTransition = async () => {
     if (!entity?.id || isTransitioning || !nextStatus) {
@@ -651,14 +657,24 @@ const MapFeaturePopup = ({ editable = true }) => {
 
         {showAttractionActions && (
           <div className="border-t border-outline-variant px-4 py-3">
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="w-full flex items-center justify-center gap-1.5 py-2 text-sm text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors"
-            >
-              <span className="material-symbols-outlined text-[16px]">edit</span>
-              Editar
-            </button>
+            <div className="flex items-center divide-x divide-outline-variant/60 rounded-lg border border-outline-variant/60 overflow-hidden">
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">edit</span>
+                Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">delete</span>
+                Eliminar
+              </button>
+            </div>
           </div>
         )}
 
@@ -739,15 +755,15 @@ const MapFeaturePopup = ({ editable = true }) => {
         </div>
       </div>
 
-      {confirmDelete && showRouteActions && (
+      {confirmDelete && (showRouteActions || showAttractionActions) && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => !isDeleting && setConfirmDelete(false)}
           />
           <div className="relative z-10 bg-surface-container-lowest rounded-2xl p-5 shadow-2xl border border-outline-variant w-[280px] mx-4">
-            <p className="font-semibold text-on-surface text-[15px] mb-1">Eliminar recorrido</p>
-            <p className="text-sm text-on-surface-variant mb-5">¿Estás seguro? Esta acción no se puede deshacer.</p>
+            <p className="font-semibold text-on-surface text-[15px] mb-1">{deleteDialogTitle}</p>
+            <p className="text-sm text-on-surface-variant mb-5">{deleteDialogDescription}</p>
             <div className="flex gap-2">
               <button
                 type="button"
