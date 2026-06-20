@@ -4,8 +4,10 @@ import com.example.geotravel.dto.DTRecorridoActivoResumen;
 import com.example.geotravel.dto.DTZonaActiva;
 import com.example.geotravel.dto.DTZona;
 import com.example.geotravel.enums.Estado;
+import com.example.geotravel.model.Atraccion;
 import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.Zona;
+import com.example.geotravel.repository.AtraccionRepository;
 import com.example.geotravel.repository.RecorridoRepository;
 import com.example.geotravel.repository.ZonaRepository;
 import org.locationtech.jts.geom.Polygon;
@@ -29,6 +31,9 @@ public class ZonaService {
 
     @Autowired
     private GeocodingService geocodingService;
+
+    @Autowired
+    private AtraccionRepository atraccionRepository;
 
     public void alta(DTZona dtZona) throws Exception{
         validarZona(dtZona);
@@ -141,6 +146,10 @@ public class ZonaService {
         dtZona.setRecorridos(new ArrayList<>());
         for (Recorrido r : recorridoRepository.findByZonaGeom(dtZona.getIdZona()))
             dtZona.getRecorridos().add(r.getIdRecorrido());
+
+        dtZona.setAtracciones(new ArrayList<>());
+        for (Atraccion a : atraccionRepository.findByZona(dtZona.getGeomWkt()))
+            dtZona.getAtracciones().add(a.getIdAtraccion());
 
         return dtZona;
     }

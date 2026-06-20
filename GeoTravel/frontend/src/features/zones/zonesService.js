@@ -23,6 +23,7 @@ const normalizeZone = (zone) => ({
   geomWkt: zone.geomWkt ?? '',
   geometry: zone.geometry ?? parsePolygonWkt(zone.geomWkt),
   routeIds: zone.routeIds ?? zone.recorridos ?? [],
+  attractionIds: zone.attractionIds ?? zone.atracciones ?? [],
   status: zone.status ?? 'active',
 });
 

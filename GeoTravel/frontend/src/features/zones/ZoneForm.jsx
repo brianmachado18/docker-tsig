@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import useMapStore from '@/features/map/mapStore';
 import useRefreshEntityLayer from '@/features/map/useRefreshEntityLayer';
 import useRoutesStore from '@/features/routes/routesStore';
+import useAttractiosnStore from '@/features/attractions/attractionsStore';
 import { validateZoneForm } from '@/features/zones/zoneValidation';
 import useZonesStore from '@/features/zones/zonesStore';
 import useLangStore from '@/shared/i18n/langStore';
@@ -21,6 +22,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
   } = useZonesStore();
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const { routes, fetchRoutes } = useRoutesStore();
+  const { attractions, fetchAttractions } = useAttractiosnStore();
   const refreshZoneLayers = useRefreshEntityLayer('zones');
 
   const [zoneName, setZoneName] = useState('');
@@ -29,11 +31,13 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
   const [zoneNotes, setZoneNotes] = useState('');
   const [geomWkt, setGeomWkt] = useState('');
   const [routeIds, setRouteIds] = useState([]);
+  const [attractionIds, setAttractionIds] = useState([]);
   const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     fetchRoutes();
-  }, [fetchRoutes]);
+    fetchAttractions();
+  }, [fetchRoutes, fetchAttractions]);
 
   useEffect(() => {
     setZoneName(zone?.name || '');
@@ -42,6 +46,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     setZoneNotes(zone?.notes || '');
     setGeomWkt(zone?.geomWkt || '');
     setRouteIds(Array.isArray(zone?.routeIds) ? zone.routeIds : []);
+    setAttractionIds(Array.isArray(zone?.attractionIds) ? zone.attractionIds : []);
     setValidationError('');
     clearError();
   }, [zone, clearError]);
@@ -64,6 +69,11 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     [routes, routeIds]
   );
 
+  const linkedAttractions = useMemo(
+    () => attractions.filter((attraction) => attractionIds.includes(attraction.id)),
+    [attractions, attractionIds]
+  );
+
   const handleStartGeometryEdit = () => {
     startGeometryEdit({
       ...zone,
@@ -74,6 +84,7 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
       notes: zoneNotes,
       geomWkt,
       routeIds,
+      attractionIds,
     });
     setActiveTool('zone-geometry-edit');
   };
@@ -210,6 +221,19 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
               <div key={route.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
                 <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
                 <span>{route.name || `Recorrido ${route.id}`}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="font-label-md text-label-md text-on-surface">Atracciones vinculadas (autogenerado)</span>
+          <div className="max-h-32 overflow-y-auto border border-outline rounded-lg p-2 bg-surface">
+            {!linkedAttractions.length && <p className="text-xs text-outline">Sin atracciones vinculadas.</p>}
+            {linkedAttractions.map((attraction) => (
+              <div key={attraction.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
+                <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+                <span>{attraction.title || `Atraccion ${attraction.id}`}</span>
               </div>
             ))}
           </div>
