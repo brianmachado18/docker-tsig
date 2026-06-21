@@ -177,12 +177,14 @@ const AttractionCatalog = () => {
             {!isLoading && !error && attractions.length > 0 && filteredAttractions.length === 0 && (
               <div className="col-span-full text-sm text-outline">{t('attractions.noFilteredAttractions')}</div>
             )}
-            {!isLoading && !error && filteredAttractions.map((attraction) => (
+            {!isLoading && !error && filteredAttractions.map((attraction, index) => (
               <AttractionCard
                 key={attraction.id}
                 title={attraction.title}
                 description={attraction.description}
                 imageUrl={attraction.imageUrl}
+                ranking={attraction.ranking}
+                rankingPosition={index+1}
                 tag={attraction.category}
                 status={getStatusLabel(attraction.status)}
                 onEdit={() => openForm(attraction)}

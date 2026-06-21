@@ -7,6 +7,8 @@ const AttractionCard = ({
   tag,
   tagIcon,
   imageUrl,
+  ranking,
+  rankingPosition,
   onViewOnMap,
 }) => {
   const { t } = useLangStore();
@@ -39,6 +41,15 @@ const AttractionCard = ({
             {tag}
           </span>
         </div>
+        <div className="absolute top-3 right-3">
+          <span className={`px-4 py-1 rounded-md font-label-md text-label-md backdrop-blur-sm border-2 
+            ${rankingPosition===1 ? 'text-yellow-500' : ''}
+            ${rankingPosition===2 ? 'text-zinc-500' : ''}
+            ${rankingPosition===3 ? 'text-yellow-900' : ''}
+          `}>
+            {rankingPosition}
+          </span>
+        </div>
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
@@ -55,6 +66,11 @@ const AttractionCard = ({
         <p className="font-body-md text-body-md text-on-surface-variant mb-4 line-clamp-2 text-sm flex-1">
           {description}
         </p>
+        <div className="pt-3 border-t border-surface-variant flex justify-between items-center">
+          <span className="font-mono-label text-mono-label text-outline flex items-center gap-1">
+            Atraccion presente en {ranking} recorrido/s.
+          </span>
+        </div>
       </div>
     </div>
   );

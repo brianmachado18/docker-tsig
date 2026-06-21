@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -48,7 +49,7 @@ public class AtraccionService {
         for (Atraccion a : atraccionRepository.findAll()){
             listDto.add(objToDto(a));
         }
-        return listDto;
+        return listDto.stream().sorted(Comparator.comparingInt(DTAtraccion::getCantidadDeAparicionesEnRecorridos).reversed()).toList();
     }
 
     public DTAtraccion obtenerPorId(Long id){
@@ -84,6 +85,7 @@ public class AtraccionService {
         dtAtraccion.setClasificacion(atraccion.getClasificacion());
         dtAtraccion.setFotoUrl(atraccion.getFotoUrl());
         dtAtraccion.setGeomWkt(atraccion.getGeomWkt().toString());
+        dtAtraccion.setCantidadDeAparicionesEnRecorridos(recorridoAtraccionesRepository.countByAtraccion(atraccion).intValue());
         return dtAtraccion;
     }
 

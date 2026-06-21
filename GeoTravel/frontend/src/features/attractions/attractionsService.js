@@ -14,6 +14,7 @@ const normalizeAttraction = (attraction) => {
     latitude: coordinates?.[1] ?? '',
     geomWkt: attraction.geomWkt ?? (coordinates ? toPointWkt(coordinates[0], coordinates[1]) : ''),
     status: attraction.status ?? 'active',
+    ranking: attraction.ranking ?? attraction.cantidadDeAparicionesEnRecorridos,
   };
 };
 
@@ -27,6 +28,7 @@ const toDto = (attraction) => ({
     attraction.geomWkt ||
       toPointWkt(attraction.longitude, attraction.latitude)
   ).trim(),
+  cantidadDeAparicionesEnRecorridos: attraction.ranking ?? null,
 });
 
 export const attractionsService = {

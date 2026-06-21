@@ -13,4 +13,5 @@ public class DTAtraccion {
     private Clasificacion clasificacion;
     private String fotoUrl;
     private String geomWkt;
+    private int cantidadDeAparicionesEnRecorridos;
 }

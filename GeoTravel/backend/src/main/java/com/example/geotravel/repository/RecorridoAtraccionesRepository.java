@@ -10,4 +10,5 @@ import java.util.List;
 public interface RecorridoAtraccionesRepository extends JpaRepository<RecorridoAtracciones, Long> {
     Boolean existsByAtraccion(Atraccion atraccion);
     List<RecorridoAtracciones> findByRecorridoOrderByOrden(Recorrido recorrido);
+    Long countByAtraccion(Atraccion atraccion);
 }

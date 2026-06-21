@@ -2,7 +2,7 @@
   "common": {
     "zones": "Zones",
     "routes": "Routes",
-    "attractions": "Attraction Catalog",
+    "attractions": "Attraction Ranking",
     "attractionsMap": "Attraction Map",
     "logout": "Logout",
     "save": "Save",
