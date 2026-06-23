@@ -18,4 +18,6 @@ public class DTZonaActiva {
     private String geomWkt;
     private int cantidadRecorridosActivos;
     private List<DTRecorridoActivoResumen> recorridosActivos;
+    private int cantidadRecorridosFueraDeTemporada;
+    private List<DTRecorridoActivoResumen> recorridosFueraDeTemporada;
 }

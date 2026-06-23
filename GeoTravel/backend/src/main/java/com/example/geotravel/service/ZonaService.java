@@ -90,6 +90,10 @@ public class ZonaService {
                     zona.getIdZona(),
                     Estado.DISPONIBLE
             );
+            List<Recorrido> recorridosFueraDeTemporada = recorridoRepository.findAllByZonaGeomAndEstado(
+                    zona.getIdZona(),
+                    Estado.FUERA_DE_ESTACION
+            );
 
             zonasActivas.add(new DTZonaActiva(
                     zona.getIdZona(),
@@ -99,13 +103,16 @@ public class ZonaService {
                     zona.getObservaciones(),
                     zona.getGeomWkt() != null ? zona.getGeomWkt().toString() : null,
                     recorridosActivos.size(),
-                    recorridosActivosToDto(recorridosActivos)
+                    recorridosActivosToDto(recorridosActivos),
+                    recorridosFueraDeTemporada.size(),
+                    recorridosActivosToDto(recorridosFueraDeTemporada)
             ));
         }
 
         zonasActivas.sort(Comparator
                 .comparingInt(DTZonaActiva::getCantidadRecorridosActivos)
                 .reversed()
+                .thenComparing(Comparator.comparingInt(DTZonaActiva::getCantidadRecorridosFueraDeTemporada).reversed())
                 .thenComparing(DTZonaActiva::getNombre, Comparator.nullsLast(String::compareToIgnoreCase)));
 
         return zonasActivas;

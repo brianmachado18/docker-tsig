@@ -13,6 +13,12 @@ const getVisibleZoneIdsFromRoutes = (routes = []) => {
   )];
 };
 
+const getReportedRoutesForZone = (zone) => {
+  const offSeasonRoutes = Array.isArray(zone?.offSeasonRoutes) ? zone.offSeasonRoutes : [];
+  const activeRoutes = Array.isArray(zone?.activeRoutes) ? zone.activeRoutes : [];
+  return [...offSeasonRoutes, ...activeRoutes];
+};
+
 const useZonesStore = create((set, get) => ({
   zones: [],
   activeZonesReport: [],
@@ -395,7 +401,7 @@ const useZonesStore = create((set, get) => ({
       selectedZoneByAddress: null,
       selectedActiveZone: activeZone,
       intersectionRouteResult: null,
-      zoneRoutes: activeZone?.activeRoutes ?? [],
+      zoneRoutes: getReportedRoutesForZone(activeZone),
       visibleZoneIds: null,
       routeQueryError: null,
       addressQueryError: null,

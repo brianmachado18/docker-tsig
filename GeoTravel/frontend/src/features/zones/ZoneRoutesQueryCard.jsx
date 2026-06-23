@@ -53,12 +53,22 @@ const ZoneRoutesQueryCard = () => {
     activeZonesReport.length === 1
       ? t('zones.activeZonesQuery.singleZoneResult')
       : t('zones.activeZonesQuery.multiZoneResult').replace('{count}', String(activeZonesReport.length));
+  const selectedActiveRoutesCount = selectedActiveZone?.activeRoutesCount ?? 0;
+  const selectedOffSeasonRoutesCount = selectedActiveZone?.offSeasonRoutesCount ?? 0;
+  const reportedRoutesCountLabel =
+    zoneRoutes.length === 1
+      ? t('zones.activeZonesQuery.singleReportedRouteResult')
+      : t('zones.activeZonesQuery.multiReportedRouteResult').replace('{count}', String(zoneRoutes.length));
   const activeRoutesCountLabel =
-    (selectedActiveZone?.activeRoutesCount ?? 0) === 1
-      ? t('zones.activeZonesQuery.singleRouteResult')
-      : t('zones.activeZonesQuery.multiRouteResult').replace(
+    selectedActiveRoutesCount === 1
+      ? t('zones.activeZonesQuery.singleActiveRouteResult')
+      : t('zones.activeZonesQuery.multiActiveRouteResult').replace('{count}', String(selectedActiveRoutesCount));
+  const offSeasonRoutesCountLabel =
+    selectedOffSeasonRoutesCount === 1
+      ? t('zones.activeZonesQuery.singleOffSeasonRouteResult')
+      : t('zones.activeZonesQuery.multiOffSeasonRouteResult').replace(
           '{count}',
-          String(selectedActiveZone?.activeRoutesCount ?? 0)
+          String(selectedOffSeasonRoutesCount)
         );
   const intersectionDistanceLabel =
     intersectionRouteResult?.distanceMeters !== null && intersectionRouteResult?.distanceMeters !== undefined
@@ -455,7 +465,11 @@ const ZoneRoutesQueryCard = () => {
                 <p className="mt-1 font-title-sm text-title-sm text-on-surface">
                   {selectedActiveZone.name || `${t('common.zones')} #${selectedActiveZone.id}`}
                 </p>
-                <p className="mt-1 text-sm text-on-surface-variant">{activeRoutesCountLabel}</p>
+                <p className="mt-1 text-sm text-on-surface-variant">{reportedRoutesCountLabel}</p>
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm text-green-700">{activeRoutesCountLabel}</p>
+                  <p className="text-sm text-red-700">{offSeasonRoutesCountLabel}</p>
+                </div>
               </div>
 
               {zoneRoutes.length ? (

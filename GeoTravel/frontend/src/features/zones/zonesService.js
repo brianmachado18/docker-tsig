@@ -42,6 +42,10 @@ const normalizeActiveZone = (zone) => ({
   activeRoutes: Array.isArray(zone.activeRoutes ?? zone.recorridosActivos)
     ? (zone.activeRoutes ?? zone.recorridosActivos).map(normalizeActiveRoute)
     : [],
+  offSeasonRoutesCount: Number(zone.offSeasonRoutesCount ?? zone.cantidadRecorridosFueraDeTemporada ?? 0),
+  offSeasonRoutes: Array.isArray(zone.offSeasonRoutes ?? zone.recorridosFueraDeTemporada)
+    ? (zone.offSeasonRoutes ?? zone.recorridosFueraDeTemporada).map(normalizeActiveRoute)
+    : [],
 });
 
 const toDto = (zone) => ({
