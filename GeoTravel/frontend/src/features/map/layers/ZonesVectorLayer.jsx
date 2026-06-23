@@ -24,17 +24,20 @@ const toComparableId = (value) => {
   return String(value);
 };
 
+const getZeroRoutesZoneStyle = (isSelected) =>
+  isSelected
+    ? new Style({
+        fill: new Fill({ color: 'rgba(226, 232, 240, 0.55)' }),
+        stroke: new Stroke({ color: '#475569', width: 4 }),
+      })
+    : new Style({
+        fill: new Fill({ color: 'rgba(226, 232, 240, 0.35)' }),
+        stroke: new Stroke({ color: '#94a3b8', width: 2 }),
+      });
+
 const getActiveRoutesZoneStyle = (activeRoutesCount, maxActiveRoutesCount, isSelected) => {
   if (!maxActiveRoutesCount || activeRoutesCount <= 0) {
-    return isSelected
-      ? new Style({
-          fill: new Fill({ color: 'rgba(226, 232, 240, 0.55)' }),
-          stroke: new Stroke({ color: '#475569', width: 4 }),
-        })
-      : new Style({
-          fill: new Fill({ color: 'rgba(226, 232, 240, 0.35)' }),
-          stroke: new Stroke({ color: '#94a3b8', width: 2 }),
-        });
+    return getZeroRoutesZoneStyle(isSelected);
   }
 
   const ratio = Math.max(0, Math.min(1, activeRoutesCount / maxActiveRoutesCount));
@@ -52,6 +55,44 @@ const getActiveRoutesZoneStyle = (activeRoutesCount, maxActiveRoutesCount, isSel
   });
 };
 
+const getOffSeasonRoutesZoneStyle = (offSeasonRoutesCount, maxOffSeasonRoutesCount, isSelected) => {
+  if (!maxOffSeasonRoutesCount || offSeasonRoutesCount <= 0) {
+    return getZeroRoutesZoneStyle(isSelected);
+  }
+
+  const ratio = Math.max(0, Math.min(1, offSeasonRoutesCount / maxOffSeasonRoutesCount));
+  const alpha = 0.28 + ratio * 0.42;
+  const red = Math.round(254 - ratio * 34);
+  const green = Math.round(226 - ratio * 188);
+  const blue = Math.round(226 - ratio * 188);
+
+  return new Style({
+    fill: new Fill({ color: `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(2)})` }),
+    stroke: new Stroke({
+      color: isSelected ? '#7f1d1d' : '#dc2626',
+      width: isSelected ? 4 : 2,
+    }),
+  });
+};
+
+const getReportedRoutesZoneStyle = (
+  activeRoutesCount,
+  offSeasonRoutesCount,
+  maxActiveRoutesCount,
+  maxOffSeasonRoutesCount,
+  isSelected
+) => {
+  if (offSeasonRoutesCount > 0) {
+    return getOffSeasonRoutesZoneStyle(offSeasonRoutesCount, maxOffSeasonRoutesCount, isSelected);
+  }
+
+  if (activeRoutesCount > 0) {
+    return getActiveRoutesZoneStyle(activeRoutesCount, maxActiveRoutesCount, isSelected);
+  }
+
+  return getZeroRoutesZoneStyle(isSelected);
+};
+
 const ZonesVectorLayer = ({
   map,
   zones = [],
@@ -66,6 +107,7 @@ const ZonesVectorLayer = ({
   const selectedZoneIdRef = useRef(null);
   const themeModeRef = useRef(themeMode);
   const maxActiveRoutesCountRef = useRef(0);
+  const maxOffSeasonRoutesCountRef = useRef(0);
 
   const zoneFeatures = useMemo(() => {
     if (!zones.length) {
@@ -86,6 +128,7 @@ const ZonesVectorLayer = ({
             attractionLevel: zone.attractionLevel,
             status: zone.status,
             activeRoutesCount: zone.activeRoutesCount ?? 0,
+            offSeasonRoutesCount: zone.offSeasonRoutesCount ?? 0,
           },
           geometry: zone.geometry,
         })),
@@ -99,6 +142,10 @@ const ZonesVectorLayer = ({
 
   const maxActiveRoutesCount = useMemo(
     () => zones.reduce((max, zone) => Math.max(max, Number(zone?.activeRoutesCount ?? 0)), 0),
+    [zones]
+  );
+  const maxOffSeasonRoutesCount = useMemo(
+    () => zones.reduce((max, zone) => Math.max(max, Number(zone?.offSeasonRoutesCount ?? 0)), 0),
     [zones]
   );
 
@@ -117,8 +164,9 @@ const ZonesVectorLayer = ({
   useEffect(() => {
     themeModeRef.current = themeMode;
     maxActiveRoutesCountRef.current = maxActiveRoutesCount;
+    maxOffSeasonRoutesCountRef.current = maxOffSeasonRoutesCount;
     layerRef.current?.changed();
-  }, [maxActiveRoutesCount, themeMode]);
+  }, [maxActiveRoutesCount, maxOffSeasonRoutesCount, themeMode]);
 
   useEffect(() => {
     if (!map || layerRef.current) {
@@ -132,12 +180,15 @@ const ZonesVectorLayer = ({
         const visibleIds = visibleIdsRef.current;
         const currentThemeMode = themeModeRef.current;
         const currentMaxActiveRoutesCount = maxActiveRoutesCountRef.current;
+        const currentMaxOffSeasonRoutesCount = maxOffSeasonRoutesCountRef.current;
         if (visibleIds === null) {
           const isSelected = toComparableId(feature?.get?.('id')) === selectedZoneIdRef.current;
           if (currentThemeMode === 'active-routes') {
-            return getActiveRoutesZoneStyle(
+            return getReportedRoutesZoneStyle(
               Number(feature?.get?.('activeRoutesCount') ?? 0),
+              Number(feature?.get?.('offSeasonRoutesCount') ?? 0),
               currentMaxActiveRoutesCount,
+              currentMaxOffSeasonRoutesCount,
               isSelected
             );
           }
@@ -152,9 +203,11 @@ const ZonesVectorLayer = ({
 
         const isSelected = featureId === selectedZoneIdRef.current;
         if (currentThemeMode === 'active-routes') {
-          return getActiveRoutesZoneStyle(
+          return getReportedRoutesZoneStyle(
             Number(feature?.get?.('activeRoutesCount') ?? 0),
+            Number(feature?.get?.('offSeasonRoutesCount') ?? 0),
             currentMaxActiveRoutesCount,
+            currentMaxOffSeasonRoutesCount,
             isSelected
           );
         }
