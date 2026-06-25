@@ -277,6 +277,17 @@ public class RecorridoService {
         recorrido.setFechaInicio(LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesInicio(), dtRecorrido.getDiaInicio()));
         recorrido.setFechaFin(LocalDate.of(LocalDate.now().getYear(), dtRecorrido.getMesFin(), dtRecorrido.getDiaFin()));
 
+        if (recorrido.getFechaInicio().isAfter(recorrido.getFechaFin()))
+            recorrido.setFechaFin(recorrido.getFechaFin().plusYears(1));
+
+        if (recorrido.getFechaInicio().isAfter(LocalDate.now()) || recorrido.getFechaFin().isBefore(LocalDate.now())) {
+            recorrido.setEstado(Estado.FUERA_DE_ESTACION);
+            recorrido.setFechaInicio(recorrido.getFechaInicio().plusYears(1));
+            recorrido.setFechaFin(recorrido.getFechaFin().plusYears(1));
+        } else {
+            recorrido.setEstado(Estado.PENDIENTE);
+        }
+
         recorrido.setZonas(zonaRepository.findByLinestring(dtRecorrido.getGeomWkt()));
 
         WKTReader reader = new WKTReader();
