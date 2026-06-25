@@ -5,6 +5,7 @@ import com.example.geotravel.dto.DTRecorrido;
 import com.example.geotravel.enums.Estado;
 import com.example.geotravel.service.RecorridoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -89,6 +90,39 @@ public class RecorridoController {
             return ResponseEntity.ok().body(resultado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/buscar/porPunto")
+    public ResponseEntity<?> obtenerPorPunto(
+            @RequestParam double lon,
+            @RequestParam double lat
+    ) {
+        try {
+            return ResponseEntity.ok().body(recorridoService.obtenerPorPunto(lon, lat));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/buscar/sugerenciasCalles")
+    public ResponseEntity<?> sugerirCalles(@RequestParam(required = false) String query) {
+        try {
+            return ResponseEntity.ok().body(recorridoService.sugerirCalles(query));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/buscar/sugerenciasCruces")
+    public ResponseEntity<?> sugerirCruces(
+            @RequestParam(required = false) Integer streetId,
+            @RequestParam(required = false) String query
+    ) {
+        try {
+            return ResponseEntity.ok().body(recorridoService.sugerirCruces(streetId, query));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
         }
     }
 

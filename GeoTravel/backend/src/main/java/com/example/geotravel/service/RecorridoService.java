@@ -213,6 +213,42 @@ public class RecorridoService {
         ));
     }
 
+    @Transactional(readOnly = true)
+    public DTBusquedaRecorridoInterseccion obtenerPorPunto(double lon, double lat) throws Exception {
+        if (recorridoRepository.count() == 0) {
+            throw new Exception("No hay recorridos registrados para evaluar cercania.");
+        }
+
+        Long idRecorrido = recorridoRepository.findNearestRecorridoId(lon, lat);
+        if (idRecorrido == null) {
+            throw new Exception("No hay recorridos registrados para evaluar cercania.");
+        }
+
+        Double distanciaMetros = recorridoRepository.findDistanceToPoint(idRecorrido, lon, lat);
+        return buildIntersectionResult(new InfraestructuraVialRepository.RouteIntersectionResult(
+                idRecorrido,
+                distanciaMetros,
+                recorridoRepository.count(),
+                "POINT(" + lon + " " + lat + ")",
+                null,
+                null
+        ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<GeocodingService.StreetSuggestion> sugerirCalles(String query) throws Exception {
+        return geocodingService.suggestStreets(query);
+    }
+
+    @Transactional(readOnly = true)
+    public List<GeocodingService.IntersectionOption> sugerirCruces(Integer streetId, String query) throws Exception {
+        if (streetId == null || streetId <= 0) {
+            return List.of();
+        }
+
+        return geocodingService.suggestIntersectionsForStreet(streetId, query);
+    }
+
     private DTBusquedaRecorridoInterseccion buildIntersectionResult(
             InfraestructuraVialRepository.RouteIntersectionResult interseccion
     ) throws Exception {

@@ -1,9 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useMapStore from '@/features/map/mapStore';
 import { ROUTE_STATUS_LABEL_KEYS, STATUS_LABELS, STATUS_STYLES } from '@/features/routes/routeStatus';
+import { routesService } from '@/features/routes/routesService';
 import useZonesStore from '@/features/zones/zonesStore';
 import useLangStore from '@/shared/i18n/langStore';
 import { getApiErrorMessage } from '@/shared/lib/forms/validation';
+
+const MIN_AUTOCOMPLETE_QUERY_LENGTH = 2;
+const ROUTE_REFERENCE_PATTERN = /\bruta\s*\d+\b|\bkm\.?\s*\d+\b|^\d+$/i;
+
+const isRouteLikeReference = (value) => ROUTE_REFERENCE_PATTERN.test(String(value || '').trim());
 
 const ZoneRoutesQueryCard = () => {
   const activeTool = useMapStore((state) => state.activeTool);
@@ -27,19 +33,30 @@ const ZoneRoutesQueryCard = () => {
     intersectionQueryError,
     searchZoneByAddress,
     searchRouteByIntersection,
+    searchRouteByPoint,
     fetchActiveZonesReport,
     clearZoneQueries,
   } = useZonesStore();
   const { t } = useLangStore();
   const [address, setAddress] = useState('');
-  const [via1, setVia1] = useState('');
-  const [via2, setVia2] = useState('');
+  const [streetQuery, setStreetQuery] = useState('');
+  const [streetSuggestions, setStreetSuggestions] = useState([]);
+  const [isLoadingStreetSuggestions, setIsLoadingStreetSuggestions] = useState(false);
+  const [streetSuggestionsError, setStreetSuggestionsError] = useState(null);
+  const [selectedStreetSuggestion, setSelectedStreetSuggestion] = useState(null);
+  const [crossStreetQuery, setCrossStreetQuery] = useState('');
+  const [crossStreetSuggestions, setCrossStreetSuggestions] = useState([]);
+  const [isLoadingCrossStreetSuggestions, setIsLoadingCrossStreetSuggestions] = useState(false);
+  const [crossStreetSuggestionsError, setCrossStreetSuggestionsError] = useState(null);
+  const [selectedCrossStreetSuggestion, setSelectedCrossStreetSuggestion] = useState(null);
 
   const isQueryMode = activeTool === 'zone-query';
   const routeQueryErrorMessage = getApiErrorMessage(routeQueryError, t('common.error'));
   const addressQueryErrorMessage = getApiErrorMessage(addressQueryError, t('common.error'));
   const activeZonesReportErrorMessage = getApiErrorMessage(activeZonesReportError, t('common.error'));
   const intersectionQueryErrorMessage = getApiErrorMessage(intersectionQueryError, t('common.error'));
+  const streetSuggestionsErrorMessage = getApiErrorMessage(streetSuggestionsError, t('common.error'));
+  const crossStreetSuggestionsErrorMessage = getApiErrorMessage(crossStreetSuggestionsError, t('common.error'));
   const routeCountLabel =
     zoneRoutes.length === 1
       ? t('zones.routesQuery.singleResult')
@@ -74,34 +91,198 @@ const ZoneRoutesQueryCard = () => {
     intersectionRouteResult?.distanceMeters !== null && intersectionRouteResult?.distanceMeters !== undefined
       ? Number(intersectionRouteResult.distanceMeters).toFixed(2)
       : null;
+  const normalizedStreetQuery = streetQuery.trim();
+  const normalizedCrossStreetQuery = crossStreetQuery.trim();
+  const looksLikeRouteStreetReference = isRouteLikeReference(normalizedStreetQuery);
+  const looksLikeRouteCrossReference = isRouteLikeReference(normalizedCrossStreetQuery);
+  const canRequestStreetSuggestions =
+    normalizedStreetQuery.length >= MIN_AUTOCOMPLETE_QUERY_LENGTH && !looksLikeRouteStreetReference;
+  const canRequestCrossStreetSuggestions =
+    Boolean(selectedStreetSuggestion) &&
+    normalizedCrossStreetQuery.length >= MIN_AUTOCOMPLETE_QUERY_LENGTH &&
+    !looksLikeRouteCrossReference;
+  const canSearchIntersectionBySuggestion = Boolean(selectedStreetSuggestion && selectedCrossStreetSuggestion);
+  const canUseTextFallbackForStreet1 =
+    looksLikeRouteStreetReference ||
+    (normalizedStreetQuery.length >= MIN_AUTOCOMPLETE_QUERY_LENGTH &&
+      !selectedStreetSuggestion &&
+      !isLoadingStreetSuggestions &&
+      !streetSuggestionsErrorMessage &&
+      !streetSuggestions.length);
+  const canUseTextFallbackForStreet2 =
+    looksLikeRouteCrossReference ||
+    (normalizedCrossStreetQuery.length >= MIN_AUTOCOMPLETE_QUERY_LENGTH &&
+      !selectedCrossStreetSuggestion &&
+      !isLoadingCrossStreetSuggestions &&
+      !crossStreetSuggestionsErrorMessage &&
+      !crossStreetSuggestions.length);
+  const canSearchIntersectionByText =
+    normalizedStreetQuery.length > 0 &&
+    normalizedCrossStreetQuery.length > 0 &&
+    (looksLikeRouteStreetReference ||
+      looksLikeRouteCrossReference ||
+      (canUseTextFallbackForStreet1 && canUseTextFallbackForStreet2));
+  const canSearchIntersection = canSearchIntersectionBySuggestion || canSearchIntersectionByText;
+
+  const resetIntersectionFormState = useCallback(() => {
+    setStreetQuery('');
+    setStreetSuggestions([]);
+    setIsLoadingStreetSuggestions(false);
+    setStreetSuggestionsError(null);
+    setSelectedStreetSuggestion(null);
+    setCrossStreetQuery('');
+    setCrossStreetSuggestions([]);
+    setIsLoadingCrossStreetSuggestions(false);
+    setCrossStreetSuggestionsError(null);
+    setSelectedCrossStreetSuggestion(null);
+  }, []);
 
   useEffect(() => {
     if (!isQueryMode) {
       setAddress('');
-      setVia1('');
-      setVia2('');
+      resetIntersectionFormState();
     }
-  }, [isQueryMode]);
+  }, [isQueryMode, resetIntersectionFormState]);
+
+  useEffect(() => {
+    if (!isQueryMode || zoneQueryType !== 'intersection') {
+      setStreetSuggestions([]);
+      setIsLoadingStreetSuggestions(false);
+      return;
+    }
+
+    const normalizedQuery = streetQuery.trim();
+    if (!canRequestStreetSuggestions) {
+      setStreetSuggestions([]);
+      setIsLoadingStreetSuggestions(false);
+      if (looksLikeRouteStreetReference) {
+        setStreetSuggestionsError(null);
+      }
+      return;
+    }
+
+    if (selectedStreetSuggestion && normalizedQuery === selectedStreetSuggestion.label) {
+      setStreetSuggestions([]);
+      setIsLoadingStreetSuggestions(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingStreetSuggestions(true);
+    setStreetSuggestionsError(null);
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const suggestions = await routesService.suggestStreetCandidates(normalizedQuery);
+        if (!cancelled) {
+          setStreetSuggestions(suggestions);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setStreetSuggestions([]);
+          setStreetSuggestionsError(error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingStreetSuggestions(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [
+    canRequestStreetSuggestions,
+    isQueryMode,
+    looksLikeRouteStreetReference,
+    selectedStreetSuggestion,
+    streetQuery,
+    zoneQueryType,
+  ]);
+
+  useEffect(() => {
+    if (!isQueryMode || zoneQueryType !== 'intersection' || !selectedStreetSuggestion) {
+      setCrossStreetSuggestions([]);
+      setIsLoadingCrossStreetSuggestions(false);
+      return;
+    }
+
+    const normalizedQuery = crossStreetQuery.trim();
+    if (!canRequestCrossStreetSuggestions) {
+      setCrossStreetSuggestions([]);
+      setIsLoadingCrossStreetSuggestions(false);
+      return;
+    }
+
+    if (selectedCrossStreetSuggestion && normalizedQuery === selectedCrossStreetSuggestion.streetLabel) {
+      setCrossStreetSuggestions([]);
+      setIsLoadingCrossStreetSuggestions(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingCrossStreetSuggestions(true);
+    setCrossStreetSuggestionsError(null);
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const suggestions = await routesService.suggestIntersectionOptions(
+          selectedStreetSuggestion.streetId,
+          normalizedQuery
+        );
+        if (!cancelled) {
+          setCrossStreetSuggestions(suggestions);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setCrossStreetSuggestions([]);
+          setCrossStreetSuggestionsError(error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingCrossStreetSuggestions(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [
+    canRequestCrossStreetSuggestions,
+    crossStreetQuery,
+    isQueryMode,
+    selectedCrossStreetSuggestion,
+    selectedStreetSuggestion,
+    zoneQueryType,
+  ]);
 
   const handleToggleQueryMode = () => {
     if (isQueryMode) {
       clearZoneQueries();
+      resetIntersectionFormState();
       setActiveTool('select');
       return;
     }
 
     clearZoneQueries();
+    resetIntersectionFormState();
     setZoneQueryType('routes');
     setActiveTool('zone-query');
   };
 
   const handleClear = () => {
     clearZoneQueries();
+    resetIntersectionFormState();
     setActiveTool('select');
   };
 
   const handleChangeQueryType = (nextType) => {
     setZoneQueryType(nextType);
+    resetIntersectionFormState();
     if (nextType === 'active-zones') {
       fetchActiveZonesReport();
     }
@@ -117,10 +298,52 @@ const ZoneRoutesQueryCard = () => {
 
   const handleIntersectionSubmit = async (event) => {
     event.preventDefault();
+    if (!canSearchIntersection) {
+      return;
+    }
     if (!isQueryMode) {
       setActiveTool('zone-query');
     }
-    await searchRouteByIntersection(via1, via2);
+    if (canSearchIntersectionBySuggestion) {
+      await searchRouteByPoint(
+        Number(selectedCrossStreetSuggestion.lon),
+        Number(selectedCrossStreetSuggestion.lat)
+      );
+      return;
+    }
+
+    await searchRouteByIntersection(normalizedStreetQuery, normalizedCrossStreetQuery);
+  };
+
+  const handleStreetSuggestionSelect = (suggestion) => {
+    if (!suggestion) {
+      return;
+    }
+
+    setZoneQueryType('intersection');
+    setSelectedStreetSuggestion(suggestion);
+    setStreetSuggestionsError(null);
+    setStreetQuery(suggestion.label);
+    setStreetSuggestions([]);
+    setIsLoadingStreetSuggestions(false);
+    setCrossStreetQuery('');
+    setCrossStreetSuggestions([]);
+    setIsLoadingCrossStreetSuggestions(false);
+    setCrossStreetSuggestionsError(null);
+    setSelectedCrossStreetSuggestion(null);
+  };
+
+  const handleCrossStreetSuggestionSelect = (suggestion) => {
+    if (!suggestion) {
+      return;
+    }
+
+    setZoneQueryType('intersection');
+    setSelectedCrossStreetSuggestion(suggestion);
+    setCrossStreetSuggestionsError(null);
+    setCrossStreetQuery(suggestion.streetLabel);
+    setCrossStreetSuggestions([]);
+    setIsLoadingCrossStreetSuggestions(false);
   };
 
   return (
@@ -327,27 +550,160 @@ const ZoneRoutesQueryCard = () => {
               <span className="text-sm text-on-surface">{t('zones.intersectionQuery.via1Label')}</span>
               <input
                 type="text"
-                value={via1}
-                onChange={(event) => setVia1(event.target.value)}
+                value={streetQuery}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  setStreetQuery(nextValue);
+                  if (selectedStreetSuggestion && nextValue !== selectedStreetSuggestion.label) {
+                    setZoneQueryType('intersection');
+                    setSelectedStreetSuggestion(null);
+                    setCrossStreetQuery('');
+                    setCrossStreetSuggestions([]);
+                    setIsLoadingCrossStreetSuggestions(false);
+                    setStreetSuggestionsError(null);
+                    setCrossStreetSuggestionsError(null);
+                    setSelectedCrossStreetSuggestion(null);
+                  }
+                }}
                 placeholder={t('zones.intersectionQuery.via1Placeholder')}
                 className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface"
               />
             </label>
 
+            {isLoadingStreetSuggestions && (
+              <p className="text-sm text-on-surface-variant">
+                {t('zones.intersectionQuery.loadingStreetSuggestions')}
+              </p>
+            )}
+
+            {!isLoadingStreetSuggestions && streetSuggestionsErrorMessage && (
+              <p className="text-sm text-error">{streetSuggestionsErrorMessage}</p>
+            )}
+
+            {!isLoadingStreetSuggestions &&
+              !streetSuggestionsErrorMessage &&
+              canRequestStreetSuggestions &&
+              !selectedStreetSuggestion &&
+              !streetSuggestions.length && (
+                <p className="text-sm text-on-surface-variant">
+                  {t('zones.intersectionQuery.streetEmptySuggestions')}
+                </p>
+              )}
+
+            {!!streetSuggestions.length && (
+              <div className="rounded-xl border border-outline-variant bg-surface-container-low p-2">
+                <p className="px-2 pt-1 text-xs uppercase tracking-wide text-on-surface-variant">
+                  {t('zones.intersectionQuery.streetSuggestionsTitle')}
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {streetSuggestions.map((suggestion) => (
+                    <li key={`${suggestion.streetId}-${suggestion.label}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleStreetSuggestionSelect(suggestion)}
+                        className="w-full rounded-lg px-3 py-2 text-left text-sm text-on-surface hover:bg-surface-container"
+                      >
+                        <span className="block">{suggestion.streetName || suggestion.label}</span>
+                        {!!suggestion.locality && (
+                          <span className="mt-1 block text-xs text-on-surface-variant">{suggestion.label}</span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {selectedStreetSuggestion && (
+              <div className="rounded-xl bg-surface-container-low p-3">
+                <p className="text-xs uppercase tracking-wide text-on-surface-variant">
+                  {t('zones.intersectionQuery.selectedStreetLabel')}
+                </p>
+                <p className="mt-1 text-sm text-on-surface">{selectedStreetSuggestion.label}</p>
+              </div>
+            )}
+
             <label className="flex flex-col gap-1">
               <span className="text-sm text-on-surface">{t('zones.intersectionQuery.via2Label')}</span>
               <input
                 type="text"
-                value={via2}
-                onChange={(event) => setVia2(event.target.value)}
+                value={crossStreetQuery}
+                disabled={!selectedStreetSuggestion && !canUseTextFallbackForStreet1}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  setCrossStreetQuery(nextValue);
+                  if (selectedCrossStreetSuggestion && nextValue !== selectedCrossStreetSuggestion.streetLabel) {
+                    setZoneQueryType('intersection');
+                    setSelectedCrossStreetSuggestion(null);
+                  }
+                  setCrossStreetSuggestionsError(null);
+                }}
                 placeholder={t('zones.intersectionQuery.via2Placeholder')}
-                className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface"
+                className="px-3 py-2 rounded-lg border border-outline bg-transparent text-on-surface disabled:opacity-60"
               />
             </label>
 
+            {!selectedStreetSuggestion && !canUseTextFallbackForStreet1 && (
+              <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.via2DisabledHint')}</p>
+            )}
+
+            {canSearchIntersectionByText && (
+              <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.textFallbackHint')}</p>
+            )}
+
+            {selectedStreetSuggestion && isLoadingCrossStreetSuggestions && (
+              <p className="text-sm text-on-surface-variant">
+                {t('zones.intersectionQuery.loadingCrossSuggestions')}
+              </p>
+            )}
+
+            {selectedStreetSuggestion && !isLoadingCrossStreetSuggestions && crossStreetSuggestionsErrorMessage && (
+              <p className="text-sm text-error">{crossStreetSuggestionsErrorMessage}</p>
+            )}
+
+            {selectedStreetSuggestion &&
+              !isLoadingCrossStreetSuggestions &&
+              !crossStreetSuggestionsErrorMessage &&
+              canRequestCrossStreetSuggestions &&
+              !selectedCrossStreetSuggestion &&
+              !crossStreetSuggestions.length && (
+                <p className="text-sm text-on-surface-variant">
+                  {t('zones.intersectionQuery.crossEmptySuggestions')}
+                </p>
+              )}
+
+            {!!crossStreetSuggestions.length && (
+              <div className="rounded-xl border border-outline-variant bg-surface-container-low p-2">
+                <p className="text-xs uppercase tracking-wide text-on-surface-variant">
+                  {t('zones.intersectionQuery.crossSuggestionsTitle')}
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {crossStreetSuggestions.map((suggestion) => (
+                    <li key={`${suggestion.intersectionLabel}-${suggestion.lon}-${suggestion.lat}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleCrossStreetSuggestionSelect(suggestion)}
+                        className="w-full rounded-lg px-3 py-2 text-left text-sm text-on-surface hover:bg-surface-container"
+                      >
+                        <span className="block">{suggestion.streetLabel}</span>
+                        <span className="mt-1 block text-xs text-on-surface-variant">
+                          {suggestion.intersectionLabel}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={isLoadingIntersectionRoute}
+              disabled={
+                isLoadingIntersectionRoute ||
+                isLoadingStreetSuggestions ||
+                isLoadingCrossStreetSuggestions ||
+                !canSearchIntersection
+              }
               className="self-end px-3 py-2 rounded-lg bg-primary text-on-primary text-sm disabled:opacity-60"
             >
               {isLoadingIntersectionRoute
@@ -356,9 +712,20 @@ const ZoneRoutesQueryCard = () => {
             </button>
           </form>
 
-          {!intersectionRoute && !isLoadingIntersectionRoute && !intersectionQueryErrorMessage && (
-            <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.waitingInput')}</p>
+          {!selectedStreetSuggestion &&
+            !canUseTextFallbackForStreet1 &&
+            !isLoadingStreetSuggestions &&
+            !intersectionQueryErrorMessage && (
+            <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.waitingStreetSelection')}</p>
           )}
+
+          {selectedStreetSuggestion &&
+            !selectedCrossStreetSuggestion &&
+            !canSearchIntersectionByText &&
+            !isLoadingCrossStreetSuggestions &&
+            !intersectionQueryErrorMessage && (
+              <p className="text-sm text-on-surface-variant">{t('zones.intersectionQuery.waitingCrossSelection')}</p>
+            )}
 
           {intersectionQueryErrorMessage && (
             <p className="text-sm text-error">{intersectionQueryErrorMessage}</p>
@@ -370,6 +737,26 @@ const ZoneRoutesQueryCard = () => {
                 <p className="text-xs uppercase tracking-wide text-on-surface-variant">
                   {t('zones.intersectionQuery.foundRoute')}
                 </p>
+                {selectedStreetSuggestion && (
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    {t('zones.intersectionQuery.selectedStreetLabel')}: {selectedStreetSuggestion.label}
+                  </p>
+                )}
+                {!selectedStreetSuggestion && normalizedStreetQuery && (
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    {t('zones.intersectionQuery.selectedStreetLabel')}: {normalizedStreetQuery}
+                  </p>
+                )}
+                {selectedCrossStreetSuggestion && (
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    {t('zones.intersectionQuery.selectedSuggestionLabel')}: {selectedCrossStreetSuggestion.intersectionLabel}
+                  </p>
+                )}
+                {!selectedCrossStreetSuggestion && normalizedCrossStreetQuery && (
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    {t('zones.intersectionQuery.selectedSuggestionLabel')}: {normalizedCrossStreetQuery}
+                  </p>
+                )}
                 <p className="mt-1 font-title-sm text-title-sm text-on-surface">
                   {intersectionRoute.name || `${t('common.routes')} #${intersectionRoute.id}`}
                 </p>
