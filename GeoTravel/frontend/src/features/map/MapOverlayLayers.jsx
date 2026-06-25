@@ -1,3 +1,4 @@
+import AttractionsHeatmapLayer from '@/features/map/layers/AttractionsHeatmapLayer';
 import AttractionsVectorLayer from '@/features/map/layers/AttractionsVectorLayer';
 import AttractionsWmsLayer from '@/features/map/layers/AttractionsWmsLayer';
 import RoutesVectorLayer from '@/features/map/layers/RoutesVectorLayer';
@@ -43,6 +44,11 @@ const MapOverlayLayers = ({
         <AttractionsVectorLayer map={map} attractions={attractions} />
       )}
       {strategy.attractions === 'wms' && <AttractionsWmsLayer map={map} />}
+
+      {/* Mapa de calor de atracciones (se prende/apaga desde el toggle del portal). */}
+      {strategy.attractions === 'vector-primary' && (
+        <AttractionsHeatmapLayer map={map} attractions={attractions} />
+      )}
     </>
   );
 };

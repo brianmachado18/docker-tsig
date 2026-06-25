@@ -26,6 +26,7 @@
   "guest": {
     "title": "Explora Uruguay",
     "subtitle": "Descubre recorridos y atracciones seleccionadas.",
+    "heatmap": "Mapa de calor",
     "filters": "Filtros",
     "clearAll": "Limpiar Todo",
     "availability": "Disponibilidad",
