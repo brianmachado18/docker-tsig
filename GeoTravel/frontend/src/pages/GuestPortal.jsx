@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
+import useHeatmapStore from '@/features/map/heatmapStore';
 import useMapStore from '@/features/map/mapStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
@@ -68,6 +69,9 @@ const GuestPortal = () => {
   const { routes, isLoading: isRoutesLoading, error: routesError, fetchRoutes } = useRoutesStore();
   const { zones, isLoading: isZonesLoading, error: zonesError, fetchZones } = useZonesStore();
   const flyTo = useMapStore((state) => state.flyTo);
+  const heatmapVisible = useHeatmapStore((state) => state.visible);
+  const toggleHeatmap = useHeatmapStore((state) => state.toggle);
+  const setHeatmapVisible = useHeatmapStore((state) => state.setVisible);
   const [routeStatusFilter, setRouteStatusFilter] = useState('all');
   const [requestedDay, setRequestedDay] = useState('');
   const [requestedMonth, setRequestedMonth] = useState('');
@@ -97,6 +101,9 @@ const GuestPortal = () => {
 
     flyTo(selectedMapItem.item.coordinates);
   }, [flyTo, selectedMapItem]);
+
+  // Apagar el mapa de calor al salir del portal (no afecta otras pantallas).
+  useEffect(() => () => setHeatmapVisible(false), [setHeatmapVisible]);
 
   const isLoading = isAttractionsLoading || isRoutesLoading || isZonesLoading;
   const error = attractionsError || routesError || zonesError;
@@ -222,6 +229,21 @@ const GuestPortal = () => {
             onFeatureSelect={setSelectedMapItem}
           />
         </div>
+
+        {/* Toggle del mapa de calor de atracciones (por densidad). */}
+        <button
+          type="button"
+          onClick={toggleHeatmap}
+          aria-pressed={heatmapVisible}
+          className={`absolute bottom-4 left-3 z-40 flex items-center gap-2 rounded-lg border px-3 py-2 font-label-md text-label-md shadow-md backdrop-blur-md transition-colors ${
+            heatmapVisible
+              ? 'border-primary bg-primary text-on-primary'
+              : 'border-outline-variant bg-surface/90 text-on-surface hover:bg-surface-variant'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">whatshot</span>
+          {t('guest.heatmap')}
+        </button>
 
         {selectedMapItem && (
           <section className="absolute top-20 left-3 right-3 sm:top-24 sm:left-4 sm:right-auto z-40 sm:w-[360px] max-w-[calc(100vw-1.5rem)] flex flex-col gap-3 rounded-lg border border-primary/30 bg-surface/95 backdrop-blur-md p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
