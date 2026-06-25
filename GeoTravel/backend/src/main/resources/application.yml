@@ -23,6 +23,8 @@ geoserver:
   url: ${GEOSERVER_URL:http://localhost:8081/geoserver}
 
 geocoding:
-  nominatim:
-    url: ${GEOCODING_NOMINATIM_URL:https://nominatim.openstreetmap.org}
-    user-agent: ${GEOCODING_USER_AGENT:GeoTravel/1.0 (tsig local project)}
+  ide:
+    base-url: ${GEOCODING_IDE_BASE_URL:https://direcciones.ide.uy}
+    user-agent: ${GEOCODING_IDE_USER_AGENT:${GEOCODING_USER_AGENT:GeoTravel/1.0 (tsig local project)}}
+    request-timeout-ms: ${GEOCODING_IDE_REQUEST_TIMEOUT_MS:10000}
+    insecure: ${GEOCODING_IDE_INSECURE:true}

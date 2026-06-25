@@ -285,26 +285,71 @@ const useZonesStore = create((set, get) => ({
     }
   },
 
-  searchRouteByIntersection: async (via1, via2) => {
-    const normalizedVia1 = String(via1 || '').trim();
-    const normalizedVia2 = String(via2 || '').trim();
-
-    if (!normalizedVia1) {
+  searchRouteByPoint: async (lon, lat) => {
+    if (!Number.isFinite(Number(lon)) || !Number.isFinite(Number(lat))) {
       set({
         intersectionRouteResult: null,
         zoneRoutes: [],
         visibleZoneIds: null,
-        intersectionQueryError: { message: 'Via 1 requerida.' },
+        intersectionQueryError: { message: 'Coordenadas invalidas.' },
       });
       return null;
     }
 
-    if (!normalizedVia2) {
+    set({
+      zoneQueryType: 'intersection',
+      selectedZoneForRoutes: null,
+      selectedZoneByAddress: null,
+      selectedActiveZone: null,
+      activeZonesReport: [],
+      intersectionRouteResult: null,
+      zoneRoutes: [],
+      visibleZoneIds: null,
+      isLoadingZoneRoutes: false,
+      isLoadingAddressZone: false,
+      isLoadingIntersectionRoute: true,
+      routeQueryError: null,
+      addressQueryError: null,
+      intersectionQueryError: null,
+    });
+
+    try {
+      const { routesService } = await import('@/features/routes/routesService');
+      const intersectionRouteResult = await routesService.findByPoint(lon, lat);
+      const zoneRoutes = intersectionRouteResult?.route ? [intersectionRouteResult.route] : [];
+      const visibleZoneIds = getVisibleZoneIdsFromRoutes(zoneRoutes);
+
+      set({
+        zoneQueryType: 'intersection',
+        intersectionRouteResult,
+        zoneRoutes,
+        visibleZoneIds,
+        isLoadingIntersectionRoute: false,
+      });
+
+      return intersectionRouteResult;
+    } catch (error) {
       set({
         intersectionRouteResult: null,
         zoneRoutes: [],
         visibleZoneIds: null,
-        intersectionQueryError: { message: 'Via 2 requerida.' },
+        isLoadingIntersectionRoute: false,
+        intersectionQueryError: error,
+      });
+      return null;
+    }
+  },
+
+  searchRouteByIntersection: async (via1, via2) => {
+    const normalizedVia1 = String(via1 || '').trim();
+    const normalizedVia2 = String(via2 || '').trim();
+
+    if (!normalizedVia1 || !normalizedVia2) {
+      set({
+        intersectionRouteResult: null,
+        zoneRoutes: [],
+        visibleZoneIds: null,
+        intersectionQueryError: { message: 'Las dos referencias son obligatorias.' },
       });
       return null;
     }

@@ -101,6 +101,32 @@ const toDto = (route) => ({
   atracciones: Array.isArray(route.attractionIds) ? route.attractionIds : [],
 });
 
+const normalizeIntersectionQueryResult = (result) => {
+  if (!result) {
+    return null;
+  }
+
+  return {
+    route: result.recorrido ? normalizeRoute(result.recorrido) : null,
+    zones: Array.isArray(result.zonas)
+      ? result.zonas.map((zone) => ({
+          id: zone.id ?? zone.idZona,
+          name: zone.name ?? zone.nombre ?? '',
+          description: zone.description ?? zone.descripcion ?? '',
+          attractionLevel: zone.attractionLevel ?? zone.nivelAtractivo ?? 1,
+          notes: zone.notes ?? zone.observaciones ?? '',
+          geomWkt: zone.geomWkt ?? '',
+          routeIds: zone.routeIds ?? zone.recorridos ?? [],
+        }))
+      : [],
+    distanceMeters: result.distanciaMetros ?? null,
+    totalRoutesEvaluated: result.totalRecorridosEvaluados ?? null,
+    intersectionPointWkt: result.puntoInterseccionWkt ?? null,
+    kmRoute1: result.kmRuta1 ?? null,
+    kmRoute2: result.kmRuta2 ?? null,
+  };
+};
+
 export const routesService = {
   async list() {
     const routes = await apiClient.get('/recorrido/buscar/todos');
@@ -112,34 +138,65 @@ export const routesService = {
     return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
   },
 
-  async findByIntersection(via1, via2) {
+  async findByPoint(lon, lat) {
     const result = await apiClient.get(
-      `/recorrido/buscar/porInterseccion?via1=${encodeURIComponent(via1)}&via2=${encodeURIComponent(via2)}`
+      `/recorrido/buscar/porPunto?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}`
     );
 
-    if (!result) {
+    return normalizeIntersectionQueryResult(result);
+  },
+
+  async findByIntersection(via1, via2) {
+    const normalizedVia1 = String(via1 || '').trim();
+    const normalizedVia2 = String(via2 || '').trim();
+    if (!normalizedVia1 || !normalizedVia2) {
       return null;
     }
 
-    return {
-      route: result.recorrido ? normalizeRoute(result.recorrido) : null,
-      zones: Array.isArray(result.zonas)
-        ? result.zonas.map((zone) => ({
-            id: zone.id ?? zone.idZona,
-            name: zone.name ?? zone.nombre ?? '',
-            description: zone.description ?? zone.descripcion ?? '',
-            attractionLevel: zone.attractionLevel ?? zone.nivelAtractivo ?? 1,
-            notes: zone.notes ?? zone.observaciones ?? '',
-            geomWkt: zone.geomWkt ?? '',
-            routeIds: zone.routeIds ?? zone.recorridos ?? [],
-          }))
-        : [],
-      distanceMeters: result.distanciaMetros ?? null,
-      totalRoutesEvaluated: result.totalRecorridosEvaluados ?? null,
-      intersectionPointWkt: result.puntoInterseccionWkt ?? null,
-      kmRoute1: result.kmRuta1 ?? null,
-      kmRoute2: result.kmRuta2 ?? null,
-    };
+    const result = await apiClient.get(
+      `/recorrido/buscar/porInterseccion?via1=${encodeURIComponent(normalizedVia1)}&via2=${encodeURIComponent(normalizedVia2)}`
+    );
+
+    return normalizeIntersectionQueryResult(result);
+  },
+
+  async suggestStreetCandidates(query) {
+    if (!String(query || '').trim()) {
+      return [];
+    }
+
+    const suggestions = await apiClient.get(
+      `/recorrido/buscar/sugerenciasCalles?query=${encodeURIComponent(query)}`
+    );
+
+    return Array.isArray(suggestions)
+      ? suggestions.map((suggestion) => ({
+          streetId: suggestion.streetId,
+          label: suggestion.label ?? '',
+          streetName: suggestion.streetName ?? '',
+          locality: suggestion.locality ?? '',
+          department: suggestion.department ?? '',
+        }))
+      : [];
+  },
+
+  async suggestIntersectionOptions(streetId, query) {
+    if (!Number.isFinite(Number(streetId)) || !String(query || '').trim()) {
+      return [];
+    }
+
+    const suggestions = await apiClient.get(
+      `/recorrido/buscar/sugerenciasCruces?streetId=${encodeURIComponent(streetId)}&query=${encodeURIComponent(query)}`
+    );
+
+    return Array.isArray(suggestions)
+      ? suggestions.map((suggestion) => ({
+          streetLabel: suggestion.streetLabel ?? '',
+          intersectionLabel: suggestion.intersectionLabel ?? '',
+          lon: suggestion.lon,
+          lat: suggestion.lat,
+        }))
+      : [];
   },
 
   async save(route) {
