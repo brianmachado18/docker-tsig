@@ -4,6 +4,7 @@ import com.example.geotravel.model.Recorrido;
 import com.example.geotravel.model.Zona;
 import com.example.geotravel.enums.Estado;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -60,5 +61,17 @@ public interface RecorridoRepository extends JpaRepository<Recorrido, Long> {
             @Param("lon") double lon,
             @Param("lat") double lat
     );
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Recorrido r SET r.fechaInicio = r.fechaInicio + 1 year, r.fechaFin = r.fechaFin + 1 year WHERE r.fechaInicio < CURRENT_DATE AND r.fechaFin < CURRENT_DATE")
+    int updateFechas();
+
+    @Modifying(clearAutomatically = true)
+    @Query("SELECT DISTINCT r FROM Recorrido r WHERE r.estado != 'FUERA_DE_ESTACION' AND r.fechaInicio > CURRENT_DATE AND r.fechaFin > CURRENT_DATE")
+    List<Recorrido> updateEstadoRecorridoFuera();
+
+    @Modifying(clearAutomatically = true)
+    @Query("SELECT DISTINCT r FROM Recorrido r WHERE r.estado = 'FUERA_DE_ESTACION' AND r.fechaInicio < CURRENT_DATE AND r.fechaFin > CURRENT_DATE")
+    List<Recorrido> updateEstadoRecorridoDentro();
 
 }
