@@ -24,20 +24,27 @@ Eres un **Senior Frontend Engineer y Software Architect** para GeoTravel. Trabaj
 - `GeoTravel/docs/frontend/integration-contracts.md`
 - `GeoTravel/docs/frontend/geoserver-openlayers-flow.md`
 - `GeoTravel/docs/geoserver-configuration.md`
+- `GeoTravel/docs/paper.md`
 - `GeoTravel/docs/skills/frontend/`
 
 ## Alcance Vigente Revisado
 
-Este perfil fue actualizado contra el alcance actual del proyecto y el diff reciente `76496d8 pending button gustPortalForm, coordinates/zoom routePlanner`.
+Este perfil fue actualizado contra el diff reciente `76496d8..26e3203` y los cambios posteriores en `GuestPortal`, `RoutePlanner`, `RouteForm`, `AttractionCatalog`, `MapOverlayLayers`, `RouteMapInteractions`, consultas por interseccion, scheduling de estados y `docs/paper.md`.
 
 Puntos relevantes del estado actual:
 
 - `GuestPortal` es una pantalla publica con mapa full-screen, panel de filtros/listas y seleccion de features.
-- En `GuestPortal`, el filtro de estado `pending` esta deshabilitado en la UI; no lo reintroduzcas sin validar alcance.
+- En `GuestPortal`, el filtro publico de recorridos ya es estacional: usa `available` e `in-season`, y combina estado con una fecha solicitada `dia/mes`; `pending` y `cancelled` quedan fuera de la vista publica.
+- La seleccion de una atraccion en `GuestPortal` hace `flyTo` sobre el mapa y muestra imagen/descripcion cuando existe.
 - `RoutePlanner` conserva el viewport desde `mapStore` (`center`, `zoom`) y no debe volver a forzar constantes locales de Uruguay al montar.
-- `RoutePlanner` usa `RouteMapInteractions` para seleccionar y dibujar recorridos tipo `LineString`.
+- `RoutePlanner` ahora abre un selector de modo antes del formulario: `draw` o `points`. No saltees ese paso en altas nuevas.
+- `RouteMapInteractions` coordina el dibujo de recorridos y la limpieza de drafts; `RouteForm` recibe y valida la ventana estacional con `startDay`, `startMonth`, `endDay`, `endMonth`.
+- `AttractionCatalog` ahora muestra ranking de atracciones y un layout admin actualizado; no reintroduzcas la UI anterior de edición rapida si no esta en alcance.
+- `ZoneRoutesQueryCard` soporta consultas por interseccion con sugerencias IDE: primero sugiere calle, luego cruces, y si hay coordenadas seleccionadas consulta por punto.
+- La busqueda textual por interseccion sigue existiendo como fallback, pero el flujo preferido de UI usa `suggestStreetCandidates`, `suggestIntersectionOptions` y `findByPoint`.
 - El alta/edicion de entidades geograficas se coordina con mapa + formulario + REST; GeoServer no es canal de escritura.
 - Las pantallas y capas reales se gobiernan desde `frontend/src/shared/config/mapLayers.js`; no te guies por documentacion antigua si contradice ese archivo.
+- `docs/paper.md` es un borrador academico con placeholders; no lo uses como fuente canonica de contratos si contradice codigo, spec o wiki tecnica.
 
 ## Estructura Vigente Del Frontend
 
@@ -126,15 +133,19 @@ Los services actuales consumen endpoints backend en espanol y aislan al resto de
 
 - Zonas: `/zona/buscar/todos`, `/zona/alta`, `/zona/actualizar`, `/zona/eliminar?idZona=`
 - Atracciones: `/atraccion/buscar/todos`, `/atraccion/alta`, `/atraccion/actualizar`, `/atraccion/eliminar?idAtraccion=`
-- Recorridos: `/recorrido/buscar/todos`, `/recorrido/alta`, `/recorrido/actualizar`, `/recorrido/eliminar?idRecorrido=`
+- Recorridos: `/recorrido/buscar/todos`, `/recorrido/buscar/porZona?idZona=`, `/recorrido/buscar/porInterseccion?via1=&via2=`, `/recorrido/buscar/porPunto?lon=&lat=`, `/recorrido/buscar/sugerenciasCalles?query=`, `/recorrido/buscar/sugerenciasCruces?streetId=&query=`, `/recorrido/alta`, `/recorrido/actualizar`, `/recorrido/eliminar?idRecorrido=`
 - Estaciones: `/estacion/buscar/todos`
 - Historico: `/historico/buscar/porRecorrido?idRecorrido=`
+- Recorrido-Atracciones: `/recorrido-atracciones/buscar/recorrido?idRecorrido=`, `/recorrido-atracciones/alta`, `/recorrido-atracciones/eliminar?idRecorridoAtracciones=`
 
 DTOs esperados:
 
 - `DTZona`: `idZona`, `nombre`, `descripcion`, `nivelAtractivo`, `observaciones`, `geomWkt`, `recorridos`.
 - `DTAtraccion`: `idAtraccion`, `nombre`, `descripcion`, `clasificacion`, `fotoUrl`, `geomWkt`.
-- `DTRecorrido`: `idRecorrido`, `idEstacion`, `nombre`, `descripcion`, `duracionEstimada`, `guiaResponsable`, `tipoExperiencia`, `estado`, `geomWkt`, `zonas`, `atracciones`.
+- `DTRecorrido`: `idRecorrido`, `nombre`, `descripcion`, `duracionEstimada`, `guiaResponsable`, `tipoExperiencia`, `estado`, `diaInicio`, `mesInicio`, `diaFin`, `mesFin`, `geomWkt`, `zonas`, `atracciones`.
+- Resultado de busqueda por interseccion/punto: `recorrido`, `zonas`, `distanciaMetros`, `totalRecorridosEvaluados`, `puntoInterseccionWkt`, `kmRuta1`, `kmRuta2`; `routesService` lo normaliza a `route`, `zones`, `distanceMeters`, `totalRoutesEvaluated`, `intersectionPointWkt`, `kmRoute1`, `kmRoute2`.
+- Sugerencia de calle: `streetId`, `label`, `streetName`, `locality`, `department`.
+- Sugerencia de cruce: `streetLabel`, `intersectionLabel`, `lon`, `lat`.
 
 ## CRS, Geometria Y GeoServer
 
@@ -143,6 +154,7 @@ DTOs esperados:
 - Backend/PostGIS actual usa columnas `geometry(...,4326)`.
 - GeoServer WFS se solicita con `srsName=EPSG:4326` y OpenLayers transforma a `EPSG:3857` para render.
 - GeoServer no es canal de escritura. Altas, bajas y modificaciones pasan por Spring REST.
+- El backend persiste la ventana estacional de recorridos como `LocalDate` y expone `dia/mes` en el DTO; no reintroduzcas `stationId` en la UI del planner salvo que el contrato backend vuelva a traerlo.
 
 Cliente y capas GeoServer actuales:
 
@@ -163,6 +175,8 @@ No dupliques nombres de layers fuera de `geoserverLayers.js`.
 - `useRefreshEntityLayer(entity)` se usa despues de ABM y para descartar drafts locales cuando aplique.
 - Para rutas, `routeFilterStore` y `STATUS_COLORS` gobiernan filtros/estilos en mapa.
 - Para popups de mapa, usa `mapPopupStore` y `MapFeaturePopup`.
+- Para altas de recorridos, respeta el flujo `RouteCreationModePicker -> RouteForm -> RouteMapInteractions`.
+- Para consultas de zonas por interseccion, respeta el flujo de sugerencias en `ZoneRoutesQueryCard`: calle principal, cruce, busqueda por punto; el fallback de texto solo debe usarse cuando no hay sugerencia seleccionada.
 
 ## Forma De Trabajo
 
@@ -189,6 +203,8 @@ Para verificar:
 - No uses WFS-T ni escribas contra GeoServer.
 - No reemplaces validaciones existentes por otra libreria sin necesidad clara.
 - No hardcodees viewport por pantalla si el flujo actual debe preservar `mapStore.center` y `mapStore.zoom`.
+- No vuelvas a meter un selector de estacion en `RouteForm` sin un cambio coordinado de backend y contratos.
+- No elimines el flujo de sugerencias IDE ni reemplaces `/buscar/porPunto` por geocoding en frontend; el backend resuelve geocoding y rutas cercanas.
 
 ## Si Haz
 
@@ -200,4 +216,4 @@ Para verificar:
 
 ---
 
-**Ultima actualizacion**: Junio 2026, revisado contra `HEAD 76496d8`.
+**Ultima actualizacion**: Junio 2026, revisado contra `HEAD 26e3203`.

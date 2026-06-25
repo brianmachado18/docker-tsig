@@ -14,22 +14,17 @@
 \[email@address\]
 
 **RESUMEN**
-
-\[En el resumen se presentan, de forma breve, la motivación, contribución y resultados del trabajo. No extenderse demasiado. Por Ejemplo: cada vez aparecen más aplicaciones que usan Información Geográfica y eso genera que aparezcan nuevos estándares… Este proyecto se centra en investigar el estándar/producto… \] \[Un par de oraciones describiendo los principales resultados y contribuciones del trabajo\].
+GeoTravel es una aplicación web SIG orientada a la gestión de recorridos turísticos sobre un mapa interactivo, que integra visualización, edición y consulta espacial de rutas, zonas y atracciones. La solución implementa dos formas de diseño de recorridos: dibujo manual de la geometría sobre el mapa y armado a partir de paradas seleccionadas, con cálculo automático del trazado sobre calles reales mediante servicios de ruteo, optimización del orden de las paradas y persistencia de atributos operativos como estado, duración, guía y vigencia estacional. 
 
 **Palabras Clave**
-
-GIS, Servicios Web GIS, Servicios Web \[, otras…\]
+GIS, Servicios Web GIS, Servicios Web, GeoServer, OpenLayers, Spring Boot, Docker, Postgis 
 
 # INTRODUCCIÓN
+Las aplicaciones geográficas de uso general ofrecen una cobertura amplia, pero no siempre brindan información suficiente para contextos locales específicos. En el caso del turismo en Uruguay, esto se vuelve especialmente visible: aunque herramientas como Google Maps permiten ubicarse y orientarse, buena parte de la información relevante depende de aportes de la comunidad y no siempre aparece integrada de forma completa o consistente.
 
-\[Motivación más extendida que en el resumen.\]
+GeoTravel busca cubrir ese vacío mediante una aplicación web SIG centrada en el territorio uruguayo, que reúne en un solo lugar atracciones, recorridos y zonas turísticas. De este modo, el usuario accede a información organizada y contextualizada, con opciones para explorar destinos y consultar indicaciones de manera más directa. El trabajo se enmarca en la edición 2026 de la asignatura Taller de Sistemas de Información Geográficos Empresariales.
 
-\[Describir resumidamente los desafíos del proyecto planteado y las características del trabajo realizado (Investigación, prueba de productos) y adelantar los resultados\]
-
-\[Se puede mencionar que el trabajo se plantea en el marco de la edición 2012 de la asignatura Taller de Sistemas de Información Geográficos Empresariales.\]
-
-El resto del documento se organiza de la siguiente manera. La sección 2 presenta \[…\]. En la sección 3 \[…\]. Por último, en la sección \[…\] se presentan las conclusiones del trabajo.
+(Pendiente de completar)__El resto del documento se organiza de la siguiente manera. La sección 2 presenta \[…\]. En la sección 3 \[…\]. Por último, en la sección \[…\] se presentan las conclusiones del trabajo.__
 
 # MARCO CONCEPTUAL
 

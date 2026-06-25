@@ -33,12 +33,13 @@ Docs que debes revisar antes de decidir contratos:
 - `GeoTravel/docs/project-technical-wiki.md`
 - `GeoTravel/docs/frontend/integration-contracts.md`
 - `GeoTravel/docs/geoserver-configuration.md`
+- `GeoTravel/docs/paper.md`
 - `GeoTravel/frontend/src/shared/config/mapLayers.js`
 - `GeoTravel/frontend/src/features/map/services/geoserver/geoserverLayers.js`
 
 ## Alcance Vigente Revisado
 
-Este perfil fue actualizado contra el alcance actual del proyecto y el diff reciente `76496d8 pending button gustPortalForm, coordinates/zoom routePlanner`.
+Este perfil fue actualizado contra el diff reciente `76496d8..26e3203` y los cambios posteriores en `GuestPortal`, `RoutePlanner`, `RouteForm`, consultas por interseccion/punto, geocoding IDE, scheduling automatico de estados y `docs/paper.md`.
 
 Estado relevante:
 
@@ -46,8 +47,15 @@ Estado relevante:
 - `GuestPortal` usa capas `vector-primary` desde estado REST/Zustand para zonas, recorridos y atracciones.
 - `RoutePlanner` usa `routes` por WFS para seleccionar/dibujar recorridos y `attractions` por WMS como referencia.
 - `RoutePlanner` preserva `mapStore.center` y `mapStore.zoom`; no debe depender de constantes locales de viewport.
+- El flujo de altas de recorridos ya no depende de `idEstacion` en la UI principal: `DTRecorrido` expone `diaInicio`, `mesInicio`, `diaFin`, `mesFin` y el backend deriva `fechaInicio`/`fechaFin` como `LocalDate`.
+- `RoutePlanner` abre un selector de modo antes del formulario (`draw` o `points`) y `RouteMapInteractions` limpia drafts de dibujo al cancelar o cerrar.
 - El filtro `pending` del portal publico esta deshabilitado en UI; no propongas cambios backend para esa exposicion sin confirmar alcance.
 - El backend actual persiste geometria como JTS `geometry(...,4326)` en las entidades, no como `32721`.
+- Las paradas de un recorrido se persisten en `RecorridoAtracciones` con orden estable; cuando cambies recorridos, respeta ese orden al leer o escribir contratos.
+- `GeocodingService` usa el servicio IDE Uruguay (`https://direcciones.ide.uy`) para direcciones, calles y cruces; no vuelvas a Nominatim ni a ejes locales sin validar alcance.
+- La consulta por interseccion puede resolverse por texto (`via1`/`via2`) o por punto (`lon`/`lat`) cuando la UI selecciona una sugerencia de cruce.
+- `UpdateDiarioService` corre todos los dias a las 00:00 `America/Montevideo` y actualiza fechas/estados estacionales de recorridos; coordina cualquier cambio de estado con `HistoricoService`.
+- `docs/paper.md` es un borrador academico con placeholders; no lo trates como fuente canonica de contratos si contradice codigo, spec o wiki tecnica.
 - Hay documentacion historica contradictoria sobre CRS y nombres de capas. Cuando haya conflicto, verifica contra modelos backend, `geoserverLayers.js`, `mapLayers.js` y `docs/project-technical-wiki.md` antes de implementar.
 
 ## Contratos Con Frontend Actual
@@ -140,6 +148,13 @@ Debes respetar la letra del proyecto:
   - puntos dentro de zonas
   - puntos mas populares
 
+Nota operativa:
+
+- `Recorrido` persiste la ventana estacional como `fechaInicio` y `fechaFin` en `LocalDate`, construidas desde el DTO por dia/mes.
+- `RecorridoAtracciones` es la tabla de union para las paradas ordenadas del recorrido.
+- Las temporadas que cruzan de anio ajustan `fechaFin` con `plusYears(1)`; si el recorrido queda fuera de la ventana actual, el backend lo marca `FUERA_DE_ESTACION` y mueve la ventana al siguiente ciclo anual.
+- `UpdateDiarioService` vuelve a poner recorridos en `PENDIENTE` cuando entran en temporada y registra cambios en historico.
+
 ## Base De Datos, CRS Y PostGIS
 
 El backend actual usa JTS y columnas:
@@ -154,6 +169,8 @@ Politica vigente:
 - Frontend/API intercambian `geomWkt` en `EPSG:4326`.
 - Backend/PostGIS actual persiste en `geometry(...,4326)`.
 - GeoServer WFS debe poder devolver features con `srsName=EPSG:4326`.
+- El backend construye `fechaInicio`/`fechaFin` a partir de `diaInicio`, `mesInicio`, `diaFin`, `mesFin`; la validacion de fechas invalidas y temporadas cruzando anio vive en `RecorridoService`.
+- Para distancias con `4326`, los repositorios usan casteo a `geography` o consultas PostGIS equivalentes; conserva esa regla cuando agregues busquedas por punto/interseccion.
 
 No asumas `EPSG:32721` como persistencia actual. Si una tarea requiere migrar a un SRID proyectado para mediciones, debes proponer migracion completa: DDL, transformaciones, seeds, repositorios, GeoServer y adaptadores frontend.
 
@@ -199,6 +216,10 @@ Endpoints actuales consumidos por frontend:
   - `GET /recorrido/buscar/todos`
   - `GET /recorrido/buscar/id?id=<id>`
   - `GET /recorrido/buscar/porZona?idZona=<id>`
+  - `GET /recorrido/buscar/porInterseccion?via1=<ref>&via2=<ref>`
+  - `GET /recorrido/buscar/porPunto?lon=<lon>&lat=<lat>`
+  - `GET /recorrido/buscar/sugerenciasCalles?query=<texto>`
+  - `GET /recorrido/buscar/sugerenciasCruces?streetId=<id>&query=<texto>`
   - `POST /recorrido/alta`
   - `PUT /recorrido/actualizar`
   - `PUT /recorrido/cambiarEstado?idRecorrido=<id>&estado=<estado>`
@@ -216,7 +237,10 @@ DTOs actuales:
 
 - `DTZona`: `idZona`, `nombre`, `descripcion`, `nivelAtractivo`, `observaciones`, `geomWkt`, `recorridos`.
 - `DTAtraccion`: `idAtraccion`, `nombre`, `descripcion`, `clasificacion`, `fotoUrl`, `geomWkt`.
-- `DTRecorrido`: `idRecorrido`, `idEstacion`, `nombre`, `descripcion`, `duracionEstimada`, `guiaResponsable`, `tipoExperiencia`, `estado`, `geomWkt`, `zonas`, `atracciones`.
+- `DTRecorrido`: `idRecorrido`, `nombre`, `descripcion`, `duracionEstimada`, `guiaResponsable`, `tipoExperiencia`, `estado`, `diaInicio`, `mesInicio`, `diaFin`, `mesFin`, `geomWkt`, `zonas`, `atracciones`.
+- `DTBusquedaRecorridoInterseccion`: `recorrido`, `zonas`, `distanciaMetros`, `totalRecorridosEvaluados`, `puntoInterseccionWkt`, `kmRuta1`, `kmRuta2`.
+- Sugerencias de calles: `streetId`, `label`, `streetName`, `locality`, `department`.
+- Sugerencias de cruces: `streetLabel`, `intersectionLabel`, `lon`, `lat`.
 
 Criterios:
 
@@ -226,6 +250,8 @@ Criterios:
 - Transacciones en operaciones de edicion geoespacial.
 - SQL nativo o repositorios especializados cuando PostGIS lo justifique.
 - Contratos JSON faciles de consumir desde React/OpenLayers.
+- Geocoding IDE configurable por `GEOCODING_IDE_BASE_URL`, `GEOCODING_IDE_USER_AGENT`, `GEOCODING_IDE_REQUEST_TIMEOUT_MS`, `GEOCODING_IDE_INSECURE`.
+- Los endpoints de sugerencias devuelven `503 SERVICE_UNAVAILABLE` cuando falla el proveedor IDE; el frontend debe mostrar error de sugerencias sin romper la pantalla.
 
 ## GeoServer
 
@@ -363,6 +389,8 @@ Para verificar:
 - No asumas `32721` ni nombres de capa historicos sin verificar contra el codigo actual.
 - No uses WFS-T ni escritura directa contra GeoServer.
 - No cambies puertos Docker sin explicar impacto.
+- No reemplaces el proveedor IDE ni el flujo `/sugerenciasCalles` -> `/sugerenciasCruces` -> `/porPunto` sin coordinar el contrato con frontend.
+- No modifiques el scheduling de estados sin revisar `HistoricoService`, transacciones y zona horaria `America/Montevideo`.
 
 ## Si Haz
 
@@ -376,4 +404,4 @@ Para verificar:
 
 ---
 
-**Ultima actualizacion**: Junio 2026, revisado contra `HEAD 76496d8`.
+**Ultima actualizacion**: Junio 2026, revisado contra `HEAD 26e3203`.
