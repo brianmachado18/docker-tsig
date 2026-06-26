@@ -70,6 +70,7 @@ const GuestPortal = () => {
   const { routes, isLoading: isRoutesLoading, error: routesError, fetchRoutes } = useRoutesStore();
   const { zones, isLoading: isZonesLoading, error: zonesError, fetchZones } = useZonesStore();
   const flyTo = useMapStore((state) => state.flyTo);
+  const restoreViewport = useMapStore((state) => state.restoreViewport);
   const heatmapVisible = useHeatmapStore((state) => state.visible);
   const toggleHeatmap = useHeatmapStore((state) => state.toggle);
   const setHeatmapVisible = useHeatmapStore((state) => state.setVisible);
@@ -216,6 +217,13 @@ const GuestPortal = () => {
     setRequestedMonth('');
   };
 
+  const closeMapSelection = () => {
+    if (selectedMapItem?.type === 'attraction') {
+      restoreViewport();
+    }
+    setSelectedMapItem(null);
+  };
+
   return (
     <div className="bg-background text-on-background h-screen overflow-hidden font-body-md flex">
       <main className="flex-1 relative flex flex-col h-full bg-surface-container-lowest">
@@ -261,7 +269,7 @@ const GuestPortal = () => {
                 className="shrink-0 rounded-full p-1.5 text-on-surface-variant hover:bg-surface-variant"
                 type="button"
                 aria-label={t('guest.closeSelection')}
-                onClick={() => setSelectedMapItem(null)}
+                onClick={closeMapSelection}
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -395,28 +403,23 @@ const GuestPortal = () => {
               )}
               <div className="grid grid-cols-1 gap-4">
                 {featuredRoutes.map((route) => (
-                  <div key={route.id} className="bg-surface rounded-xl overflow-hidden border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                    <div className="h-32 w-full relative overflow-hidden bg-surface-variant flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[48px] text-outline opacity-20">landscape</span>
-                      <div
-                        className="absolute top-2 right-2 px-2 py-1 bg-surface/90 backdrop-blur rounded font-mono-label text-[10px] flex items-center gap-1 shadow-sm"
-                        style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
-                      >
-                        <span
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
-                        />
-                        {STATUS_LABELS[route.status] || route.status}
-                      </div>
-                    </div>
+                  <div key={route.id} className="bg-surface rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
                     <div className="p-4 flex flex-col gap-2">
-                      <h5 className="font-headline-md text-[16px] leading-tight text-primary font-semibold">{route.name}</h5>
+                      <div className="flex items-start justify-between gap-3">
+                        <h5 className="font-headline-md text-[16px] leading-tight text-primary font-semibold">{route.name}</h5>
+                        <div
+                          className="shrink-0 px-2 py-1 bg-surface-variant rounded font-mono-label text-[10px] flex items-center gap-1"
+                          style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                          />
+                          {STATUS_LABELS[route.status] || route.status}
+                        </div>
+                      </div>
                       <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">{route.description}</p>
                       <div className="flex items-center gap-4 mt-1">
-                        <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
-                          <span className="material-symbols-outlined text-[14px]">map</span>
-                          {route.stops?.length || 0} {t('guest.stops')}
-                        </span>
                         <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
                           <span className="material-symbols-outlined text-[14px]">timer</span>
                           {route.durationHours} {t('guest.hours')}
