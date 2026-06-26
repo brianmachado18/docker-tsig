@@ -6,6 +6,7 @@ import useMapStore from '@/features/map/mapStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
 import useZonesStore from '@/features/zones/zonesStore';
+import StarRating from '@/shared/components/StarRating';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
 
@@ -277,7 +278,7 @@ const GuestPortal = () => {
                 {selectedMapItem.item.description}
               </p>
             )}
-            <div className="flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               {selectedMapItem.type === 'attraction' && selectedMapItem.item?.category && (
                 <span className="rounded-full border border-outline-variant bg-surface px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
                   {getAttractionCategoryLabel(selectedMapItem.item.category)}
@@ -297,10 +298,19 @@ const GuestPortal = () => {
               )}
               {selectedMapItem.type === 'zone' && selectedMapItem.item?.attractionLevel ? (
                 <span className="rounded-full border border-outline-variant bg-surface px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
-                  {t('guest.attractionLevel')} {selectedMapItem.item.attractionLevel}
+                  <span className="inline-flex items-center gap-2">
+                    <span>{t('guest.attractionLevel')}</span>
+                    <StarRating
+                      value={selectedMapItem.item.attractionLevel}
+                      readonly
+                      sizeClassName="text-[16px]"
+                      className="gap-0.5"
+                      ariaLabel={`${t('guest.attractionLevel')}: ${selectedMapItem.item.attractionLevel} de 5`}
+                    />
+                  </span>
                 </span>
               ) : null}
-              {selectedMapItem.item?.status && (
+              {selectedMapItem.item?.status && selectedMapItem.type !== 'zone' && (
                 <span className="rounded-full border border-outline-variant bg-surface px-2.5 py-1 font-mono-label text-mono-label text-on-surface">
                   {selectedMapItem.type === 'route'
                     ? getRouteStatusLabel(selectedMapItem.item.status)

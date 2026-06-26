@@ -5,6 +5,7 @@ import useRoutesStore from '@/features/routes/routesStore';
 import useAttractiosnStore from '@/features/attractions/attractionsStore';
 import { validateZoneForm } from '@/features/zones/zoneValidation';
 import useZonesStore from '@/features/zones/zonesStore';
+import StarRating from '@/shared/components/StarRating';
 import useLangStore from '@/shared/i18n/langStore';
 import { getApiErrorMessage } from '@/shared/lib/forms/validation';
 
@@ -176,14 +177,16 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
 
         <label className="flex flex-col gap-1">
           <span className="font-label-md text-label-md text-on-surface">{t('zones.attractionLevel')}</span>
-          <input
-            className="px-3 py-2 border border-outline rounded-lg bg-transparent"
-            type="number"
-            min={1}
-            max={5}
-            value={attractionLevel}
-            onChange={(event) => setAttractionLevel(event.target.value)}
-          />
+          <div className="flex items-center gap-3 rounded-lg border border-outline px-3 py-2">
+            <StarRating
+              value={attractionLevel}
+              onChange={setAttractionLevel}
+              ariaLabel={t('zones.attractionLevel')}
+            />
+            <span className="font-label-md text-label-md text-on-surface-variant">
+              {attractionLevel}/5
+            </span>
+          </div>
         </label>
 
         <label className="flex flex-col gap-1">
