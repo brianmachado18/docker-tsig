@@ -74,7 +74,7 @@ const normalizeActiveZone = (zone) => ({
 });
 
 const toDto = (zone) => ({
-  idZona: zone.id ?? null,
+  idZona: zone.id === undefined ?  null : (zone.id).replace("zona.", ""),
   nombre: String(zone.name || '').trim(),
   descripcion: String(zone.description || '').trim(),
   nivelAtractivo: Number(zone.attractionLevel),
@@ -112,6 +112,6 @@ export const zonesService = {
   },
 
   async remove(zoneId) {
-    return apiClient.delete(`/zona/eliminar?idZona=${zoneId}`);
+    return apiClient.delete(`/zona/eliminar?idZona=${zoneId.replace("zona.", "")}`);
   },
 };

@@ -23,7 +23,7 @@ const normalizeAttractionFeature = (feature) => {
   const properties = feature?.properties ?? {};
   const coordinates = feature?.geometry?.type === 'Point' ? feature.geometry.coordinates : null;
   return normalizeAttraction({
-    idAtraccion: properties.id_atraccion ?? properties.idAtraccion ?? feature?.id,
+    idAtraccion: properties.id_atraccion ?? properties.idAtraccion ?? (feature?.id).replace("atraccion.", ""),
     nombre: properties.nombre,
     descripcion: properties.descripcion,
     clasificacion: normalizeClassification(properties.clasificacion),
@@ -51,7 +51,7 @@ const normalizeAttraction = (attraction) => {
 };
 
 const toDto = (attraction) => ({
-  idAtraccion: attraction.id ?? null,
+  idAtraccion: attraction.id === undefined ?  null : (attraction.id).replace("atraccion.", ""),
   nombre: String(attraction.title || '').trim(),
   descripcion: String(attraction.description || '').trim(),
   clasificacion: String(attraction.category || '').trim(),
@@ -82,6 +82,6 @@ export const attractionsService = {
   },
 
   async remove(attractionId) {
-    return apiClient.delete(`/atraccion/eliminar?idAtraccion=${attractionId}`);
+    return apiClient.delete(`/atraccion/eliminar?idAtraccion=${attractionId.replace("atraccion.", "")}`);
   },
 };

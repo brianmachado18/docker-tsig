@@ -31,7 +31,7 @@ const getSeasonBounds = (route, startYear) => {
   return hasValidDates ? { start, end } : null;
 };
 
-const isRouteInSeasonOn = (route, date) => {
+const isRouteOffSeasonOn = (route, date) => {
   const currentYear = date.getFullYear();
   return [currentYear - 1, currentYear].some((year) => {
     const season = getSeasonBounds(route, year);
@@ -53,10 +53,10 @@ const getMonthDayDate = (day, month, year, endOfDay = false) => {
   return date.getMonth() === numericMonth - 1 && date.getDate() === numericDay ? date : null;
 };
 
-const isRouteInSeasonOnMonthDay = (route, day, month) => {
+const isRouteOffSeasonOnMonthDay = (route, day, month) => {
   if (!day || !month) return true;
-  const requestedDate = getMonthDayDate(day, month, 2000);
-  return requestedDate ? isRouteInSeasonOn(route, requestedDate) : false;
+  const requestedDate = getMonthDayDate(day, month, new Date().getFullYear());
+  return requestedDate ? isRouteOffSeasonOn(route, requestedDate) : false;
 };
 
 const GuestPortal = () => {
@@ -87,7 +87,7 @@ const GuestPortal = () => {
 
   const routeStatusOptions = [
     { id: 'available', label: t('routes.available'), icon: 'check_circle' },
-    { id: 'in-season', label: t('guest.inSeason'), icon: 'today' },
+    { id: 'off-season', label: t('guest.offSeason'), icon: 'today' },
   ];
 
   useEffect(() => {
@@ -111,17 +111,10 @@ const GuestPortal = () => {
   const error = attractionsError || routesError || zonesError;
 
   const filteredRoutes = useMemo(() => {
-    const today = new Date();
-
     return routes.filter((route) => {
       const isPublicRoute = route.status !== 'pending' && route.status !== 'cancelled';
-      const statusMatch = isPublicRoute && (
-        routeStatusFilter === 'all'
-        || (routeStatusFilter === 'in-season'
-          ? isRouteInSeasonOn(route, today)
-          : route.status === routeStatusFilter)
-      );
-      return statusMatch && isRouteInSeasonOnMonthDay(route, requestedDay, requestedMonth);
+      const statusMatch = isPublicRoute && (routeStatusFilter === 'all' || route.status === routeStatusFilter);
+      return statusMatch && isRouteOffSeasonOnMonthDay(route, requestedDay, requestedMonth);
     });
   }, [routes, routeStatusFilter, requestedDay, requestedMonth]);
 
