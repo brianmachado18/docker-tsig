@@ -1,6 +1,8 @@
 
 BEGIN;
 
+INSERT INTO usuario (nombre, password) VALUES('admin', 'admin');
+
 INSERT INTO atraccion (clasificacion, descripcion, foto_url, geom_wkt, nombre)
 VALUES
 (6, 'Parque acuático de aguas termales en Daymán, con juegos y propuestas para todas las edades.', 'https://www.turismo.salto.gub.uy/sites/default/files/styles/16_9_xl_scale/public/2024-09/Acuamana.JPG.webp?itok=KGGJVoxv', ST_SetSRID(ST_MakePoint(-57.9112481, -31.4565808), 4326), 'Acuamanía'),

@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/api/apiClient';
+import { fetchWfsFeatureCollection } from '@/features/map/services/geoserver';
 import { parseLineStringWkt } from '@/shared/lib/geo/wkt';
 
 const statusFromBackend = (status) => {
@@ -81,6 +82,34 @@ const normalizeRoute = (route) => ({
   attractionIds: route.attractionIds ?? route.atracciones ?? [],
 });
 
+const lineStringToWkt = (geometry) => {
+  if (!geometry || geometry.type !== 'LineString' || !Array.isArray(geometry.coordinates)) {
+    return '';
+  }
+  const coordinates = geometry.coordinates
+    .map(([lon, lat]) => `${Number(lon)} ${Number(lat)}`)
+    .join(', ');
+  return `LINESTRING (${coordinates})`;
+};
+
+const normalizeRouteFeature = (feature) => {
+  const properties = feature?.properties ?? {};
+  const geometry = feature?.geometry?.type === 'LineString' ? feature.geometry : null;
+  return normalizeRoute({
+    idRecorrido: properties.id_recorrido ?? properties.idRecorrido ?? feature?.id,
+    nombre: properties.nombre,
+    descripcion: properties.descripcion,
+    duracionEstimada: properties.duracion_estimada ?? properties.duracionEstimada,
+    guiaResponsable: properties.guia_responsable ?? properties.guiaResponsable,
+    tipoExperiencia: properties.tipo_experiencia ?? properties.tipoExperiencia,
+    estado: properties.estado,
+    fechaInicio: properties.fecha_inicio ?? properties.fechaInicio,
+    fechaFin: properties.fecha_fin ?? properties.fechaFin,
+    geomWkt: geometry ? lineStringToWkt(geometry) : properties.geom_wkt,
+    geometry,
+  });
+};
+
 const toDto = (route) => ({
   idRecorrido: route.id ?? null,
   //idEstacion: Number(route.stationId),
@@ -129,8 +158,10 @@ const normalizeIntersectionQueryResult = (result) => {
 
 export const routesService = {
   async list() {
-    const routes = await apiClient.get('/recorrido/buscar/todos');
-    return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
+    const featureCollection = await fetchWfsFeatureCollection('routes');
+    return Array.isArray(featureCollection.features)
+      ? featureCollection.features.map(normalizeRouteFeature)
+      : [];
   },
 
   async listByZone(zoneId) {

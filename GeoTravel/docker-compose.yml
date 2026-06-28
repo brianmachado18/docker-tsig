@@ -35,33 +35,15 @@ services:
     volumes:
       - geoserver_data:/opt/geoserver/data_dir
 
-  backend:
-    build:
-      context: ./backend
-    container_name: tsig-backend
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/tsig}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-tsig}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-tsig}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
-      GEOSERVER_URL: ${GEOSERVER_URL:-http://geoserver:8080/geoserver}
-      GEOCODING_IDE_BASE_URL: ${GEOCODING_IDE_BASE_URL:-https://direcciones.ide.uy}
-      GEOCODING_IDE_USER_AGENT: ${GEOCODING_IDE_USER_AGENT:-GeoTravel/1.0 (tsig local project)}
-      GEOCODING_IDE_REQUEST_TIMEOUT_MS: ${GEOCODING_IDE_REQUEST_TIMEOUT_MS:-10000}
-      GEOCODING_IDE_INSECURE: ${GEOCODING_IDE_INSECURE:-true}
-    ports:
-      - "${BACKEND_PORT:-8080}:8080"
-
   frontend:
     image: node:22-alpine
     container_name: tsig-frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      tomcat:
+        condition: service_started
+      geoserver-config:
+        condition: service_completed_successfully
     environment:
       VITE_API_URL: ${VITE_API_URL:-/tsig-backend}
       VITE_GEOSERVER_URL: ${VITE_GEOSERVER_URL:-/geoserver}
@@ -82,8 +64,64 @@ services:
       dockerfile: backend/Dockerfile.tomcat
     container_name: tsig-tomcat
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/tsig}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-tsig}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-tsig}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      GEOSERVER_URL: ${GEOSERVER_URL:-http://geoserver:8080/geoserver}
+      GEOCODING_IDE_BASE_URL: ${GEOCODING_IDE_BASE_URL:-https://direcciones.ide.uy}
+      GEOCODING_IDE_USER_AGENT: ${GEOCODING_IDE_USER_AGENT:-GeoTravel/1.0 (tsig local project)}
+      GEOCODING_IDE_REQUEST_TIMEOUT_MS: ${GEOCODING_IDE_REQUEST_TIMEOUT_MS:-10000}
+      GEOCODING_IDE_INSECURE: ${GEOCODING_IDE_INSECURE:-true}
     ports:
       - "${TOMCAT_PORT:-8082}:8080"
+
+  data-loader:
+    image: postgis/postgis:16-3.4
+    container_name: tsig-data-loader
+    restart: "no"
+    depends_on:
+      tomcat:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tsig}
+      POSTGRES_USER: ${POSTGRES_USER:-tsig}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-tsig}
+    volumes:
+      - ./postgres/data/data.sql:/data/data.sql:ro
+      - ./scripts/load-data.sh:/scripts/load-data.sh:ro
+    command: ["bash", "/scripts/load-data.sh"]
+
+  geoserver-config:
+    image: curlimages/curl:8.10.1
+    container_name: tsig-geoserver-config
+    restart: "no"
+    depends_on:
+      geoserver:
+        condition: service_started
+      data-loader:
+        condition: service_completed_successfully
+    environment:
+      GS: ${GEOSERVER_REST_URL:-http://geoserver:8080/geoserver/rest}
+      AUTH: ${GEOSERVER_ADMIN_USER:-admin}:${GEOSERVER_ADMIN_PASSWORD:-geoserver}
+      WORKSPACE: ${VITE_GEOSERVER_WORKSPACE:-geotravel}
+      DATASTORE: ${GEOSERVER_DATASTORE:-postgis}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-tsig}
+      DB_SCHEMA: public
+      DB_USER: ${POSTGRES_USER:-tsig}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-tsig}
+    volumes:
+      - ./scripts/setup-geoserver.sh:/scripts/setup-geoserver.sh:ro
+    entrypoint: ["sh"]
+    command: ["/scripts/setup-geoserver.sh"]
 
 volumes:
   postgres_data:

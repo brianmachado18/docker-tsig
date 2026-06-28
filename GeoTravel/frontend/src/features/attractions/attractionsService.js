@@ -1,5 +1,37 @@
 import { apiClient } from '@/shared/lib/api/apiClient';
+import { fetchWfsFeatureCollection } from '@/features/map/services/geoserver';
 import { parsePointWkt, toPointWkt } from '@/shared/lib/geo/wkt';
+
+const CLASIFICACION_LABELS = {
+  0: 'MUSEO',
+  1: 'TEATRO',
+  2: 'MONUMENTO',
+  3: 'PLAZA',
+  4: 'GASTRONOMIA',
+  5: 'PLAYA',
+  6: 'PARQUE',
+};
+
+const normalizeClassification = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return 'OTRO';
+  }
+  return CLASIFICACION_LABELS[value] ?? String(value);
+};
+
+const normalizeAttractionFeature = (feature) => {
+  const properties = feature?.properties ?? {};
+  const coordinates = feature?.geometry?.type === 'Point' ? feature.geometry.coordinates : null;
+  return normalizeAttraction({
+    idAtraccion: properties.id_atraccion ?? properties.idAtraccion ?? feature?.id,
+    nombre: properties.nombre,
+    descripcion: properties.descripcion,
+    clasificacion: normalizeClassification(properties.clasificacion),
+    fotoUrl: properties.foto_url ?? properties.fotoUrl,
+    geomWkt: coordinates ? toPointWkt(coordinates[0], coordinates[1]) : properties.geom_wkt,
+    coordinates,
+  });
+};
 
 const normalizeAttraction = (attraction) => {
   const coordinates = attraction.coordinates ?? parsePointWkt(attraction.geomWkt);
@@ -33,8 +65,10 @@ const toDto = (attraction) => ({
 
 export const attractionsService = {
   async list() {
-    const attractions = await apiClient.get('/atraccion/buscar/todos');
-    return Array.isArray(attractions) ? attractions.map(normalizeAttraction) : [];
+    const featureCollection = await fetchWfsFeatureCollection('attractions');
+    return Array.isArray(featureCollection.features)
+      ? featureCollection.features.map(normalizeAttractionFeature)
+      : [];
   },
 
   async save(attraction) {
