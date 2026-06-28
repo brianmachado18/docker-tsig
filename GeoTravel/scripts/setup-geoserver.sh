@@ -22,9 +22,9 @@ publish() { # nombre_capa  tabla_nativa  titulo
     "$FT"
 }
 echo "==> Capas"
-publish zona_turistica      zona      "Zonas turisticas"
+publish zona      zona      "Zonas turisticas"
 publish recorrido           recorrido "Recorridos"
-publish atraccion_turistica atraccion "Atracciones turisticas"
+publish atraccion atraccion "Atracciones turisticas"
 
 echo "==> Capas publicadas:"
 curl -s -u "$AUTH" "$GS/workspaces/geotravel/datastores/postgis/featuretypes.json" \
