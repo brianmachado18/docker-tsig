@@ -1,4 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Feature from 'ol/Feature';
+import LineString from 'ol/geom/LineString';
+import Point from 'ol/geom/Point';
+import VectorLayer from 'ol/layer/Vector';
+import { fromLonLat } from 'ol/proj';
+import VectorSource from 'ol/source/Vector';
+import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
+import WKT from 'ol/format/WKT';
+import { parseLineStringWkt } from '@/shared/lib/geo/wkt';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
 import useHeatmapStore from '@/features/map/heatmapStore';
@@ -9,6 +18,105 @@ import useZonesStore from '@/features/zones/zonesStore';
 import StarRating from '@/shared/components/StarRating';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
+import { fetchAllModeRoutes } from '@/shared/lib/geo/routing';
+
+const wktFmt = new WKT();
+const GUEST_NAV_KEY = 'nav-route-guest';
+const NAV_COLORS = { driving: '#1a73e8', cycling: '#2e7d32', walking: '#e65100' };
+
+const getOrCreateNavLayer = (map) => {
+  const existing = map?.getLayers?.().getArray().find((l) => l.get('layerKey') === GUEST_NAV_KEY);
+  if (existing) return existing;
+  const layer = new VectorLayer({
+    source: new VectorSource(),
+    zIndex: 60,
+    properties: { layerKey: GUEST_NAV_KEY },
+  });
+  map.addLayer(layer);
+  return layer;
+};
+
+const clearNavLayer = (map) => {
+  if (!map) return;
+  const layer = map.getLayers().getArray().find((l) => l.get('layerKey') === GUEST_NAV_KEY);
+  if (layer) map.removeLayer(layer);
+};
+
+const drawNavRoute = (map, from, to, wkt, mode, isRoute = false) => {
+  const layer = getOrCreateNavLayer(map);
+  const src = layer.getSource();
+  src.clear();
+  const color = NAV_COLORS[mode] || NAV_COLORS.driving;
+
+  let lineGeom;
+  if (wkt) {
+    try {
+      lineGeom = wktFmt.readGeometry(wkt, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' });
+    } catch { lineGeom = null; }
+  }
+  if (!lineGeom) lineGeom = new LineString([fromLonLat(from), fromLonLat(to)]);
+
+  const mkStroke = (c, w) => new Style({ stroke: new Stroke({ color: c, width: w, lineCap: 'round', lineJoin: 'round' }) });
+  const mkDot = (c, r) => new Style({ image: new CircleStyle({ radius: r, fill: new Fill({ color: c }), stroke: new Stroke({ color: '#fff', width: 2.5 }) }) });
+
+  const outline = new Feature({ geometry: lineGeom });
+  outline.setStyle(mkStroke('#fff', 9));
+  const line = new Feature({ geometry: lineGeom.clone() });
+  line.setStyle(mkStroke(color, 5));
+  const userFeat = new Feature({ geometry: new Point(fromLonLat(from)) });
+  userFeat.setStyle(mkDot('#1a73e8', 8));
+  const destFeat = new Feature({ geometry: new Point(fromLonLat(to)) });
+  destFeat.setStyle(new Style({
+    image: new CircleStyle({ radius: 9, fill: new Fill({ color }), stroke: new Stroke({ color: '#fff', width: 2.5 }) }),
+    text: isRoute ? new Text({
+      text: 'Inicio del recorrido',
+      offsetY: -18,
+      font: 'bold 12px sans-serif',
+      fill: new Fill({ color: '#ffffff' }),
+      backgroundFill: new Fill({ color }),
+      padding: [3, 6, 3, 6],
+      backgroundStroke: new Stroke({ color: '#ffffff', width: 1 }),
+    }) : null,
+  }));
+
+  src.addFeatures([outline, line, userFeat, destFeat]);
+  const ext = src.getExtent();
+  if (ext && Number.isFinite(ext[0])) {
+    map.getView().fit(ext, { padding: [80, 60, 160, 60], duration: 700, maxZoom: 16 });
+  }
+};
+
+const getItemDestCoords = (item, type) => {
+  if (type === 'attraction') return item?.coordinates || null;
+  if (type === 'route') {
+    if (item?.geomWkt) {
+      try {
+        const geom = wktFmt.readGeometry(item.geomWkt);
+        const first = geom?.getFirstCoordinate?.();
+        if (first && Number.isFinite(first[0]) && Number.isFinite(first[1])) {
+          return [first[0], first[1]];
+        }
+      } catch { /* ignore */ }
+      const parsed = parseLineStringWkt(item.geomWkt);
+      if (parsed?.coordinates?.[0]) return parsed.coordinates[0];
+    }
+    const firstCoord = item?.geometry?.coordinates?.[0];
+    if (firstCoord && Number.isFinite(firstCoord[0]) && Number.isFinite(firstCoord[1])) {
+      return [firstCoord[0], firstCoord[1]];
+    }
+    return null;
+  }
+  return null;
+};
+
+const fmtMins = (m) => {
+  if (m == null) return '—';
+  if (m < 1) return '< 1 min';
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h}h ${r}min` : `${h}h`;
+};
 
 const getSeasonBounds = (route, startYear) => {
   const startMonth = Number(route.startMonth);
@@ -71,6 +179,7 @@ const GuestPortal = () => {
   const { zones, isLoading: isZonesLoading, error: zonesError, fetchZones } = useZonesStore();
   const flyTo = useMapStore((state) => state.flyTo);
   const restoreViewport = useMapStore((state) => state.restoreViewport);
+  const mapInstance = useMapStore((state) => state.mapInstance);
   const heatmapVisible = useHeatmapStore((state) => state.visible);
   const toggleHeatmap = useHeatmapStore((state) => state.toggle);
   const setHeatmapVisible = useHeatmapStore((state) => state.setVisible);
@@ -78,6 +187,14 @@ const GuestPortal = () => {
   const [requestedDay, setRequestedDay] = useState('');
   const [requestedMonth, setRequestedMonth] = useState('');
   const [selectedMapItem, setSelectedMapItem] = useState(null);
+
+  const [directionOpen, setDirectionOpen] = useState(false);
+  const [directionState, setDirectionState] = useState('idle');
+  const [navRoutes, setNavRoutes] = useState(null);
+  const [selectedNavMode, setSelectedNavMode] = useState(null);
+  const [navOrigin, setNavOrigin] = useState(null);
+  const sessionIdRef = useRef(0);
+  const geoTimerRef = useRef(null);
 
   const monthOptions = useMemo(() => Array.from({ length: 12 }, (_, index) => ({
     value: String(index + 1),
@@ -104,6 +221,17 @@ const GuestPortal = () => {
     flyTo(selectedMapItem.item.coordinates);
   }, [flyTo, selectedMapItem]);
 
+  useEffect(() => {
+    sessionIdRef.current += 1;
+    clearTimeout(geoTimerRef.current);
+    setDirectionOpen(false);
+    setDirectionState('idle');
+    setNavRoutes(null);
+    setSelectedNavMode(null);
+    setNavOrigin(null);
+    clearNavLayer(mapInstance);
+  }, [selectedMapItem, mapInstance]);
+
   // Apagar el mapa de calor al salir del portal (no afecta otras pantallas).
   useEffect(() => () => setHeatmapVisible(false), [setHeatmapVisible]);
 
@@ -125,7 +253,7 @@ const GuestPortal = () => {
     });
   }, [routes, routeStatusFilter, requestedDay, requestedMonth]);
 
-  const featuredRoutes = filteredRoutes//.slice(0, 2);
+  const featuredRoutes = filteredRoutes;
 
   const getAttractionCategoryLabel = (category) => {
     switch (String(category || '').toUpperCase()) {
@@ -218,10 +346,64 @@ const GuestPortal = () => {
   };
 
   const closeMapSelection = () => {
-    if (selectedMapItem?.type === 'attraction') {
+    if (selectedMapItem?.type === 'attraction' || selectedMapItem?.type === 'route') {
       restoreViewport();
+      clearNavLayer(mapInstance);
     }
     setSelectedMapItem(null);
+  };
+
+  const handleToggleDirection = () => {
+    if (directionOpen) {
+      setDirectionOpen(false);
+      clearNavLayer(mapInstance);
+      setSelectedNavMode(null);
+      return;
+    }
+
+    setDirectionOpen(true);
+    if (directionState !== 'idle') return;
+
+    const coords = getItemDestCoords(selectedMapItem?.item, selectedMapItem?.type);
+    if (!coords) {
+      setDirectionState('no-location');
+      return;
+    }
+
+    const sid = ++sessionIdRef.current;
+    setDirectionState('loading');
+
+    const timer = window.setTimeout(() => {
+      if (sessionIdRef.current === sid) setDirectionState('no-location');
+    }, 20000);
+    geoTimerRef.current = timer;
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        clearTimeout(timer);
+        if (sessionIdRef.current !== sid) return;
+        const origin = [pos.coords.longitude, pos.coords.latitude];
+        setNavOrigin(origin);
+        try {
+          const modeRoutes = await fetchAllModeRoutes(origin, coords);
+          if (sessionIdRef.current === sid) setNavRoutes(modeRoutes);
+        } catch { /* ignore */ }
+        if (sessionIdRef.current === sid) setDirectionState('ready');
+      },
+      () => {
+        clearTimeout(timer);
+        if (sessionIdRef.current === sid) setDirectionState('no-location');
+      },
+      { maximumAge: 300000, enableHighAccuracy: false, timeout: 15000 },
+    );
+  };
+
+  const handleSelectNavMode = (mode) => {
+    setSelectedNavMode(mode);
+    const coords = getItemDestCoords(selectedMapItem?.item, selectedMapItem?.type);
+    const isRoute = selectedMapItem?.type === 'route';
+    if (!navOrigin || !coords || !mapInstance) return;
+    drawNavRoute(mapInstance, navOrigin, coords, navRoutes?.[mode]?.wkt, mode, isRoute);
   };
 
   return (
@@ -326,6 +508,83 @@ const GuestPortal = () => {
                 </span>
               )}
             </div>
+
+            {(selectedMapItem.type === 'attraction' || selectedMapItem.type === 'route') && (
+              <div className="pt-3 border-t border-outline-variant/30">
+                <button
+                  type="button"
+                  onClick={handleToggleDirection}
+                  className={`w-full flex items-center justify-between text-sm py-1.5 px-0.5 rounded transition-colors ${
+                    directionOpen ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 font-medium">
+                    <span className="material-symbols-outlined text-[18px]">directions</span>
+                    ¿Cómo llegar?
+                  </span>
+                  <span
+                    className="material-symbols-outlined text-[18px] transition-transform"
+                    style={{ transform: directionOpen ? 'rotate(180deg)' : 'none' }}
+                  >
+                    expand_more
+                  </span>
+                </button>
+
+                {directionOpen && (
+                  <div className="mt-2">
+                    {directionState === 'no-location' ? (
+                      <p className="text-xs text-outline text-center py-2">
+                        Activa la ubicación para ver la ruta y tiempos estimados.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-[11px] text-outline mb-2">
+                          {directionState === 'loading'
+                            ? 'Calculando rutas...'
+                            : selectedNavMode
+                              ? 'Camino dibujado en el mapa'
+                              : selectedMapItem.type === 'route'
+                                ? 'Toca un modo para ver el camino hasta el inicio del recorrido'
+                                : 'Toca un modo para ver el camino hasta la atracción'}
+                        </p>
+                        <div className="flex gap-2">
+                          {[
+                            { mode: 'driving', icon: 'directions_car', label: 'Auto' },
+                            { mode: 'cycling', icon: 'directions_bike', label: 'Bicicleta' },
+                            { mode: 'walking', icon: 'directions_walk', label: 'Caminando' },
+                          ].map(({ mode, icon, label }) => {
+                            const color = NAV_COLORS[mode];
+                            return (
+                              <button
+                                key={mode}
+                                type="button"
+                                onClick={() => handleSelectNavMode(mode)}
+                                className={`flex flex-col items-center gap-1 flex-1 py-2 px-1 rounded-xl border-2 transition-all ${
+                                  selectedNavMode === mode
+                                    ? 'bg-surface-container shadow-sm'
+                                    : 'bg-surface-container hover:bg-surface-container-high border-transparent'
+                                }`}
+                                style={{ borderColor: selectedNavMode === mode ? color : 'transparent' }}
+                              >
+                                <span className="material-symbols-outlined text-[20px]" style={{ color }}>{icon}</span>
+                                <span className="text-[10px] text-on-surface-variant leading-tight text-center">{label}</span>
+                                <span className="text-xs font-semibold text-on-surface">
+                                  {directionState === 'loading' ? (
+                                    <span className="inline-block w-8 h-3 bg-outline-variant rounded animate-pulse" />
+                                  ) : (
+                                    fmtMins(navRoutes?.[mode]?.minutes)
+                                  )}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </section>
         )}
 
