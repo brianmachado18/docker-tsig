@@ -96,7 +96,7 @@ services:
     volumes:
       - ./postgres/data/data.sql:/data/data.sql:ro
       - ./scripts/load-data.sh:/scripts/load-data.sh:ro
-    command: ["bash", "/scripts/load-data.sh"]
+    command: ["bash", "-c", "tr -d '\\r' < /scripts/load-data.sh > /tmp/load-data.sh && bash /tmp/load-data.sh"]
 
   geoserver-config:
     image: curlimages/curl:8.10.1
@@ -120,8 +120,8 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-tsig}
     volumes:
       - ./scripts/setup-geoserver.sh:/scripts/setup-geoserver.sh:ro
-    entrypoint: ["sh"]
-    command: ["/scripts/setup-geoserver.sh"]
+    entrypoint: ["sh", "-c"]
+    command: ["tr -d '\\r' < /scripts/setup-geoserver.sh > /tmp/setup-geoserver.sh && sh /tmp/setup-geoserver.sh"]
 
 volumes:
   postgres_data:
