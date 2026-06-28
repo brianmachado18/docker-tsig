@@ -78,7 +78,6 @@ const AttractionCatalog = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div>
               <h2 className="font-headline-lg text-headline-lg text-on-background">{t('attractions.poi')}</h2>
-              <p className="font-body-md text-body-md text-outline mt-1">{t('attractions.description')}</p>
             </div>
             <div className="relative">
               {isFilterOpen && (
@@ -117,22 +116,6 @@ const AttractionCatalog = () => {
                   </div>
 
                   <div className="p-4 flex flex-col gap-4">
-                    <label className="flex flex-col gap-2">
-                      <span className="font-label-md text-label-md text-on-surface-variant">{t('attractions.status')}</span>
-                      <select
-                        className="w-full px-3 py-2 border border-outline rounded-lg bg-surface text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        value={statusFilter}
-                        onChange={(event) => setStatusFilter(event.target.value)}
-                      >
-                        <option value="all">{t('attractions.allStatuses')}</option>
-                        {statusOptions.map((status) => (
-                          <option key={status} value={status}>
-                            {getStatusLabel(status)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
                     <label className="flex flex-col gap-2">
                       <span className="font-label-md text-label-md text-on-surface-variant">{t('attractions.experienceType')}</span>
                       <select
@@ -183,7 +166,6 @@ const AttractionCatalog = () => {
                 title={attraction.title}
                 description={attraction.description}
                 imageUrl={attraction.imageUrl}
-                ranking={attraction.ranking}
                 rankingPosition={index+1}
                 tag={attraction.category}
                 status={getStatusLabel(attraction.status)}
