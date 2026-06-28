@@ -62,25 +62,38 @@ const experienceToBackend = (type) => {
   }
 };
 
-const normalizeRoute = (route) => ({
-  id: route.id ?? route.idRecorrido,
-  //stationId: route.stationId ?? route.idEstacion ?? null,
-  name: route.name ?? route.nombre ?? '',
-  description: route.description ?? route.descripcion ?? '',
-  durationHours: route.durationHours ?? route.duracionEstimada ?? 0,
-  guide: route.guide ?? route.guiaResponsable ?? '',
-  experienceType: route.experienceType ?? experienceFromBackend(route.tipoExperiencia),
-  status: route.status ?? statusFromBackend(route.estado),
-  startDay: route.startDay ?? route.diaInicio ?? 0,
-  startMonth: route.startMonth ?? route.mesInicio ?? 0,
-  endDay: route.endDay ?? route.diaFin ?? 0,
-  endMonth: route.endMonth ?? route.mesFin ?? 0,
-  geomWkt: route.geomWkt ?? '',
-  geometry: route.geometry ?? parseLineStringWkt(route.geomWkt),
-  zoneIds: route.zoneIds ?? route.zonas ?? [],
-  // El backend (mauri) ya devuelve las paradas en `atracciones`, ordenadas.
-  attractionIds: route.attractionIds ?? route.atracciones ?? [],
-});
+const getDateParts = (dateValue) => {
+  const [, , month, day] = String(dateValue || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/) || [];
+  return {
+    day: day ? Number(day) : null,
+    month: month ? Number(month) : null,
+  };
+};
+
+const normalizeRoute = (route) => {
+  const startDateParts = getDateParts(route.fechaInicio ?? route.startDate);
+  const endDateParts = getDateParts(route.fechaFin ?? route.endDate);
+
+  return {
+    id: route.id ?? route.idRecorrido,
+    //stationId: route.stationId ?? route.idEstacion ?? null,
+    name: route.name ?? route.nombre ?? '',
+    description: route.description ?? route.descripcion ?? '',
+    durationHours: route.durationHours ?? route.duracionEstimada ?? 0,
+    guide: route.guide ?? route.guiaResponsable ?? '',
+    experienceType: route.experienceType ?? experienceFromBackend(route.tipoExperiencia),
+    status: route.status ?? statusFromBackend(route.estado),
+    startDay: route.startDay ?? route.diaInicio ?? startDateParts.day ?? 0,
+    startMonth: route.startMonth ?? route.mesInicio ?? startDateParts.month ?? 0,
+    endDay: route.endDay ?? route.diaFin ?? endDateParts.day ?? 0,
+    endMonth: route.endMonth ?? route.mesFin ?? endDateParts.month ?? 0,
+    geomWkt: route.geomWkt ?? '',
+    geometry: route.geometry ?? parseLineStringWkt(route.geomWkt),
+    zoneIds: route.zoneIds ?? route.zonas ?? [],
+    // El backend (mauri) ya devuelve las paradas en `atracciones`, ordenadas.
+    attractionIds: route.attractionIds ?? route.atracciones ?? [],
+  };
+};
 
 const lineStringToWkt = (geometry) => {
   if (!geometry || geometry.type !== 'LineString' || !Array.isArray(geometry.coordinates)) {

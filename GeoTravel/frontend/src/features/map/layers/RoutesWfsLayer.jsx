@@ -91,13 +91,19 @@ const normalizeExperienceType = (type) => {
   }
 };
 
+const getDateParts = (dateValue) => {
+  const [, , month, day] = String(dateValue || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/) || [];
+  return {
+    day: day ? Number(day) : '',
+    month: month ? Number(month) : '',
+  };
+};
+
 const normalizeRouteFeature = (feature) => {
   const id = getFeatureNumericId(feature);
   const durationHours = getFeatureValue(feature, ['durationHours', 'duracionEstimada', 'duracion_estimada']);
-  const startDay = getFeatureValue(feature, ['fechaInicio', 'fecha_inicio']).split('-')[1];
-  const startMonth = getFeatureValue(feature, ['fechaInicio', 'fecha_inicio']).split('-')[2];
-  const endDay = getFeatureValue(feature, ['fechaFin', 'fecha_fin']).split('-')[1];
-  const endMonth = getFeatureValue(feature, ['fechaFin', 'fecha_fin']).split('-')[2];
+  const startDateParts = getDateParts(getFeatureValue(feature, ['fechaInicio', 'fecha_inicio']));
+  const endDateParts = getDateParts(getFeatureValue(feature, ['fechaFin', 'fecha_fin']));
   const status = getFeatureValue(feature, ['status', 'estado']);
   const experienceType = getFeatureValue(feature, ['experienceType', 'tipoExperiencia', 'tipo_experiencia']);
 
@@ -109,10 +115,10 @@ const normalizeRouteFeature = (feature) => {
     guide: getFeatureValue(feature, ['guide', 'guiaResponsable', 'guia_responsable']) || '',
     experienceType: normalizeExperienceType(experienceType),
     status: normalizeStatus(status),
-    startDay: startDay === null ? '' : Number(startDay),
-    startMonth: startMonth === null ? '' : Number(startMonth),
-    endDay: endDay === null ? '' : Number(endDay),
-    endMonth: endMonth === null ? '' : Number(endMonth),
+    startDay: startDateParts.day,
+    startMonth: startDateParts.month,
+    endDay: endDateParts.day,
+    endMonth: endDateParts.month,
     geomWkt: getFeatureWkt(feature),
     zoneIds: [],
     sourceType: 'wfs',
