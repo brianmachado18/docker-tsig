@@ -553,13 +553,35 @@ return (
           </div>
 
           {routeMode === 'draw' && (
-            <div className="flex items-start gap-3 bg-surface-container p-3 rounded-lg text-sm text-on-surface-variant">
-              <span className="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">info</span>
-              <span>
-                Usá la herramienta de dibujo del mapa para trazar la línea.
-                {geomWkt?.trim() && <span className="block text-primary font-medium mt-1">✓ Recorrido dibujado</span>}
-              </span>
-            </div>
+            route?.id && geomWkt?.trim() ? (
+              <div className="flex flex-col gap-3 p-3 bg-surface-container rounded-lg border border-outline-variant/50">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">check_circle</span>
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-sm font-medium text-on-surface">Recorrido trazado manualmente</p>
+                    <p className="text-xs text-on-surface-variant">
+                      Este recorrido tiene una geometría dibujada en el mapa. Podés guardarlo tal como está, o convertirlo a modo por puntos para redefinir las paradas.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRouteMode('points')}
+                  className="self-start flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[14px]">edit_location</span>
+                  Convertir a modo por puntos
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3 bg-surface-container p-3 rounded-lg text-sm text-on-surface-variant">
+                <span className="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">info</span>
+                <span>
+                  Usá la herramienta de dibujo del mapa para trazar la línea.
+                  {geomWkt?.trim() && <span className="block text-primary font-medium mt-1">✓ Recorrido dibujado</span>}
+                </span>
+              </div>
+            )
           )}
 
           {routeMode === 'points' && (
