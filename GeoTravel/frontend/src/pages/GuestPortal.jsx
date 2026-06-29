@@ -32,6 +32,16 @@ const CATEGORY_ICONS = {
   PLAYA: 'beach_access',
   PARQUE: 'nature',
 };
+
+const CATEGORIES = [
+  { value: 'MUSEO',      label: 'Museos',      icon: 'museum' },
+  { value: 'PLAYA',      label: 'Playas',      icon: 'beach_access' },
+  { value: 'PARQUE',     label: 'Parques',     icon: 'nature' },
+  { value: 'PLAZA',      label: 'Plazas',      icon: 'park' },
+  { value: 'MONUMENTO',  label: 'Monumentos',  icon: 'account_balance' },
+  { value: 'GASTRONOMIA',label: 'Gastronomía', icon: 'restaurant' },
+  { value: 'TEATRO',     label: 'Teatros',     icon: 'theater_comedy' },
+];
 const NAV_COLORS = { driving: '#1a73e8', cycling: '#2e7d32', walking: '#e65100' };
 
 const getOrCreateNavLayer = (map) => {
@@ -198,6 +208,8 @@ const GuestPortal = () => {
   const [requestedMonth, setRequestedMonth] = useState('');
   const [selectedMapItem, setSelectedMapItem] = useState(null);
   const [previousMapItem, setPreviousMapItem] = useState(null);
+  const [sidebarView, setSidebarView] = useState('routes');
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const [directionOpen, setDirectionOpen] = useState(false);
   const [directionState, setDirectionState] = useState('idle');
@@ -265,6 +277,20 @@ const GuestPortal = () => {
   }, [routes, routeStatusFilter, requestedDay, requestedMonth]);
 
   const featuredRoutes = filteredRoutes;
+
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    attractions.forEach((a) => {
+      const cat = String(a.category || '').toUpperCase();
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [attractions]);
+
+  const filteredAttractions = useMemo(() => {
+    if (!selectedCategory) return attractions;
+    return attractions.filter((a) => String(a.category || '').toUpperCase() === selectedCategory);
+  }, [attractions, selectedCategory]);
 
   const zoneAttractions = useMemo(() => {
     if (selectedMapItem?.type !== 'zone') return [];
@@ -441,7 +467,7 @@ const GuestPortal = () => {
             screenId="guestPortal"
             zones={zones}
             routes={filteredRoutes}
-            attractions={attractions}
+            attractions={sidebarView === 'attractions' ? filteredAttractions : attractions}
             onFeatureSelect={(item) => {
               setPreviousMapItem(null);
               setSelectedMapItem(item);
@@ -666,103 +692,215 @@ const GuestPortal = () => {
             <h3 className="font-headline-lg text-headline-lg text-primary">{t('guest.title')}</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">{t('guest.subtitle')}</p>
           </div>
-          <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
-            <section className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.filters')}</h4>
-                <button className="text-primary font-label-md text-label-md hover:underline" onClick={clearFilters}>{t('guest.clearAll')}</button>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="font-label-md text-label-md text-on-surface">{t('guest.routeStatus')}</label>
-                <div className="flex flex-wrap gap-2">
-                  {routeStatusOptions.map((status) => (
-                    <button
-                      key={status.id}
-                      className={`px-3 py-1.5 rounded-full border font-label-md text-label-md flex items-center gap-1 transition-colors ${routeStatusFilter === status.id ? `border-current ${getRouteStatusClassName(status.id)}` : 'border-outline-variant text-on-surface-variant bg-surface hover:bg-surface-variant'}`}
-                      onClick={() => setRouteStatusFilter(routeStatusFilter === status.id ? 'all' : status.id)}
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">{status.icon}</span>
-                      {status.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-2 mt-2">
-                <span className="font-label-md text-label-md text-on-surface">{t('guest.requestedDate')}</span>
-                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-3">
-                  <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
-                    {t('guest.day')}
-                    <input
-                      className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={requestedDay}
-                      onChange={(event) => setRequestedDay(event.target.value)}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
-                    {t('guest.month')}
-                    <select
-                      className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
-                      value={requestedMonth}
-                      onChange={(event) => setRequestedMonth(event.target.value)}
-                    >
-                      <option value="" />
-                      {monthOptions.map((month) => (
-                        <option key={month.value} value={month.value}>{month.label}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </div>
-
-            </section>
+          {/* Tab switcher */}
+          <div className="px-4 py-3 border-b border-outline-variant/30 bg-surface/30 flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => setSidebarView('routes')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                sidebarView === 'routes'
+                  ? 'bg-primary text-on-primary'
+                  : 'text-on-surface-variant hover:bg-surface-container'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[17px]">route</span>
+              Recorridos
+            </button>
+            <button
+              type="button"
+              onClick={() => setSidebarView('attractions')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                sidebarView === 'attractions'
+                  ? 'bg-primary text-on-primary'
+                  : 'text-on-surface-variant hover:bg-surface-container'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[17px]">local_activity</span>
+              Atracciones
+            </button>
           </div>
-          <div className="p-6 flex flex-col gap-8">
-            <section className="flex flex-col gap-4 pb-4">
-              <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.featured')}</h4>
-              {error && (
-                <div className="text-sm text-error">{t('common.error')}</div>
-              )}
-              {isLoading && (
-                <div className="text-sm text-outline">{t('common.loading')}</div>
-              )}
-              {!isLoading && featuredRoutes.length === 0 && (
-                <div className="text-sm text-outline">{t('guest.noRoutes')}</div>
-              )}
-              <div className="grid grid-cols-1 gap-4">
-                {featuredRoutes.map((route) => (
-                  <div key={route.id} className="bg-surface rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                    <div className="p-4 flex flex-col gap-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <h5 className="font-headline-md text-[16px] leading-tight text-primary font-semibold">{route.name}</h5>
-                        <div
-                          className="shrink-0 px-2 py-1 bg-surface-variant rounded font-mono-label text-[10px] flex items-center gap-1"
-                          style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
-                        >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
-                          />
-                          {STATUS_LABELS[route.status] || route.status}
+
+          {sidebarView === 'routes' && (
+            <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
+              <section className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.filters')}</h4>
+                  <button className="text-primary font-label-md text-label-md hover:underline" onClick={clearFilters}>{t('guest.clearAll')}</button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-label-md text-label-md text-on-surface">{t('guest.routeStatus')}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {routeStatusOptions.map((status) => (
+                      <button
+                        key={status.id}
+                        className={`px-3 py-1.5 rounded-full border font-label-md text-label-md flex items-center gap-1 transition-colors ${routeStatusFilter === status.id ? `border-current ${getRouteStatusClassName(status.id)}` : 'border-outline-variant text-on-surface-variant bg-surface hover:bg-surface-variant'}`}
+                        onClick={() => setRouteStatusFilter(routeStatusFilter === status.id ? 'all' : status.id)}
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">{status.icon}</span>
+                        {status.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 mt-2">
+                  <span className="font-label-md text-label-md text-on-surface">{t('guest.requestedDate')}</span>
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-3">
+                    <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                      {t('guest.day')}
+                      <input
+                        className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={requestedDay}
+                        onChange={(event) => setRequestedDay(event.target.value)}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                      {t('guest.month')}
+                      <select
+                        className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
+                        value={requestedMonth}
+                        onChange={(event) => setRequestedMonth(event.target.value)}
+                      >
+                        <option value="" />
+                        {monthOptions.map((month) => (
+                          <option key={month.value} value={month.value}>{month.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+              </section>
+            </div>
+          )}
+          {sidebarView === 'routes' && (
+            <div className="p-6 flex flex-col gap-8">
+              <section className="flex flex-col gap-4 pb-4">
+                <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.featured')}</h4>
+                {error && (
+                  <div className="text-sm text-error">{t('common.error')}</div>
+                )}
+                {isLoading && (
+                  <div className="text-sm text-outline">{t('common.loading')}</div>
+                )}
+                {!isLoading && featuredRoutes.length === 0 && (
+                  <div className="text-sm text-outline">{t('guest.noRoutes')}</div>
+                )}
+                <div className="grid grid-cols-1 gap-4">
+                  {featuredRoutes.map((route) => (
+                    <div key={route.id} className="bg-surface rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                      <div className="p-4 flex flex-col gap-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <h5 className="font-headline-md text-[16px] leading-tight text-primary font-semibold">{route.name}</h5>
+                          <div
+                            className="shrink-0 px-2 py-1 bg-surface-variant rounded font-mono-label text-[10px] flex items-center gap-1"
+                            style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                          >
+                            <span
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                            />
+                            {STATUS_LABELS[route.status] || route.status}
+                          </div>
+                        </div>
+                        <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">{route.description}</p>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
+                            <span className="material-symbols-outlined text-[14px]">timer</span>
+                            {route.durationHours} {t('guest.hours')}
+                          </span>
                         </div>
                       </div>
-                      <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">{route.description}</p>
-                      <div className="flex items-center gap-4 mt-1">
-                        <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
-                          <span className="material-symbols-outlined text-[14px]">timer</span>
-                          {route.durationHours} {t('guest.hours')}
-                        </span>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {sidebarView === 'attractions' && (
+            <div className="flex flex-col min-h-0">
+              <div className="px-4 py-3 border-b border-outline-variant/30 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    selectedCategory === null
+                      ? 'bg-primary text-on-primary border-primary'
+                      : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                  }`}
+                >
+                  Todas
+                </button>
+                {CATEGORIES.map((cat) => {
+                  const count = categoryCounts[cat.value] || 0;
+                  if (!count) return null;
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => setSelectedCategory(selectedCategory === cat.value ? null : cat.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                        selectedCategory === cat.value
+                          ? 'bg-primary text-on-primary border-primary'
+                          : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
+                      {cat.label}
+                      <span className={`text-[11px] rounded-full px-1.5 ${selectedCategory === cat.value ? 'bg-white/20' : 'bg-surface-container'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-            </section>
-          </div>
+
+              <div className="p-4 flex flex-col gap-3">
+                {isAttractionsLoading && (
+                  <div className="text-sm text-outline text-center py-4">{t('common.loading')}</div>
+                )}
+                {!isAttractionsLoading && filteredAttractions.length === 0 && (
+                  <div className="text-sm text-outline text-center py-4">No hay atracciones en esta categoría.</div>
+                )}
+                {filteredAttractions.map((attraction) => {
+                  const cat = String(attraction.category || '').toUpperCase();
+                  const icon = CATEGORY_ICONS[cat] || 'place';
+                  return (
+                    <div
+                      key={attraction.id}
+                      className="flex items-center gap-3 bg-surface rounded-xl border border-outline-variant/50 p-3 cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedMapItem({ type: 'attraction', item: attraction })}
+                    >
+                      {attraction.imageUrl ? (
+                        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-surface-container">
+                          <img src={attraction.imageUrl} alt={attraction.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="shrink-0 w-14 h-14 rounded-lg bg-surface-container flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[26px] text-primary">{icon}</span>
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-label-lg text-label-lg text-on-surface leading-snug truncate">
+                          {attraction.title || `Atracción ${attraction.id}`}
+                        </p>
+                        {attraction.description && (
+                          <p className="mt-0.5 text-xs text-on-surface-variant line-clamp-2">{attraction.description}</p>
+                        )}
+                      </div>
+                      <span className="material-symbols-outlined text-[18px] text-outline shrink-0">chevron_right</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </aside>
 
       </main>
