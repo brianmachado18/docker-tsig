@@ -91,7 +91,12 @@ const ZoneManagement = () => {
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const activeTool = useMapStore((state) => state.activeTool);
   const refreshZoneLayers = useRefreshEntityLayer('zones');
-  const displayedZones = activeTool === 'zone-query' && zoneQueryType === 'active-zones' ? activeZonesReport : zones;
+  const displayedZones =
+    activeTool === 'zone-query' && zoneQueryType === 'active-zones'
+      ? activeZonesReport
+      : activeTool === 'zone-query' && zoneQueryType === 'address' && selectedZoneByAddress
+        ? [selectedZoneByAddress]
+        : zones;
   const selectedZoneId =
     selectedActiveZone?.id ??
     selectedZoneForRoutes?.id ??
