@@ -15,6 +15,7 @@ import useMapStore from '@/features/map/mapStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
 import useRoutesStore from '@/features/routes/routesStore';
 import useZonesStore from '@/features/zones/zonesStore';
+import ZoneRoutesChart from '@/features/zones/ZoneRoutesChart';
 import StarRating from '@/shared/components/StarRating';
 import TopAppBar from '@/shared/components/TopAppBar';
 import useLangStore from '@/shared/i18n/langStore';
@@ -22,6 +23,26 @@ import { fetchAllModeRoutes } from '@/shared/lib/geo/routing';
 
 const wktFmt = new WKT();
 const GUEST_NAV_KEY = 'nav-route-guest';
+
+const CATEGORY_ICONS = {
+  MUSEO: 'museum',
+  TEATRO: 'theater_comedy',
+  MONUMENTO: 'account_balance',
+  PLAZA: 'park',
+  GASTRONOMIA: 'restaurant',
+  PLAYA: 'beach_access',
+  PARQUE: 'nature',
+};
+
+const CATEGORIES = [
+  { value: 'MUSEO',      label: 'Museos',      icon: 'museum' },
+  { value: 'PLAYA',      label: 'Playas',      icon: 'beach_access' },
+  { value: 'PARQUE',     label: 'Parques',     icon: 'nature' },
+  { value: 'PLAZA',      label: 'Plazas',      icon: 'park' },
+  { value: 'MONUMENTO',  label: 'Monumentos',  icon: 'account_balance' },
+  { value: 'GASTRONOMIA',label: 'Gastronomía', icon: 'restaurant' },
+  { value: 'TEATRO',     label: 'Teatros',     icon: 'theater_comedy' },
+];
 const NAV_COLORS = { driving: '#1a73e8', cycling: '#2e7d32', walking: '#e65100' };
 
 const getOrCreateNavLayer = (map) => {
@@ -178,6 +199,7 @@ const GuestPortal = () => {
   const { routes, isLoading: isRoutesLoading, error: routesError, fetchRoutes } = useRoutesStore();
   const { zones, isLoading: isZonesLoading, error: zonesError, fetchZones } = useZonesStore();
   const flyTo = useMapStore((state) => state.flyTo);
+  const fitToExtent = useMapStore((state) => state.fitToExtent);
   const restoreViewport = useMapStore((state) => state.restoreViewport);
   const mapInstance = useMapStore((state) => state.mapInstance);
   const heatmapVisible = useHeatmapStore((state) => state.visible);
@@ -187,6 +209,12 @@ const GuestPortal = () => {
   const [requestedDay, setRequestedDay] = useState('');
   const [requestedMonth, setRequestedMonth] = useState('');
   const [selectedMapItem, setSelectedMapItem] = useState(null);
+  const [previousMapItem, setPreviousMapItem] = useState(null);
+  const [sidebarView, setSidebarView] = useState('routes');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedChartZone, setSelectedChartZone] = useState(null);
+  const [chartSort, setChartSort] = useState('routes-desc');
+  const [visibleZoneCount, setVisibleZoneCount] = useState(6);
 
   const [directionOpen, setDirectionOpen] = useState(false);
   const [directionState, setDirectionState] = useState('idle');
@@ -214,12 +242,20 @@ const GuestPortal = () => {
   }, [fetchAttractions, fetchRoutes, fetchZones]);
 
   useEffect(() => {
-    if (selectedMapItem?.type !== 'attraction' || !selectedMapItem.item?.coordinates) {
-      return;
-    }
-
+    if (selectedMapItem?.type !== 'attraction' || !selectedMapItem.item?.coordinates) return;
     flyTo(selectedMapItem.item.coordinates);
   }, [flyTo, selectedMapItem]);
+
+  useEffect(() => {
+    if (selectedMapItem?.type !== 'route' || !selectedMapItem.item?.geomWkt) return;
+    try {
+      const geom = wktFmt.readGeometry(selectedMapItem.item.geomWkt, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:3857',
+      });
+      fitToExtent(geom.getExtent());
+    } catch { /* ignore */ }
+  }, [fitToExtent, selectedMapItem]);
 
   useEffect(() => {
     sessionIdRef.current += 1;
@@ -247,6 +283,52 @@ const GuestPortal = () => {
   }, [routes, routeStatusFilter, requestedDay, requestedMonth]);
 
   const featuredRoutes = filteredRoutes;
+
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    attractions.forEach((a) => {
+      const cat = String(a.category || '').toUpperCase();
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [attractions]);
+
+  const filteredAttractions = useMemo(() => {
+    if (!selectedCategory) return attractions;
+    return attractions.filter((a) => String(a.category || '').toUpperCase() === selectedCategory);
+  }, [attractions, selectedCategory]);
+
+  const chartData = useMemo(() => {
+    const rows = zones.map((zone) => {
+      const routeStrIds = Array.isArray(zone.routeIds) ? zone.routeIds.map(String) : [];
+      const attrStrIds  = Array.isArray(zone.attractionIds) ? zone.attractionIds.map(String) : [];
+      const zoneRoutes  = routes.filter((r) => routeStrIds.includes(String(r.id)));
+      return {
+        id:              zone.id,
+        name:            zone.name || `Zona ${zone.id}`,
+        available:       zoneRoutes.filter((r) => r.status === 'available').length,
+        pending:         zoneRoutes.filter((r) => r.status === 'pending').length,
+        'off-season':    zoneRoutes.filter((r) => r.status === 'off-season').length,
+        cancelled:       zoneRoutes.filter((r) => r.status === 'cancelled').length,
+        total:           zoneRoutes.length,
+        attractionCount: attrStrIds.length,
+      };
+    });
+
+    return [...rows].sort((a, b) => {
+      if (chartSort === 'routes-asc')       return a.total - b.total;
+      if (chartSort === 'attractions-desc') return b.attractionCount - a.attractionCount;
+      return b.total - a.total;
+    });
+  }, [zones, routes, chartSort]);
+
+  const zoneAttractions = useMemo(() => {
+    if (selectedMapItem?.type !== 'zone') return [];
+    const ids = selectedMapItem.item?.attractionIds;
+    if (!Array.isArray(ids) || !ids.length) return [];
+    const strIds = ids.map(String);
+    return attractions.filter((a) => strIds.includes(String(a.id)));
+  }, [attractions, selectedMapItem]);
 
   const getAttractionCategoryLabel = (category) => {
     switch (String(category || '').toUpperCase()) {
@@ -332,6 +414,21 @@ const GuestPortal = () => {
     selection?.item?.title || selection?.item?.name || t('common.selectItem')
   );
 
+  const handleChartZoneClick = (entry) => {
+    const zone = zones.find((z) => String(z.id) === String(entry.id));
+    if (!zone) return;
+    setSelectedChartZone(zone);
+    if (zone.geomWkt) {
+      try {
+        const geom = wktFmt.readGeometry(zone.geomWkt, {
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        });
+        fitToExtent(geom.getExtent());
+      } catch { /* ignore */ }
+    }
+  };
+
   const clearFilters = () => {
     setRouteStatusFilter('all');
     setRequestedDay('');
@@ -339,6 +436,12 @@ const GuestPortal = () => {
   };
 
   const closeMapSelection = () => {
+    if (previousMapItem) {
+      clearNavLayer(mapInstance);
+      setSelectedMapItem(previousMapItem);
+      setPreviousMapItem(null);
+      return;
+    }
     if (selectedMapItem?.type === 'attraction' || selectedMapItem?.type === 'route') {
       restoreViewport();
       clearNavLayer(mapInstance);
@@ -409,8 +512,11 @@ const GuestPortal = () => {
             screenId="guestPortal"
             zones={zones}
             routes={filteredRoutes}
-            attractions={attractions}
-            onFeatureSelect={setSelectedMapItem}
+            attractions={sidebarView === 'attractions' ? filteredAttractions : attractions}
+            onFeatureSelect={(item) => {
+              setPreviousMapItem(null);
+              setSelectedMapItem(item);
+            }}
           />
         </div>
 
@@ -502,6 +608,51 @@ const GuestPortal = () => {
               )}
             </div>
 
+            {selectedMapItem.type === 'zone' && (
+              <div className="pt-3 border-t border-outline-variant/30">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wide">
+                    Atracciones en esta zona
+                  </p>
+                  {zoneAttractions.length > 0 && (
+                    <span className="text-[11px] text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded-full border border-outline-variant">
+                      {zoneAttractions.length}
+                    </span>
+                  )}
+                </div>
+                {zoneAttractions.length === 0 ? (
+                  <p className="text-sm text-outline">Sin atracciones en esta zona.</p>
+                ) : (
+                  <ul className="flex flex-col gap-1.5 max-h-52 overflow-y-auto pr-0.5">
+                    {zoneAttractions.map((attraction) => {
+                      const cat = String(attraction.category || '').toUpperCase();
+                      const icon = CATEGORY_ICONS[cat] || 'place';
+                      const label = getAttractionCategoryLabel(attraction.category);
+                      return (
+                        <li
+                          key={attraction.id}
+                          className="flex items-center gap-3 rounded-lg bg-surface-container-low px-3 py-2 cursor-pointer hover:bg-surface-container transition-colors"
+                          onClick={() => {
+                            setPreviousMapItem(selectedMapItem);
+                            setSelectedMapItem({ type: 'attraction', item: attraction });
+                          }}
+                        >
+                          <span className="material-symbols-outlined text-[20px] text-primary shrink-0">{icon}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-on-surface truncate">
+                              {attraction.title || `Atracción ${attraction.id}`}
+                            </p>
+                            <p className="text-[11px] text-on-surface-variant">{label}</p>
+                          </div>
+                          <span className="material-symbols-outlined text-[16px] text-outline shrink-0">chevron_right</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+
             {(selectedMapItem.type === 'attraction' || selectedMapItem.type === 'route') && (
               <div className="pt-3 border-t border-outline-variant/30">
                 <button
@@ -586,103 +737,440 @@ const GuestPortal = () => {
             <h3 className="font-headline-lg text-headline-lg text-primary">{t('guest.title')}</h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">{t('guest.subtitle')}</p>
           </div>
-          <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
-            <section className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.filters')}</h4>
-                <button className="text-primary font-label-md text-label-md hover:underline" onClick={clearFilters}>{t('guest.clearAll')}</button>
+
+          {/* Tab switcher */}
+          <div className="px-3 py-2.5 border-b border-outline-variant/30 bg-surface/30 flex gap-1">
+            {[
+              { id: 'routes',      icon: 'route',          label: 'Recorridos' },
+              { id: 'attractions', icon: 'local_activity', label: 'Lugares' },
+              { id: 'stats',       icon: 'bar_chart',      label: 'Estadística' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => { setSidebarView(tab.id); setSelectedChartZone(null); }}
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg text-xs font-medium transition-colors ${
+                  sidebarView === tab.id
+                    ? 'bg-primary text-on-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {sidebarView === 'routes' && (
+            <div className="px-6 py-5 border-b border-outline-variant/30 bg-surface/50">
+              <section className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.filters')}</h4>
+                  <button className="text-primary font-label-md text-label-md hover:underline" onClick={clearFilters}>{t('guest.clearAll')}</button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-label-md text-label-md text-on-surface">{t('guest.routeStatus')}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {routeStatusOptions.map((status) => (
+                      <button
+                        key={status.id}
+                        className={`px-3 py-1.5 rounded-full border font-label-md text-label-md flex items-center gap-1 transition-colors ${routeStatusFilter === status.id ? `border-current ${getRouteStatusClassName(status.id)}` : 'border-outline-variant text-on-surface-variant bg-surface hover:bg-surface-variant'}`}
+                        onClick={() => setRouteStatusFilter(routeStatusFilter === status.id ? 'all' : status.id)}
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">{status.icon}</span>
+                        {status.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 mt-2">
+                  <span className="font-label-md text-label-md text-on-surface">{t('guest.requestedDate')}</span>
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-3">
+                    <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                      {t('guest.day')}
+                      <input
+                        className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={requestedDay}
+                        onChange={(event) => setRequestedDay(event.target.value)}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                      {t('guest.month')}
+                      <select
+                        className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
+                        value={requestedMonth}
+                        onChange={(event) => setRequestedMonth(event.target.value)}
+                      >
+                        <option value="" />
+                        {monthOptions.map((month) => (
+                          <option key={month.value} value={month.value}>{month.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+              </section>
+            </div>
+          )}
+          {sidebarView === 'routes' && (
+            <div className="p-6 flex flex-col gap-8">
+              <section className="flex flex-col gap-4 pb-4">
+                <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.featured')}</h4>
+                {error && (
+                  <div className="text-sm text-error">{t('common.error')}</div>
+                )}
+                {isLoading && (
+                  <div className="text-sm text-outline">{t('common.loading')}</div>
+                )}
+                {!isLoading && featuredRoutes.length === 0 && (
+                  <div className="text-sm text-outline">{t('guest.noRoutes')}</div>
+                )}
+                <div className="grid grid-cols-1 gap-4">
+                  {featuredRoutes.map((route) => (
+                    <div key={route.id} className="bg-surface rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                      <div className="p-4 flex flex-col gap-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <h5 className="font-headline-md text-[16px] leading-tight text-primary font-semibold">{route.name}</h5>
+                          <div
+                            className="shrink-0 px-2 py-1 bg-surface-variant rounded font-mono-label text-[10px] flex items-center gap-1"
+                            style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                          >
+                            <span
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                            />
+                            {STATUS_LABELS[route.status] || route.status}
+                          </div>
+                        </div>
+                        <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">{route.description}</p>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
+                            <span className="material-symbols-outlined text-[14px]">timer</span>
+                            {route.durationHours} {t('guest.hours')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {sidebarView === 'stats' && !selectedChartZone && (
+            <div className="flex flex-col gap-6 p-5">
+              <div>
+                <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider mb-1">Recorridos por zona</h4>
+                <p className="text-xs text-on-surface-variant">Tocá una barra para ver los recorridos de esa zona</p>
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="font-label-md text-label-md text-on-surface">{t('guest.routeStatus')}</label>
-                <div className="flex flex-wrap gap-2">
-                  {routeStatusOptions.map((status) => (
+
+              <div className="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden">
+                <div className="flex items-center justify-around gap-2 py-4 px-2">
+                  {[
+                    { value: routes.length,      label: 'recorridos', icon: 'route' },
+                    { value: attractions.length, label: 'atracciones', icon: 'local_activity' },
+                    { value: zones.length,       label: 'zonas', icon: 'map' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="flex flex-col items-center gap-1">
+                      <span className="material-symbols-outlined text-[20px] text-primary">{stat.icon}</span>
+                      <span className="text-2xl font-bold text-on-surface leading-none">{stat.value}</span>
+                      <span className="text-[10px] text-on-surface-variant uppercase tracking-wide">{stat.label}</span>
+                    </div>
+                  ))}
+                </div>
+                {(() => {
+                  const bannerConfig = {
+                    'routes-desc': {
+                      pick: (d) => [...d].sort((a, b) => b.total - a.total)[0],
+                      icon: 'emoji_events',
+                      label: 'Zona más activa',
+                      value: (e) => `${e.total} ${e.total === 1 ? 'recorrido' : 'recorridos'}`,
+                      hide: (e) => e.total === 0,
+                    },
+                    'routes-asc': {
+                      pick: (d) => [...d].sort((a, b) => a.total - b.total)[0],
+                      icon: 'explore',
+                      label: 'Zona menos explorada',
+                      value: (e) => `${e.total} ${e.total === 1 ? 'recorrido' : 'recorridos'}`,
+                      hide: () => false,
+                    },
+                    'attractions-desc': {
+                      pick: (d) => [...d].sort((a, b) => b.attractionCount - a.attractionCount)[0],
+                      icon: 'local_activity',
+                      label: 'Zona con más atracciones',
+                      value: (e) => `${e.attractionCount} ${e.attractionCount === 1 ? 'atracción' : 'atracciones'}`,
+                      hide: (e) => e.attractionCount === 0,
+                    },
+                  };
+                  const cfg = bannerConfig[chartSort];
+                  const entry = cfg.pick(chartData);
+                  if (!entry || cfg.hide(entry)) return null;
+                  return (
+                    <div className="border-t border-outline-variant/40 px-4 py-2.5 flex items-center gap-2 bg-primary/5">
+                      <span className="material-symbols-outlined text-[16px] text-primary shrink-0">{cfg.icon}</span>
+                      <p className="text-xs text-on-surface-variant">
+                        {cfg.label}:{' '}
+                        <span className="font-semibold text-on-surface">{entry.name}</span>
+                        {' '}con{' '}
+                        <span className="font-semibold text-primary">{cfg.value(entry)}</span>
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <p className="text-[10px] uppercase tracking-wide text-on-surface-variant font-medium">Ordenar por</p>
+                <div className="flex rounded-xl border border-outline-variant bg-surface-container-low p-1 gap-0.5">
+                  {[
+                    { id: 'routes-desc',      label: 'Más recorridos',  icon: 'arrow_downward' },
+                    { id: 'routes-asc',       label: 'Menos recorridos', icon: 'arrow_upward' },
+                    { id: 'attractions-desc', label: 'Más atracciones', icon: 'local_activity' },
+                  ].map((opt) => (
                     <button
-                      key={status.id}
-                      className={`px-3 py-1.5 rounded-full border font-label-md text-label-md flex items-center gap-1 transition-colors ${routeStatusFilter === status.id ? `border-current ${getRouteStatusClassName(status.id)}` : 'border-outline-variant text-on-surface-variant bg-surface hover:bg-surface-variant'}`}
-                      onClick={() => setRouteStatusFilter(routeStatusFilter === status.id ? 'all' : status.id)}
+                      key={opt.id}
                       type="button"
+                      onClick={() => { setChartSort(opt.id); setVisibleZoneCount(6); }}
+                      className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[10px] font-medium transition-all ${
+                        chartSort === opt.id
+                          ? 'bg-primary text-on-primary shadow-sm'
+                          : 'text-on-surface-variant hover:bg-surface-container'
+                      }`}
                     >
-                      <span className="material-symbols-outlined text-[14px]">{status.icon}</span>
-                      {status.label}
+                      <span className="material-symbols-outlined text-[15px]">{opt.icon}</span>
+                      {opt.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 mt-2">
-                <span className="font-label-md text-label-md text-on-surface">{t('guest.requestedDate')}</span>
-                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-3">
-                  <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
-                    {t('guest.day')}
-                    <input
-                      className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={requestedDay}
-                      onChange={(event) => setRequestedDay(event.target.value)}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
-                    {t('guest.month')}
-                    <select
-                      className="min-w-0 rounded-lg border border-outline-variant bg-surface px-2 py-1.5 text-on-surface"
-                      value={requestedMonth}
-                      onChange={(event) => setRequestedMonth(event.target.value)}
-                    >
-                      <option value="" />
-                      {monthOptions.map((month) => (
-                        <option key={month.value} value={month.value}>{month.label}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </div>
+              <ZoneRoutesChart
+                data={chartData.slice(0, visibleZoneCount)}
+                isLoading={isRoutesLoading || isZonesLoading}
+                onZoneClick={handleChartZoneClick}
+              />
+              {chartData.length > 6 && (
+                <p className="text-xs text-center text-on-surface-variant">
+                  Mostrando <span className="font-semibold text-on-surface">{Math.min(visibleZoneCount, chartData.length)}</span> de <span className="font-semibold text-on-surface">{chartData.length}</span> zonas
+                </p>
+              )}
+              {visibleZoneCount < chartData.length && (
+                <button
+                  type="button"
+                  onClick={() => setVisibleZoneCount((n) => n + 6)}
+                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-outline-variant text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                  Ver {Math.min(6, chartData.length - visibleZoneCount)} zonas más
+                </button>
+              )}
+            </div>
+          )}
 
-            </section>
-          </div>
-          <div className="p-6 flex flex-col gap-8">
-            <section className="flex flex-col gap-4 pb-4">
-              <h4 className="font-label-md text-label-md text-outline uppercase tracking-wider">{t('guest.featured')}</h4>
-              {error && (
-                <div className="text-sm text-error">{t('common.error')}</div>
-              )}
-              {isLoading && (
-                <div className="text-sm text-outline">{t('common.loading')}</div>
-              )}
-              {!isLoading && featuredRoutes.length === 0 && (
-                <div className="text-sm text-outline">{t('guest.noRoutes')}</div>
-              )}
-              <div className="grid grid-cols-1 gap-4">
-                {featuredRoutes.map((route) => (
-                  <div key={route.id} className="bg-surface rounded-xl border border-outline-variant/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                    <div className="p-4 flex flex-col gap-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <h5 className="font-headline-md text-[16px] leading-tight text-primary font-semibold">{route.name}</h5>
+          {sidebarView === 'stats' && selectedChartZone && (() => {
+            const zoneRouteIds = (selectedChartZone.routeIds || []).map(String);
+            const zoneAttrIds  = (selectedChartZone.attractionIds || []).map(String);
+            const zoneRoutes   = routes.filter((r) => zoneRouteIds.includes(String(r.id)));
+            const zoneAttrs    = attractions.filter((a) => zoneAttrIds.includes(String(a.id)));
+            return (
+              <div className="flex flex-col">
+                <div className="px-5 py-4 border-b border-outline-variant/30 bg-surface-bright shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedChartZone(null); restoreViewport(); }}
+                    className="flex items-center gap-1.5 text-xs text-primary font-medium mb-3 hover:underline"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">arrow_back</span>
+                    Volver al gráfico
+                  </button>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-wide text-on-surface-variant font-medium mb-0.5">Zona</p>
+                      <h4 className="font-headline-sm text-headline-sm text-on-surface leading-tight">
+                        {selectedChartZone.name || `Zona ${selectedChartZone.id}`}
+                      </h4>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">route</span>
+                        {zoneRoutes.length} {zoneRoutes.length === 1 ? 'recorrido' : 'recorridos'}
+                      </span>
+                      {zoneAttrs.length > 0 && (
+                        <span className="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">local_activity</span>
+                          {zoneAttrs.length} {zoneAttrs.length === 1 ? 'atracción' : 'atracciones'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {selectedChartZone.description && (
+                    <p className="mt-2 text-sm text-on-surface-variant">{selectedChartZone.description}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 p-4">
+                  {zoneRoutes.length === 0 && (
+                    <p className="text-sm text-outline text-center py-4">Esta zona no tiene recorridos asignados.</p>
+                  )}
+                  {zoneRoutes.map((route) => (
+                    <div
+                      key={route.id}
+                      className="bg-surface rounded-xl border border-outline-variant/50 p-4 flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedMapItem({ type: 'route', item: route })}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h5 className="font-label-lg text-label-lg text-on-surface leading-snug">{route.name}</h5>
                         <div
-                          className="shrink-0 px-2 py-1 bg-surface-variant rounded font-mono-label text-[10px] flex items-center gap-1"
-                          style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
+                          className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                          style={{ color: STATUS_COLORS[route.status] ?? '#9e9e9e', background: `${STATUS_COLORS[route.status] ?? '#9e9e9e'}18` }}
                         >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: STATUS_COLORS[route.status] ?? '#9e9e9e' }}
-                          />
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: STATUS_COLORS[route.status] ?? '#9e9e9e' }} />
                           {STATUS_LABELS[route.status] || route.status}
                         </div>
                       </div>
-                      <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2">{route.description}</p>
-                      <div className="flex items-center gap-4 mt-1">
-                        <span className="flex items-center gap-1 text-outline font-mono-label text-mono-label">
-                          <span className="material-symbols-outlined text-[14px]">timer</span>
+                      {route.description && (
+                        <p className="text-xs text-on-surface-variant line-clamp-3">{route.description}</p>
+                      )}
+                      {route.durationHours && (
+                        <div className="flex items-center gap-1 text-xs text-outline">
+                          <span className="material-symbols-outlined text-[13px]">timer</span>
                           {route.durationHours} {t('guest.hours')}
-                        </span>
-                      </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+
+                  {zoneAttrs.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 h-px bg-outline-variant/40" />
+                        <span className="text-[10px] uppercase tracking-wide text-on-surface-variant font-medium flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px]">local_activity</span>
+                          Atracciones
+                        </span>
+                        <div className="flex-1 h-px bg-outline-variant/40" />
+                      </div>
+                      {zoneAttrs.map((attraction) => {
+                        const cat  = String(attraction.category || '').toUpperCase();
+                        const icon = CATEGORY_ICONS[cat] || 'place';
+                        return (
+                          <div
+                            key={attraction.id}
+                            className="flex items-center gap-3 bg-surface rounded-xl border border-outline-variant/50 p-3 cursor-pointer hover:shadow-md transition-shadow"
+                            onClick={() => setSelectedMapItem({ type: 'attraction', item: attraction })}
+                          >
+                            {attraction.imageUrl ? (
+                              <div className="shrink-0 w-11 h-11 rounded-lg overflow-hidden bg-surface-container">
+                                <img src={attraction.imageUrl} alt={attraction.title} className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="shrink-0 w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center">
+                                <span className="material-symbols-outlined text-[22px] text-primary">{icon}</span>
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-on-surface truncate">
+                                {attraction.title || `Atracción ${attraction.id}`}
+                              </p>
+                              {attraction.description && (
+                                <p className="text-xs text-on-surface-variant line-clamp-1 mt-0.5">{attraction.description}</p>
+                              )}
+                            </div>
+                            <span className="material-symbols-outlined text-[16px] text-outline shrink-0">chevron_right</span>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+                </div>
               </div>
-            </section>
-          </div>
+            );
+          })()}
+
+          {sidebarView === 'attractions' && (
+            <div className="flex flex-col min-h-0">
+              <div className="px-4 py-3 border-b border-outline-variant/30 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    selectedCategory === null
+                      ? 'bg-primary text-on-primary border-primary'
+                      : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                  }`}
+                >
+                  Todas
+                </button>
+                {CATEGORIES.map((cat) => {
+                  const count = categoryCounts[cat.value] || 0;
+                  if (!count) return null;
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => setSelectedCategory(selectedCategory === cat.value ? null : cat.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                        selectedCategory === cat.value
+                          ? 'bg-primary text-on-primary border-primary'
+                          : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
+                      {cat.label}
+                      <span className={`text-[11px] rounded-full px-1.5 ${selectedCategory === cat.value ? 'bg-white/20' : 'bg-surface-container'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="p-4 flex flex-col gap-3">
+                {isAttractionsLoading && (
+                  <div className="text-sm text-outline text-center py-4">{t('common.loading')}</div>
+                )}
+                {!isAttractionsLoading && filteredAttractions.length === 0 && (
+                  <div className="text-sm text-outline text-center py-4">No hay atracciones en esta categoría.</div>
+                )}
+                {filteredAttractions.map((attraction) => {
+                  const cat = String(attraction.category || '').toUpperCase();
+                  const icon = CATEGORY_ICONS[cat] || 'place';
+                  return (
+                    <div
+                      key={attraction.id}
+                      className="flex items-center gap-3 bg-surface rounded-xl border border-outline-variant/50 p-3 cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedMapItem({ type: 'attraction', item: attraction })}
+                    >
+                      {attraction.imageUrl ? (
+                        <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-surface-container">
+                          <img src={attraction.imageUrl} alt={attraction.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="shrink-0 w-14 h-14 rounded-lg bg-surface-container flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[26px] text-primary">{icon}</span>
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-label-lg text-label-lg text-on-surface leading-snug truncate">
+                          {attraction.title || `Atracción ${attraction.id}`}
+                        </p>
+                        {attraction.description && (
+                          <p className="mt-0.5 text-xs text-on-surface-variant line-clamp-2">{attraction.description}</p>
+                        )}
+                      </div>
+                      <span className="material-symbols-outlined text-[18px] text-outline shrink-0">chevron_right</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </aside>
 
       </main>

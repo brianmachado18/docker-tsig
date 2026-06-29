@@ -15,6 +15,17 @@ const statusFromBackend = (status) => {
   }
 };
 
+const extractId = (item) => {
+  if (item === null || item === undefined) return null;
+  if (typeof item === 'object') return item.id ?? item.idAtraccion ?? item.idRecorrido ?? null;
+  return item;
+};
+
+const normalizeIdArray = (raw) => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(extractId).filter((id) => id !== null && id !== undefined);
+};
+
 const normalizeZone = (zone) => ({
   id: zone.id ?? zone.idZona,
   name: zone.name ?? zone.nombre ?? '',
@@ -23,8 +34,8 @@ const normalizeZone = (zone) => ({
   notes: zone.notes ?? zone.observaciones ?? '',
   geomWkt: zone.geomWkt ?? '',
   geometry: zone.geometry ?? parsePolygonWkt(zone.geomWkt),
-  routeIds: zone.routeIds ?? zone.recorridos ?? [],
-  attractionIds: zone.attractionIds ?? zone.atracciones ?? [],
+  routeIds: normalizeIdArray(zone.routeIds ?? zone.recorridos),
+  attractionIds: normalizeIdArray(zone.attractionIds ?? zone.atracciones),
   status: zone.status ?? 'active',
 });
 
