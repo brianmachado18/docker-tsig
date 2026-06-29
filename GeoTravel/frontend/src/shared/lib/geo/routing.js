@@ -45,71 +45,48 @@ const fetchWithTimeout = (url, ms = 5000) => {
   return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(id));
 };
 
-// Perfil OSRM correcto según el endpoint de routing.openstreetmap.de
-const deProfile = (deEndpoint) => {
-  if (deEndpoint === 'routed-bike') return 'bike';
-  if (deEndpoint === 'routed-foot') return 'foot';
-  return 'driving';
+// Distancia en línea recta (metros) entre dos puntos [lon, lat]
+const haversineMeters = (a, b) => {
+  const R = 6371000;
+  const toRad = (d) => d * (Math.PI / 180);
+  const dLat = toRad(b[1] - a[1]);
+  const dLon = toRad(b[0] - a[0]);
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 };
 
-// Intenta routing.openstreetmap.de con fallback a tiempo estimado si falla o tarda
-const fetchModeRoute = async (deEndpoint, coordStr, fallbackDrivingData) => {
-  const profile = deProfile(deEndpoint);
+// Intenta una URL de OSRM y devuelve { wkt, minutes, distance } o null si falla
+const tryOsrm = async (url) => {
   try {
-    const res = await fetchWithTimeout(
-      `${OSRM_DE}/${deEndpoint}/route/v1/${profile}/${coordStr}?overview=full&geometries=geojson`,
-      8000,
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.code === 'Ok' && data.routes?.[0]) {
-        const { duration, geometry, distance } = data.routes[0];
-        return { wkt: geojsonToWkt(geometry.coordinates), minutes: Math.round(duration / 60), distance };
-      }
-    }
-  } catch { /* timeout o error de red → fallback */ }
-
-  // Fallback: tiempo estimado por velocidad típica, sin WKT (renderNavRoute dibuja línea recta)
-  if (fallbackDrivingData) {
-    const { distance } = fallbackDrivingData;
-    return {
-      wkt: null,
-      minutes: profile === 'bike'
-        ? Math.round(distance / (20000 / 60))  // ~20 km/h
-        : Math.round(distance / (5000 / 60)),   // ~5 km/h
-      distance,
-    };
+    const res = await fetchWithTimeout(url, 6000);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.code !== 'Ok' || !data.routes?.[0]) return null;
+    const { duration, geometry, distance } = data.routes[0];
+    return { wkt: geojsonToWkt(geometry.coordinates), minutes: Math.round(duration / 60), distance };
+  } catch {
+    return null;
   }
-  return null;
 };
 
 // Devuelve { driving, cycling, walking } con { wkt, minutes } para cada modo.
+// Los tres modos se consultan en paralelo; si OSRM falla usa tiempo estimado por distancia.
 export const fetchAllModeRoutes = async (origin, destination) => {
   const coordStr = `${origin[0]},${origin[1]};${destination[0]},${destination[1]}`;
+  // Factor 1.3 sobre línea recta para aproximar distancia real de camino
+  const dist = haversineMeters(origin, destination) * 1.3;
 
-  // Driving con timeout de 6s (servidor conocido)
-  let drivingResult = null;
-  try {
-    const res = await fetchWithTimeout(
-      `${OSRM_BASE}/driving/${coordStr}?overview=full&geometries=geojson`,
-      6000,
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.code === 'Ok' && data.routes?.[0]) {
-        const { duration, geometry, distance } = data.routes[0];
-        drivingResult = { wkt: geojsonToWkt(geometry.coordinates), minutes: Math.round(duration / 60), distance };
-      }
-    }
-  } catch { /* timeout → drivingResult null */ }
-
-  // Cycling y walking en paralelo, timeout 5s cada uno, fallback a ruta de auto
-  const [cycling, walking] = await Promise.all([
-    fetchModeRoute('routed-bike', coordStr, drivingResult),
-    fetchModeRoute('routed-foot', coordStr, drivingResult),
+  const [driving, cycling, walking] = await Promise.all([
+    tryOsrm(`${OSRM_BASE}/driving/${coordStr}?overview=full&geometries=geojson`)
+      .then((r) => r ?? { wkt: null, minutes: Math.round(dist / (30000 / 60)), distance: dist }),
+    tryOsrm(`${OSRM_DE}/routed-bike/route/v1/bike/${coordStr}?overview=full&geometries=geojson`)
+      .then((r) => r ?? { wkt: null, minutes: Math.round(dist / (20000 / 60)), distance: dist }),
+    tryOsrm(`${OSRM_DE}/routed-foot/route/v1/foot/${coordStr}?overview=full&geometries=geojson`)
+      .then((r) => r ?? { wkt: null, minutes: Math.round(dist / (5000 / 60)), distance: dist }),
   ]);
 
-  return { driving: drivingResult, cycling, walking };
+  return { driving, cycling, walking };
 };
 
 // Compatibilidad con código que usa fetchTravelTimes
