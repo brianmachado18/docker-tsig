@@ -39,13 +39,15 @@ Docs que debes revisar antes de decidir contratos:
 
 ## Alcance Vigente Revisado
 
-Este perfil fue actualizado contra el diff reciente `76496d8..26e3203` y los cambios posteriores en `GuestPortal`, `RoutePlanner`, `RouteForm`, consultas por interseccion/punto, geocoding IDE, scheduling automatico de estados y `docs/paper.md`.
+Este perfil fue actualizado contra el estado vigente del proyecto y los cambios posteriores en `GuestPortal`, `ZoneManagement`, `ZoneAttractionsPanel`, `RoutePlanner`, `RouteForm`, consultas por interseccion/punto, geocoding IDE, scheduling automatico de estados y `docs/paper.md`.
 
 Estado relevante:
 
 - El frontend ya no es WMS-only por defecto; la estrategia real vive en `frontend/src/shared/config/mapLayers.js`.
 - `GuestPortal` usa capas `vector-primary` desde estado REST/Zustand para zonas, recorridos y atracciones.
-- `RoutePlanner` usa `routes` por WFS para seleccionar/dibujar recorridos y `attractions` por WMS como referencia.
+- `GuestPortal` y `ZoneAttractionsPanel` pueden calcular atracciones/recorridos por zona con fallback espacial cuando las features de zona no incluyen `attractionIds` o `routeIds`.
+- `ZoneManagement` usa `zones` y `routes` como `vector-primary`; el panel de atracciones resuelve atracciones desde store/fallback espacial.
+- `RoutePlanner` usa `routes` por WFS para seleccionar/dibujar recorridos.
 - `RoutePlanner` preserva `mapStore.center` y `mapStore.zoom`; no debe depender de constantes locales de viewport.
 - El flujo de altas de recorridos ya no depende de `idEstacion` en la UI principal: `DTRecorrido` expone `diaInicio`, `mesInicio`, `diaFin`, `mesFin` y el backend deriva `fechaInicio`/`fechaFin` como `LocalDate`.
 - `RoutePlanner` abre un selector de modo antes del formulario (`draw` o `points`) y `RouteMapInteractions` limpia drafts de dibujo al cancelar o cerrar.
@@ -152,6 +154,7 @@ Nota operativa:
 
 - `Recorrido` persiste la ventana estacional como `fechaInicio` y `fechaFin` en `LocalDate`, construidas desde el DTO por dia/mes.
 - `RecorridoAtracciones` es la tabla de union para las paradas ordenadas del recorrido.
+- Las relaciones zona-recorrido y zona-atraccion pueden exponerse como IDs en DTOs REST, pero la UI tambien debe poder derivarlas por `ST_Intersects`/`ST_Contains` cuando GeoServer/WFS no publique esos campos relacionales.
 - Las temporadas que cruzan de anio ajustan `fechaFin` con `plusYears(1)`; si el recorrido queda fuera de la ventana actual, el backend lo marca `FUERA_DE_ESTACION` y mueve la ventana al siguiente ciclo anual.
 - `UpdateDiarioService` vuelve a poner recorridos en `PENDIENTE` cuando entran en temporada y registra cambios en historico.
 
@@ -404,4 +407,4 @@ Para verificar:
 
 ---
 
-**Ultima actualizacion**: Junio 2026, revisado contra `HEAD 26e3203`.
+**Ultima actualizacion**: Junio 2026, revisado contra el estado vigente de backend, GIS y `frontend/src`.

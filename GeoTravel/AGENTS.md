@@ -51,3 +51,11 @@ The frontend was restructured in commit `d2a9291 Estructura fe`. Agents must use
 | `frontend/src/shared/lib/` | Shared API, form and geometry helpers |
 
 Do not create new runtime code in the old root folders `frontend/src/components`, `frontend/src/services`, `frontend/src/store`, `frontend/src/config` or `frontend/src/locales`.
+
+## Current Map/Data Notes
+
+- `frontend/src/shared/config/mapLayers.js` is the source of truth for WMS/WFS/vector strategy by screen.
+- `guestPortal` renders zones, routes and attractions from vector data in Zustand.
+- `zoneManagement` renders zones and routes from vector data; `ZoneAttractionsPanel` fetches attractions on demand and may need both relationship IDs and spatial fallback logic because WFS zone features can omit `routeIds`/`attractionIds`.
+- REST and GeoServer currently exchange geometry in `EPSG:4326`; OpenLayers renders in `EPSG:3857`.
+- GeoServer remains read-only for the frontend. Entity creation, update and delete go through Spring REST.

@@ -31,10 +31,14 @@ features/map/
 ├── MapOverlayLayers.jsx
 ├── interactions/
 │   ├── AttractionMapInteractions.jsx
+│   ├── PublicMapSelection.jsx
+│   ├── RouteMapInteractions.jsx
 │   └── ZoneMapInteractions.jsx
 ├── layers/
+│   ├── AttractionsHeatmapLayer.jsx
 │   ├── AttractionsVectorLayer.jsx
 │   ├── AttractionsWmsLayer.jsx
+│   ├── RoutesWfsLayer.jsx
 │   ├── RoutesVectorLayer.jsx
 │   ├── RoutesWmsLayer.jsx
 │   ├── ZonesVectorLayer.jsx
@@ -69,10 +73,11 @@ Permitir que un administrador interactue con el mapa para:
 
 Lee siempre `shared/config/mapLayers.js`; al momento de esta actualizacion:
 
-- `guestPortal`: `routes` WMS, `attractions` WMS.
-- `zoneManagement`: `zones` WFS read-only editable localmente, persistencia por REST.
-- `routePlanner`: `routes` WMS.
+- `guestPortal`: `zones`, `routes` y `attractions` como `vector-primary` alimentados por stores Zustand; seleccion publica mediante `PublicMapSelection`.
+- `zoneManagement`: `zones` y `routes` como `vector-primary`; `ZoneAttractionsPanel` resuelve atracciones desde store/fallback espacial, persistencia por REST.
+- `routePlanner`: `routes` por WFS para seleccion/dibujo de recorridos.
 - `attractionMap`: `attractions` vector local alimentado por REST para poder dibujar/modificar puntos.
+- `attractionCatalog`: `attractions` como `vector-primary`.
 
 `MapOverlayLayers.jsx` es quien monta la capa correcta segun `screenId`.
 
@@ -92,7 +97,7 @@ Mantén conversiones explicitas:
 
 - OpenLayers renderiza en `EPSG:3857`.
 - Intercambio FE/API usa `EPSG:4326` salvo contrato contrario.
-- PostGIS persiste en `EPSG:32721`; coordina transformaciones con `@GeoTravel-GIS`.
+- PostGIS/backend persisten actualmente en `geometry(...,4326)`; no asumas `EPSG:32721` salvo migracion explicita coordinada con `@GeoTravel-GIS`.
 - Los formularios actuales guardan geometria como WKT cuando el servicio REST lo requiere.
 
 Patron usual:
@@ -148,10 +153,19 @@ Cuando el usuario cancela/cierra un formulario abierto desde el mapa:
 
 ### Dibujar O Editar Zona
 
-1. `ZoneMapInteractions` usa WFS zones como fuente editable local.
+1. `ZoneMapInteractions` usa la capa vectorial de zonas como fuente editable local.
 2. `Draw`/`Modify` produce WKT en `EPSG:4326`.
 3. `ZoneForm` guarda por REST.
-4. Al guardar o cancelar, `useRefreshEntityLayer('zones')` recarga `zones-wfs` y descarta drafts/cambios locales.
+4. Al guardar o cancelar, `useRefreshEntityLayer('zones')` refresca las capas configuradas y descarta drafts/cambios locales.
+
+### Relacion Zona, Atracciones Y Recorridos
+
+- Las zonas provenientes de WFS/vector pueden no incluir `routeIds` o `attractionIds`.
+- Para UI publica/admin, usa IDs relacionales cuando existan.
+- Si no existen, calcula fallback espacial:
+  - atracciones: punto dentro/intersectando poligono de zona.
+  - recorridos: linea que intersecta o cruza el poligono de zona.
+- Mantén estas reglas en helpers reutilizables o en la pantalla que consume los datos; no fuerces atributos relacionales inexistentes en GeoServer sin coordinar el contrato.
 
 ## Coordinacion Con Otros Agentes
 
@@ -200,4 +214,4 @@ Usa `@GeoTravel-GIS` para:
 
 ---
 
-**Última actualización**: Junio 2026, posterior a `d2a9291 Estructura fe`.
+**Última actualización**: Junio 2026, revisado contra el estado vigente de `features/map` y `shared/config/mapLayers.js`.

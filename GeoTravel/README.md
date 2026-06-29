@@ -1,60 +1,63 @@
-# TSIG Docker
+# GeoTravel
 
-Base Docker para un proyecto con:
+GeoTravel es una SPA GIS turistica para administrar y consultar zonas, recorridos y atracciones sobre Uruguay.
+
+Stack principal:
 
 - PostgreSQL + PostGIS
+- Spring Boot 3 / Java 21 desplegado en Tomcat
 - GeoServer
-- Java + Spring Boot
-- React
-- Tomcat
-
-Git e IntelliJ se usan en tu maquina como herramientas de desarrollo. No conviene meter IntelliJ dentro del Docker del proyecto.
+- React + Vite + Zustand + OpenLayers
+- Docker Compose
 
 ## Requisitos
 
 - Docker Desktop
 - Git
-- IntelliJ IDEA
+- Node.js 22 si se ejecuta el frontend fuera de Docker
+- IntelliJ IDEA u otro IDE Java si se ejecuta el backend fuera de Docker
 
-## Configuracion de entorno (.env)
+## Configuracion
 
-Este proyecto usa variables de entorno para alinear frontend, backend, base de datos y GeoServer.
-
-1. Crear archivo local `.env` a partir del ejemplo:
+Crear el archivo local de entorno:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Revisar/ajustar valores en `.env` segun tu entorno local.
+Revisar los puertos y credenciales en `.env` antes de levantar el stack. El archivo `.env` es local y no se versiona.
 
-3. Levantar el stack con esas variables:
+## Levantar Todo
 
-```bash
-docker compose up --build
-```
-
-Notas:
-
-- `.env` es local de cada desarrollador (no se versiona).
-- Si cambia `.env.example`, conviene replicar esos cambios en tu `.env`.
-
-## Levantar el entorno
+Desde `GeoTravel/`:
 
 ```bash
 docker compose up --build
 ```
 
-## URLs
+Servicios principales:
 
-- React: http://localhost:5173
-- Spring Boot: http://localhost:8080/api/status
-- Spring Health: http://localhost:8080/actuator/health
+- `postgres`: base PostGIS.
+- `tomcat`: backend Spring Boot empaquetado para Tomcat.
+- `geoserver`: publicacion WMS/WFS read-only.
+- `data-loader`: carga `postgres/data/data.sql`.
+- `geoserver-config`: crea workspace/datastore/capas GeoServer.
+- `frontend`: Vite con proxy a Tomcat y GeoServer.
+
+## URLs Locales
+
+- Frontend: http://localhost:5173
+- Portal publico: http://localhost:5173/guest
+- Gestion de zonas: http://localhost:5173/zones
+- Gestion de recorridos: http://localhost:5173/routes
+- Atracciones: http://localhost:5173/attractions
+- Mapa de atracciones: http://localhost:5173/attractions/map
+- Backend status: http://localhost:8082/tsig-backend/api/status
+- Spring health: http://localhost:8082/tsig-backend/actuator/health
 - GeoServer: http://localhost:8081/geoserver
-- Tomcat: http://localhost:8082
-- PostgreSQL: localhost:5433
+- PostgreSQL host: `localhost:5433`
 
-## Credenciales locales
+## Credenciales Locales
 
 PostgreSQL:
 
@@ -67,59 +70,146 @@ GeoServer:
 - Usuario: `admin`
 - Password: `geoserver`
 
-## IntelliJ
+Login admin de prueba:
 
-Abre la carpeta `backend` como proyecto Maven o abre la carpeta raiz y marca `backend` como modulo. Para ejecutar Spring fuera de Docker, usa estas variables:
+- Usuario: `admin`
+- Password: `admin`
+
+## Arquitectura Frontend
+
+El frontend vive en `frontend/src` y usa imports con alias `@`.
+
+Estructura vigente:
+
+```text
+frontend/src/
+├── app/                 # bootstrap y rutas React Router
+├── pages/               # composicion de pantallas
+├── features/
+│   ├── attractions/     # atracciones, formularios, store y servicio
+│   ├── auth/            # login y rutas protegidas
+│   ├── map/             # OpenLayers, capas, interacciones y GeoServer client
+│   ├── routes/          # recorridos, planner, store y servicio
+│   └── zones/           # zonas, consultas, paneles, store y servicio
+└── shared/
+    ├── components/
+    ├── config/
+    ├── i18n/
+    └── lib/
+```
+
+No crear codigo nuevo en las carpetas historicas `src/components`, `src/services`, `src/store`, `src/config` o `src/locales`.
+
+## Estrategias De Mapa
+
+La fuente de verdad es `frontend/src/shared/config/mapLayers.js`.
+
+Estado actual:
+
+| Pantalla | `screenId` | Capas |
+|---|---|---|
+| Portal publico | `guestPortal` | `zones`, `routes`, `attractions` como `vector-primary` |
+| Gestion de zonas | `zoneManagement` | `zones`, `routes` como `vector-primary` |
+| Planificador de recorridos | `routePlanner` | `routes` por WFS |
+| Mapa de atracciones | `attractionMap` | `attractions` como `vector-primary` |
+| Catalogo de atracciones | `attractionCatalog` | `attractions` como `vector-primary` |
+
+GeoServer es read-only para el frontend. Altas, bajas y modificaciones pasan por REST.
+
+## Contratos GIS
+
+- OpenLayers renderiza en `EPSG:3857`.
+- Frontend, backend y GeoServer intercambian geometria en `EPSG:4326`.
+- PostGIS usa columnas:
+  - `atraccion.geom_wkt`: `geometry(Point,4326)`
+  - `recorrido.geom_wkt`: `geometry(LineString,4326)`
+  - `zona.geom_wkt`: `geometry(Polygon,4326)`
+- Las zonas pueden venir desde GeoServer/WFS sin relaciones `routeIds` o `attractionIds`.
+- La UI usa IDs relacionales cuando existen y fallback espacial cuando no:
+  - atracciones por zona: punto dentro/intersectando el poligono.
+  - recorridos por zona: linea que intersecta/cruza el poligono.
+
+## Endpoints Principales
+
+El frontend consume los endpoints del backend en espanol:
+
+- Zonas: `/zona/buscar/todos`, `/zona/buscar/porDireccion`, `/zona/alta`, `/zona/actualizar`, `/zona/eliminar`
+- Atracciones: `/atraccion/buscar/todos`, `/atraccion/alta`, `/atraccion/actualizar`, `/atraccion/eliminar`
+- Recorridos: `/recorrido/buscar/todos`, `/recorrido/buscar/porZona`, `/recorrido/buscar/porInterseccion`, `/recorrido/buscar/porPunto`, `/recorrido/buscar/sugerenciasCalles`, `/recorrido/buscar/sugerenciasCruces`, `/recorrido/alta`, `/recorrido/actualizar`, `/recorrido/eliminar`
+- Historico: `/historico/buscar/porRecorrido`
+
+El backend usa IDE Uruguay para geocoding y sugerencias de calles/cruces.
+
+## Desarrollo Frontend Fuera De Docker
+
+Desde `GeoTravel/frontend`:
+
+```bash
+npm install
+npm run dev
+```
+
+Si el puerto `5173` esta ocupado, Vite usara otro puerto y lo mostrara en consola.
+
+Para validar cambios frontend:
+
+```bash
+npm run build
+```
+
+## Backend En IntelliJ
+
+Abrir `GeoTravel/backend` como proyecto Maven, o abrir la raiz y marcar `backend` como modulo.
+
+Variables utiles si se ejecuta Spring fuera de Docker:
 
 ```text
 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/tsig
 SPRING_DATASOURCE_USERNAME=tsig
 SPRING_DATASOURCE_PASSWORD=tsig
 GEOSERVER_URL=http://localhost:8081/geoserver
+GEOCODING_IDE_BASE_URL=https://direcciones.ide.uy
 ```
 
-## React en desarrollo
+## Datos Locales
 
-Si prefieres trabajar con Vite fuera de Docker:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## WARs en Tomcat
-
-Coloca archivos `.war` dentro de:
+PostgreSQL ejecuta automaticamente `postgres/init/` al crear el volumen por primera vez. Luego `data-loader` carga:
 
 ```text
-tomcat/webapps
+postgres/data/data.sql
 ```
 
-Tomcat los despliega en http://localhost:8082.
+Ese dataset incluye usuario admin, atracciones, zonas, recorridos, relaciones zona-recorrido y paradas ordenadas de recorridos.
 
-## Reiniciar datos locales
-
-Esto borra la base y los datos persistidos de GeoServer:
-
-```bash
-docker compose down -v
-```
-
-## Datos de prueba compartidos
-
-Los archivos dentro de `postgres/init/` se ejecutan automaticamente cuando PostgreSQL se crea por primera vez.
-
-Ahora hay dos scripts:
-
-- `01-postgis.sql`: activa PostGIS.
-- `02-datos-prueba.sql`: crea una tabla `puntos_interes` con geometria `Point` y datos de ejemplo.
-
-Si alguien ya habia levantado el proyecto antes, debe borrar el volumen para que se ejecuten otra vez:
+Para reiniciar base y GeoServer desde cero:
 
 ```bash
 docker compose down -v
 docker compose up --build
 ```
 
-Importante: `docker compose down -v` borra la base local de esa persona.
+Importante: `docker compose down -v` borra los datos locales persistidos.
+
+## GeoServer
+
+`geoserver-config` configura workspace, datastore PostGIS y capas publicadas. La documentacion detallada esta en:
+
+```text
+docs/geoserver-configuration.md
+```
+
+No usar WFS-T ni escribir directamente contra GeoServer.
+
+## Agentes
+
+El router de agentes vive en:
+
+```text
+AGENTS.md
+```
+
+Usar:
+
+- `@GeoTravel-FE` para React, Zustand, servicios, formularios, i18n y composicion de pantallas.
+- `@GeoTravel-MapOL` para OpenLayers, capas, interacciones, WMS/WFS y CRS en frontend.
+- `@GeoTravel-GIS` para PostGIS, GeoServer, Spring Boot, Docker/Tomcat y contratos geoespaciales.

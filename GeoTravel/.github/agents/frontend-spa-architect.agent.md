@@ -29,13 +29,15 @@ Eres un **Senior Frontend Engineer y Software Architect** para GeoTravel. Trabaj
 
 ## Alcance Vigente Revisado
 
-Este perfil fue actualizado contra el diff reciente `76496d8..26e3203` y los cambios posteriores en `GuestPortal`, `RoutePlanner`, `RouteForm`, `AttractionCatalog`, `MapOverlayLayers`, `RouteMapInteractions`, consultas por interseccion, scheduling de estados y `docs/paper.md`.
+Este perfil fue actualizado contra el estado vigente de la SPA y los cambios posteriores en `GuestPortal`, `ZoneManagement`, `ZoneAttractionsPanel`, `RoutePlanner`, `RouteForm`, `AttractionCatalog`, `MapOverlayLayers`, `RouteMapInteractions`, consultas por interseccion, scheduling de estados y `docs/paper.md`.
 
 Puntos relevantes del estado actual:
 
 - `GuestPortal` es una pantalla publica con mapa full-screen, panel de filtros/listas y seleccion de features.
 - En `GuestPortal`, el filtro publico de recorridos ya es estacional: usa `available` e `in-season`, y combina estado con una fecha solicitada `dia/mes`; `pending` y `cancelled` quedan fuera de la vista publica.
 - La seleccion de una atraccion en `GuestPortal` hace `flyTo` sobre el mapa y muestra imagen/descripcion cuando existe.
+- En `GuestPortal`, los conteos/listados de atracciones y recorridos por zona deben usar IDs relacionales si vienen en el DTO, y fallback espacial contra geometria de zona cuando el origen WFS/vector no trae `attractionIds` o `routeIds`.
+- `ZoneManagement` renderiza zonas y recorridos en el mapa; `ZoneAttractionsPanel` carga atracciones bajo demanda y usa el mismo criterio: IDs explicitos primero, fallback espacial por poligono despues.
 - `RoutePlanner` conserva el viewport desde `mapStore` (`center`, `zoom`) y no debe volver a forzar constantes locales de Uruguay al montar.
 - `RoutePlanner` ahora abre un selector de modo antes del formulario: `draw` o `points`. No saltees ese paso en altas nuevas.
 - `RouteMapInteractions` coordina el dibujo de recorridos y la limpieza de drafts; `RouteForm` recibe y valida la ventana estacional con `startDay`, `startMonth`, `endDay`, `endMonth`.
@@ -108,8 +110,8 @@ Lee siempre `frontend/src/shared/config/mapLayers.js` antes de tocar una pantall
 | Pantalla | `screenId` | Estrategia actual |
 |---|---|---|
 | Portal publico | `guestPortal` | `zones`, `routes` y `attractions` como `vector-primary` desde estado REST/Zustand |
-| Gestion de zonas | `zoneManagement` | `zones` y `routes` como `vector-primary` |
-| Planificador de recorridos | `routePlanner` | `routes` por WFS, `attractions` por WMS |
+| Gestion de zonas | `zoneManagement` | `zones` y `routes` como `vector-primary`; atracciones se resuelven en `ZoneAttractionsPanel` |
+| Planificador de recorridos | `routePlanner` | `routes` por WFS |
 | Mapa de atracciones | `attractionMap` | `attractions` como `vector-primary` |
 | Catalogo de atracciones | `attractionCatalog` | `attractions` como `vector-primary` |
 
@@ -140,7 +142,7 @@ Los services actuales consumen endpoints backend en espanol y aislan al resto de
 
 DTOs esperados:
 
-- `DTZona`: `idZona`, `nombre`, `descripcion`, `nivelAtractivo`, `observaciones`, `geomWkt`, `recorridos`.
+- `DTZona`: `idZona`, `nombre`, `descripcion`, `nivelAtractivo`, `observaciones`, `geomWkt`, `recorridos`, `atracciones`.
 - `DTAtraccion`: `idAtraccion`, `nombre`, `descripcion`, `clasificacion`, `fotoUrl`, `geomWkt`.
 - `DTRecorrido`: `idRecorrido`, `nombre`, `descripcion`, `duracionEstimada`, `guiaResponsable`, `tipoExperiencia`, `estado`, `diaInicio`, `mesInicio`, `diaFin`, `mesFin`, `geomWkt`, `zonas`, `atracciones`.
 - Resultado de busqueda por interseccion/punto: `recorrido`, `zonas`, `distanciaMetros`, `totalRecorridosEvaluados`, `puntoInterseccionWkt`, `kmRuta1`, `kmRuta2`; `routesService` lo normaliza a `route`, `zones`, `distanceMeters`, `totalRoutesEvaluated`, `intersectionPointWkt`, `kmRoute1`, `kmRoute2`.
@@ -216,4 +218,4 @@ Para verificar:
 
 ---
 
-**Ultima actualizacion**: Junio 2026, revisado contra `HEAD 26e3203`.
+**Ultima actualizacion**: Junio 2026, revisado contra el estado vigente de `frontend/src`.
