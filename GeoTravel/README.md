@@ -199,17 +199,3 @@ docs/geoserver-configuration.md
 ```
 
 No usar WFS-T ni escribir directamente contra GeoServer.
-
-## Agentes
-
-El router de agentes vive en:
-
-```text
-AGENTS.md
-```
-
-Usar:
-
-- `@GeoTravel-FE` para React, Zustand, servicios, formularios, i18n y composicion de pantallas.
-- `@GeoTravel-MapOL` para OpenLayers, capas, interacciones, WMS/WFS y CRS en frontend.
-- `@GeoTravel-GIS` para PostGIS, GeoServer, Spring Boot, Docker/Tomcat y contratos geoespaciales.
