@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Feature from 'ol/Feature';
+import GeoJSON from 'ol/format/GeoJSON';
+import WKT from 'ol/format/WKT';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
 import VectorLayer from 'ol/layer/Vector';
 import { fromLonLat } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
-import WKT from 'ol/format/WKT';
 import { parseLineStringWkt } from '@/shared/lib/geo/wkt';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import MapCanvas from '@/features/map/MapCanvas';
@@ -22,6 +23,7 @@ import useLangStore from '@/shared/i18n/langStore';
 import { fetchAllModeRoutes } from '@/shared/lib/geo/routing';
 
 const wktFmt = new WKT();
+const geojsonFmt = new GeoJSON();
 const GUEST_NAV_KEY = 'nav-route-guest';
 
 const CATEGORY_ICONS = {
@@ -137,6 +139,165 @@ const fmtMins = (m) => {
   const h = Math.floor(m / 60);
   const r = m % 60;
   return r ? `${h}h ${r}min` : `${h}h`;
+};
+
+const getZoneGeometry = (zone) => {
+  if (!zone) {
+    return null;
+  }
+
+  try {
+    if (zone.geometry) {
+      return geojsonFmt.readGeometry(zone.geometry, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:4326',
+      });
+    }
+
+    if (zone.geomWkt) {
+      return wktFmt.readGeometry(zone.geomWkt, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:4326',
+      });
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+const getAttractionsForZone = (zone, attractions = []) => {
+  const ids = zone?.attractionIds;
+  if (Array.isArray(ids) && ids.length) {
+    const strIds = ids.map(String);
+    return attractions.filter((attraction) => strIds.includes(String(attraction.id)));
+  }
+
+  const zoneGeometry = getZoneGeometry(zone);
+  if (!zoneGeometry) {
+    return [];
+  }
+
+  return attractions.filter((attraction) => (
+    Array.isArray(attraction.coordinates)
+    && zoneGeometry.intersectsCoordinate(attraction.coordinates)
+  ));
+};
+
+const getRouteGeometry = (route) => {
+  if (!route) {
+    return null;
+  }
+
+  try {
+    if (route.geometry) {
+      return geojsonFmt.readGeometry(route.geometry, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:4326',
+      });
+    }
+
+    if (route.geomWkt) {
+      return wktFmt.readGeometry(route.geomWkt, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:4326',
+      });
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+const getPolygonRings = (geometry) => {
+  if (!geometry) {
+    return [];
+  }
+
+  const type = geometry.getType?.();
+  if (type === 'Polygon') {
+    return geometry.getCoordinates();
+  }
+
+  if (type === 'MultiPolygon') {
+    return geometry.getCoordinates().flat();
+  }
+
+  return [];
+};
+
+const isPointOnSegment = ([px, py], [ax, ay], [bx, by]) => {
+  const cross = (px - ax) * (by - ay) - (py - ay) * (bx - ax);
+  if (Math.abs(cross) > 1e-9) {
+    return false;
+  }
+
+  const dot = (px - ax) * (bx - ax) + (py - ay) * (by - ay);
+  if (dot < 0) {
+    return false;
+  }
+
+  const squaredLength = (bx - ax) ** 2 + (by - ay) ** 2;
+  return dot <= squaredLength;
+};
+
+const orientation = ([ax, ay], [bx, by], [cx, cy]) => (
+  (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+);
+
+const segmentsIntersect = (a, b, c, d) => {
+  const o1 = orientation(a, b, c);
+  const o2 = orientation(a, b, d);
+  const o3 = orientation(c, d, a);
+  const o4 = orientation(c, d, b);
+
+  if (Math.abs(o1) < 1e-9 && isPointOnSegment(c, a, b)) return true;
+  if (Math.abs(o2) < 1e-9 && isPointOnSegment(d, a, b)) return true;
+  if (Math.abs(o3) < 1e-9 && isPointOnSegment(a, c, d)) return true;
+  if (Math.abs(o4) < 1e-9 && isPointOnSegment(b, c, d)) return true;
+
+  return (o1 > 0) !== (o2 > 0) && (o3 > 0) !== (o4 > 0);
+};
+
+const lineIntersectsPolygon = (lineGeometry, polygonGeometry) => {
+  const lineCoordinates = lineGeometry?.getCoordinates?.() || [];
+  if (lineCoordinates.length < 2 || !polygonGeometry) {
+    return false;
+  }
+
+  if (lineCoordinates.some((coordinate) => polygonGeometry.intersectsCoordinate(coordinate))) {
+    return true;
+  }
+
+  const rings = getPolygonRings(polygonGeometry);
+  return lineCoordinates.slice(0, -1).some((start, index) => {
+    const end = lineCoordinates[index + 1];
+    return rings.some((ring) => (
+      ring.slice(0, -1).some((ringStart, ringIndex) => (
+        segmentsIntersect(start, end, ringStart, ring[ringIndex + 1])
+      ))
+    ));
+  });
+};
+
+const getRoutesForZone = (zone, routes = []) => {
+  const ids = zone?.routeIds;
+  if (Array.isArray(ids) && ids.length) {
+    const strIds = ids.map(String);
+    return routes.filter((route) => strIds.includes(String(route.id)));
+  }
+
+  const zoneGeometry = getZoneGeometry(zone);
+  if (!zoneGeometry) {
+    return [];
+  }
+
+  return routes.filter((route) => {
+    const routeGeometry = getRouteGeometry(route);
+    return lineIntersectsPolygon(routeGeometry, zoneGeometry);
+  });
 };
 
 const getSeasonBounds = (route, startYear) => {
@@ -300,9 +461,8 @@ const GuestPortal = () => {
 
   const chartData = useMemo(() => {
     const rows = zones.map((zone) => {
-      const routeStrIds = Array.isArray(zone.routeIds) ? zone.routeIds.map(String) : [];
-      const attrStrIds  = Array.isArray(zone.attractionIds) ? zone.attractionIds.map(String) : [];
-      const zoneRoutes  = routes.filter((r) => routeStrIds.includes(String(r.id)));
+      const zoneRoutes = getRoutesForZone(zone, routes);
+      const zoneAttractions = getAttractionsForZone(zone, attractions);
       return {
         id:              zone.id,
         name:            zone.name || `Zona ${zone.id}`,
@@ -311,7 +471,7 @@ const GuestPortal = () => {
         'off-season':    zoneRoutes.filter((r) => r.status === 'off-season').length,
         cancelled:       zoneRoutes.filter((r) => r.status === 'cancelled').length,
         total:           zoneRoutes.length,
-        attractionCount: attrStrIds.length,
+        attractionCount: zoneAttractions.length,
       };
     });
 
@@ -320,14 +480,11 @@ const GuestPortal = () => {
       if (chartSort === 'attractions-desc') return b.attractionCount - a.attractionCount;
       return b.total - a.total;
     });
-  }, [zones, routes, chartSort]);
+  }, [attractions, zones, routes, chartSort]);
 
   const zoneAttractions = useMemo(() => {
     if (selectedMapItem?.type !== 'zone') return [];
-    const ids = selectedMapItem.item?.attractionIds;
-    if (!Array.isArray(ids) || !ids.length) return [];
-    const strIds = ids.map(String);
-    return attractions.filter((a) => strIds.includes(String(a.id)));
+    return getAttractionsForZone(selectedMapItem.item, attractions);
   }, [attractions, selectedMapItem]);
 
   const getAttractionCategoryLabel = (category) => {
@@ -974,10 +1131,8 @@ const GuestPortal = () => {
           )}
 
           {sidebarView === 'stats' && selectedChartZone && (() => {
-            const zoneRouteIds = (selectedChartZone.routeIds || []).map(String);
-            const zoneAttrIds  = (selectedChartZone.attractionIds || []).map(String);
-            const zoneRoutes   = routes.filter((r) => zoneRouteIds.includes(String(r.id)));
-            const zoneAttrs    = attractions.filter((a) => zoneAttrIds.includes(String(a.id)));
+            const zoneRoutes = getRoutesForZone(selectedChartZone, routes);
+            const zoneAttrs = getAttractionsForZone(selectedChartZone, attractions);
             return (
               <div className="flex flex-col">
                 <div className="px-5 py-4 border-b border-outline-variant/30 bg-surface-bright shrink-0">

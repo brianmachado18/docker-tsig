@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
+import GeoJSON from 'ol/format/GeoJSON';
+import WKT from 'ol/format/WKT';
 import useAttractionsStore from '@/features/attractions/attractionsStore';
 import StarRating from '@/shared/components/StarRating';
+
+const geojsonFormat = new GeoJSON();
+const wktFormat = new WKT();
 
 const CATEGORY_ICONS = {
   MUSEO: 'museum',
@@ -22,6 +27,28 @@ const CATEGORY_LABELS = {
   PARQUE: 'Parque',
 };
 
+const getZoneGeometry = (zone) => {
+  if (!zone) {
+    return null;
+  }
+
+  if (zone.geometry) {
+    return geojsonFormat.readGeometry(zone.geometry, {
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:4326',
+    });
+  }
+
+  if (zone.geomWkt) {
+    return wktFormat.readGeometry(zone.geomWkt, {
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:4326',
+    });
+  }
+
+  return null;
+};
+
 const ZoneAttractionsPanel = ({ zone, onClose, onEdit, onAttractionSelect }) => {
   const { attractions, fetchAttractions, isLoading } = useAttractionsStore();
 
@@ -37,9 +64,20 @@ const ZoneAttractionsPanel = ({ zone, onClose, onEdit, onAttractionSelect }) => 
 
   const linkedAttractions = useMemo(() => {
     const ids = zone?.attractionIds;
-    if (!Array.isArray(ids) || !ids.length) return [];
-    const strIds = ids.map(String);
-    return attractions.filter((a) => strIds.includes(String(a.id)));
+    if (Array.isArray(ids) && ids.length) {
+      const strIds = ids.map(String);
+      return attractions.filter((a) => strIds.includes(String(a.id)));
+    }
+
+    const zoneGeometry = getZoneGeometry(zone);
+    if (!zoneGeometry) {
+      return [];
+    }
+
+    return attractions.filter((attraction) => (
+      Array.isArray(attraction.coordinates)
+      && zoneGeometry.intersectsCoordinate(attraction.coordinates)
+    ));
   }, [attractions, zone]);
 
   if (!zone) return null;
