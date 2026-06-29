@@ -23,6 +23,7 @@ const useZonesStore = create((set, get) => ({
   zones: [],
   activeZonesReport: [],
   selectedZone: null,
+  pendingActionZone: null,
   geometryEditZone: null,
   geometryEditOriginalGeomWkt: '',
   geometryEditDraftGeomWkt: '',
@@ -47,11 +48,15 @@ const useZonesStore = create((set, get) => ({
   intersectionQueryError: null,
   zoneQueryType: 'routes',
 
-  openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone, error: null }),
+  setPendingActionZone: (zone) => set({ pendingActionZone: zone }),
+  clearPendingActionZone: () => set({ pendingActionZone: null }),
+
+  openForm: (zone = null) => set({ isFormOpen: true, selectedZone: zone, pendingActionZone: null, error: null }),
   closeForm: () =>
     set({
       isFormOpen: false,
       selectedZone: null,
+      pendingActionZone: null,
       geometryEditZone: null,
       geometryEditOriginalGeomWkt: '',
       geometryEditDraftGeomWkt: '',

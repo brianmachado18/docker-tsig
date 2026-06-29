@@ -22,6 +22,16 @@ import { fetchAllModeRoutes } from '@/shared/lib/geo/routing';
 
 const wktFmt = new WKT();
 const GUEST_NAV_KEY = 'nav-route-guest';
+
+const CATEGORY_ICONS = {
+  MUSEO: 'museum',
+  TEATRO: 'theater_comedy',
+  MONUMENTO: 'account_balance',
+  PLAZA: 'park',
+  GASTRONOMIA: 'restaurant',
+  PLAYA: 'beach_access',
+  PARQUE: 'nature',
+};
 const NAV_COLORS = { driving: '#1a73e8', cycling: '#2e7d32', walking: '#e65100' };
 
 const getOrCreateNavLayer = (map) => {
@@ -187,6 +197,7 @@ const GuestPortal = () => {
   const [requestedDay, setRequestedDay] = useState('');
   const [requestedMonth, setRequestedMonth] = useState('');
   const [selectedMapItem, setSelectedMapItem] = useState(null);
+  const [previousMapItem, setPreviousMapItem] = useState(null);
 
   const [directionOpen, setDirectionOpen] = useState(false);
   const [directionState, setDirectionState] = useState('idle');
@@ -254,6 +265,14 @@ const GuestPortal = () => {
   }, [routes, routeStatusFilter, requestedDay, requestedMonth]);
 
   const featuredRoutes = filteredRoutes;
+
+  const zoneAttractions = useMemo(() => {
+    if (selectedMapItem?.type !== 'zone') return [];
+    const ids = selectedMapItem.item?.attractionIds;
+    if (!Array.isArray(ids) || !ids.length) return [];
+    const strIds = ids.map(String);
+    return attractions.filter((a) => strIds.includes(String(a.id)));
+  }, [attractions, selectedMapItem]);
 
   const getAttractionCategoryLabel = (category) => {
     switch (String(category || '').toUpperCase()) {
@@ -346,6 +365,12 @@ const GuestPortal = () => {
   };
 
   const closeMapSelection = () => {
+    if (previousMapItem) {
+      clearNavLayer(mapInstance);
+      setSelectedMapItem(previousMapItem);
+      setPreviousMapItem(null);
+      return;
+    }
     if (selectedMapItem?.type === 'attraction' || selectedMapItem?.type === 'route') {
       restoreViewport();
       clearNavLayer(mapInstance);
@@ -417,7 +442,10 @@ const GuestPortal = () => {
             zones={zones}
             routes={filteredRoutes}
             attractions={attractions}
-            onFeatureSelect={setSelectedMapItem}
+            onFeatureSelect={(item) => {
+              setPreviousMapItem(null);
+              setSelectedMapItem(item);
+            }}
           />
         </div>
 
@@ -508,6 +536,51 @@ const GuestPortal = () => {
                 </span>
               )}
             </div>
+
+            {selectedMapItem.type === 'zone' && (
+              <div className="pt-3 border-t border-outline-variant/30">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-medium text-on-surface-variant uppercase tracking-wide">
+                    Atracciones en esta zona
+                  </p>
+                  {zoneAttractions.length > 0 && (
+                    <span className="text-[11px] text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded-full border border-outline-variant">
+                      {zoneAttractions.length}
+                    </span>
+                  )}
+                </div>
+                {zoneAttractions.length === 0 ? (
+                  <p className="text-sm text-outline">Sin atracciones en esta zona.</p>
+                ) : (
+                  <ul className="flex flex-col gap-1.5 max-h-52 overflow-y-auto pr-0.5">
+                    {zoneAttractions.map((attraction) => {
+                      const cat = String(attraction.category || '').toUpperCase();
+                      const icon = CATEGORY_ICONS[cat] || 'place';
+                      const label = getAttractionCategoryLabel(attraction.category);
+                      return (
+                        <li
+                          key={attraction.id}
+                          className="flex items-center gap-3 rounded-lg bg-surface-container-low px-3 py-2 cursor-pointer hover:bg-surface-container transition-colors"
+                          onClick={() => {
+                            setPreviousMapItem(selectedMapItem);
+                            setSelectedMapItem({ type: 'attraction', item: attraction });
+                          }}
+                        >
+                          <span className="material-symbols-outlined text-[20px] text-primary shrink-0">{icon}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-on-surface truncate">
+                              {attraction.title || `Atracción ${attraction.id}`}
+                            </p>
+                            <p className="text-[11px] text-on-surface-variant">{label}</p>
+                          </div>
+                          <span className="material-symbols-outlined text-[16px] text-outline shrink-0">chevron_right</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {(selectedMapItem.type === 'attraction' || selectedMapItem.type === 'route') && (
               <div className="pt-3 border-t border-outline-variant/30">

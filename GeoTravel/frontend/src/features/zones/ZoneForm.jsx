@@ -9,6 +9,26 @@ import StarRating from '@/shared/components/StarRating';
 import useLangStore from '@/shared/i18n/langStore';
 import { getApiErrorMessage } from '@/shared/lib/forms/validation';
 
+const CATEGORY_ICONS = {
+  MUSEO: 'museum',
+  TEATRO: 'theater_comedy',
+  MONUMENTO: 'account_balance',
+  PLAZA: 'park',
+  GASTRONOMIA: 'restaurant',
+  PLAYA: 'beach_access',
+  PARQUE: 'nature',
+};
+
+const CATEGORY_LABELS = {
+  MUSEO: 'Museo',
+  TEATRO: 'Teatro',
+  MONUMENTO: 'Monumento',
+  PLAZA: 'Plaza',
+  GASTRONOMIA: 'Gastronomía',
+  PLAYA: 'Playa',
+  PARQUE: 'Parque',
+};
+
 const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
   const { t } = useLangStore();
   const {
@@ -70,10 +90,10 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
     [routes, routeIds]
   );
 
-  const linkedAttractions = useMemo(
-    () => attractions.filter((attraction) => attractionIds.includes(attraction.id)),
-    [attractions, attractionIds]
-  );
+  const linkedAttractions = useMemo(() => {
+    const strIds = attractionIds.map(String);
+    return attractions.filter((attraction) => strIds.includes(String(attraction.id)));
+  }, [attractions, attractionIds]);
 
   const handleStartGeometryEdit = () => {
     startGeometryEdit({
@@ -230,15 +250,44 @@ const ZoneForm = ({ zone, onClose, onSaved, onDeleted }) => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="font-label-md text-label-md text-on-surface">Atracciones vinculadas (autogenerado)</span>
-          <div className="max-h-32 overflow-y-auto border border-outline rounded-lg p-2 bg-surface">
-            {!linkedAttractions.length && <p className="text-xs text-outline">Sin atracciones vinculadas.</p>}
-            {linkedAttractions.map((attraction) => (
-              <div key={attraction.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
-                <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
-                <span>{attraction.title || `Atraccion ${attraction.id}`}</span>
+          <div className="flex items-center justify-between">
+            <span className="font-label-md text-label-md text-on-surface">Atracciones vinculadas</span>
+            {linkedAttractions.length > 0 && (
+              <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full border border-outline-variant">
+                {linkedAttractions.length}
+              </span>
+            )}
+          </div>
+          <div className="max-h-52 overflow-y-auto flex flex-col gap-2 pr-0.5">
+            {!linkedAttractions.length && (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-outline-variant py-5 text-center">
+                <span className="material-symbols-outlined text-2xl text-outline">location_off</span>
+                <p className="text-xs text-outline mt-1">Sin atracciones vinculadas.</p>
               </div>
-            ))}
+            )}
+            {linkedAttractions.map((attraction) => {
+              const cat = String(attraction.category || '').toUpperCase();
+              const icon = CATEGORY_ICONS[cat] || 'place';
+              const label = CATEGORY_LABELS[cat] || attraction.category || 'Atracción';
+              return (
+                <div key={attraction.id} className="flex items-start gap-3 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2.5">
+                  <span className="material-symbols-outlined text-[22px] text-primary mt-0.5 shrink-0">{icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-label-lg text-label-lg text-on-surface truncate">
+                        {attraction.title || `Atracción ${attraction.id}`}
+                      </p>
+                      <span className="text-[10px] uppercase tracking-wide text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant shrink-0">
+                        {label}
+                      </span>
+                    </div>
+                    {attraction.description && (
+                      <p className="text-xs text-on-surface-variant line-clamp-2 mt-0.5">{attraction.description}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

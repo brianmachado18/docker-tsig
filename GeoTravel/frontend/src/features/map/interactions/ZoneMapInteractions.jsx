@@ -95,6 +95,7 @@ const ZoneMapInteractions = ({ zones = [] }) => {
   const activeTool = useMapStore((state) => state.activeTool);
   const setActiveTool = useMapStore((state) => state.setActiveTool);
   const openForm = useZonesStore((state) => state.openForm);
+  const setPendingActionZone = useZonesStore((state) => state.setPendingActionZone);
   const geometryEditZone = useZonesStore((state) => state.geometryEditZone);
   const updateGeometryEditDraft = useZonesStore((state) => state.updateGeometryEditDraft);
   const fetchZoneRoutes = useZonesStore((state) => state.fetchZoneRoutes);
@@ -166,17 +167,17 @@ const ZoneMapInteractions = ({ zones = [] }) => {
           return;
         }
 
-        const zone = getZoneFromFeature(feature, zones);
-        if (zone) {
-          openForm(zone);
-          return;
-        }
-
         if (feature.get('isDraftZone')) {
           openForm({
             geomWkt: getGeometryWkt(feature),
             routeIds: [],
           });
+          return;
+        }
+
+        const zone = getZoneFromFeature(feature, zones);
+        if (zone) {
+          setPendingActionZone(zone);
         }
       });
 
@@ -278,6 +279,7 @@ const ZoneMapInteractions = ({ zones = [] }) => {
     layerLookupAttempt,
     map,
     openForm,
+    setPendingActionZone,
     selectActiveZone,
     setActiveTool,
     updateGeometryEditDraft,
