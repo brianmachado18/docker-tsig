@@ -15,24 +15,27 @@ const useMapStore = create((set, get) => ({
   savedViewport: null,
 
   flyTo: (lonLatCoords, zoom = 13) => {
-    const map = get().mapInstance;
-    if (!map || !lonLatCoords) return;
-    const view = map.getView();
-    set({ savedViewport: { center: view.getCenter(), zoom: view.getZoom() } });
-
+    const { mapInstance, savedViewport } = get();
+    if (!mapInstance || !lonLatCoords) return;
+    const view = mapInstance.getView();
+    if (!savedViewport) {
+      set({ savedViewport: { center: view.getCenter(), zoom: view.getZoom() } });
+    }
     const projected = fromLonLat(lonLatCoords);
     const resolution = view.getResolutionForZoom(zoom);
-    const mapSize = map.getSize() || [800, 600];
+    const mapSize = mapInstance.getSize() || [800, 600];
     // Shift center south so the point appears in the upper area, above the popup
     const verticalOffset = mapSize[1] * 0.18 * resolution;
     view.animate({ center: [projected[0], projected[1] - verticalOffset], zoom, duration: 700 });
   },
 
   fitToExtent: (extent) => {
-    const map = get().mapInstance;
-    if (!map || !extent) return;
-    const view = map.getView();
-    set({ savedViewport: { center: view.getCenter(), zoom: view.getZoom() } });
+    const { mapInstance, savedViewport } = get();
+    if (!mapInstance || !extent) return;
+    const view = mapInstance.getView();
+    if (!savedViewport) {
+      set({ savedViewport: { center: view.getCenter(), zoom: view.getZoom() } });
+    }
     view.fit(extent, { padding: [80, 80, 220, 80], duration: 700, maxZoom: 13 });
   },
 

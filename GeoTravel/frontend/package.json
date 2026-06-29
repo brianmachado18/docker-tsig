@@ -10,8 +10,9 @@
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^6.26.2",
-    "zustand": "^4.5.5",
-    "vite": "latest"
+    "recharts": "^3.9.0",
+    "vite": "latest",
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
