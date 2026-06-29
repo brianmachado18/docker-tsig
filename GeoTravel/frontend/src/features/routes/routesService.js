@@ -178,7 +178,7 @@ export const routesService = {
   },
 
   async listByZone(zoneId) {
-    const routes = await apiClient.get(`/recorrido/buscar/porZona?idZona=${zoneId}`);
+    const routes = await apiClient.get(`/recorrido/buscar/porZona?idZona=${zoneId.replace("zona.", "")}`);
     return Array.isArray(routes) ? routes.map(normalizeRoute) : [];
   },
 
