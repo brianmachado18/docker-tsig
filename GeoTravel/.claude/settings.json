@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(xargs cat -n)",
-      "Bash(git -C /Users/joaquin/Desktop/Proyectos/docker-tsig/GeoTravel show 2c40931 --stat)",
-      "Bash(git -C /Users/joaquin/Desktop/Proyectos/docker-tsig/GeoTravel show 2c40931 -- GeoTravel/frontend/src/pages/GuestPortal.jsx)"
-    ]
-  }
-}
