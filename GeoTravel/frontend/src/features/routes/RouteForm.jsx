@@ -652,20 +652,6 @@ return (
         </div>
       )}
 
-      {/* Zonas incluidas */}
-      <div className="flex flex-col gap-2">
-        <span className="font-label-md text-label-md text-on-surface-variant">Zonas incluidas (autogenerado)</span>
-        <div className="max-h-28 overflow-y-auto border border-outline rounded p-2 bg-surface">
-          {!includedZones.length && <p className="text-xs text-outline">Sin zonas incluidas.</p>}
-          {includedZones.map((item) => (
-            <div key={item.id} className="flex items-center gap-2 py-1 text-sm text-on-surface">
-              <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>
-              <span>{item.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {!!routingFeedback && (
         <p className="text-xs text-on-surface-variant">{routingFeedback}</p>
       )}
