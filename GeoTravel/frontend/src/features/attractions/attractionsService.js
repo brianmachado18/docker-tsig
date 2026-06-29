@@ -71,6 +71,13 @@ export const attractionsService = {
       : [];
   },
 
+  async listRanking() {
+    const attractionCollection = await apiClient.get('/atraccion/buscar/todos');
+    return Array.isArray(attractionCollection)
+      ? attractionCollection.map(normalizeAttraction)
+      : [];
+  },
+
   async save(attraction) {
     const dto = toDto(attraction);
     if (attraction.id) {

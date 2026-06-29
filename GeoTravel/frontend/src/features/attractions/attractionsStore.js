@@ -27,6 +27,16 @@ const useAttractionsStore = create((set, get) => ({
     }
   },
 
+  fetchAttractionsRanking: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const attractions = await attractionsService.listRanking();
+      set({ attractions, isLoading: false });
+    } catch (error) {
+      set({ error, isLoading: false });
+    }
+  },
+
   saveAttraction: async (attractionData) => {
     set({ isSaving: true, error: null });
     try {

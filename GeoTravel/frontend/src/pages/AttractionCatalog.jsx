@@ -13,7 +13,7 @@ const AttractionCatalog = () => {
     attractions, 
     isLoading, 
     error, 
-    fetchAttractions,
+    fetchAttractionsRanking,
     isFormOpen,
     openForm,
     selectedAttraction
@@ -24,8 +24,8 @@ const AttractionCatalog = () => {
   const [experienceFilter, setExperienceFilter] = useState('all');
 
   useEffect(() => {
-    fetchAttractions();
-  }, [fetchAttractions]);
+    fetchAttractionsRanking();
+  }, [fetchAttractionsRanking]);
 
   const statusOptions = useMemo(() => {
     const values = attractions.map((attraction) => attraction.status || 'active');
@@ -166,6 +166,7 @@ const AttractionCatalog = () => {
                 title={attraction.title}
                 description={attraction.description}
                 imageUrl={attraction.imageUrl}
+                ranking={attraction.ranking}
                 rankingPosition={index+1}
                 tag={attraction.category}
                 status={getStatusLabel(attraction.status)}

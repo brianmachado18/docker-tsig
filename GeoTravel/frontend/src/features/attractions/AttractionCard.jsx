@@ -7,6 +7,7 @@ const AttractionCard = ({
   tag,
   tagIcon,
   imageUrl,
+  ranking,
   rankingPosition,
   onViewOnMap,
 }) => {
@@ -65,6 +66,11 @@ const AttractionCard = ({
         <p className="font-body-md text-body-md text-on-surface-variant mb-4 line-clamp-2 text-sm flex-1">
           {description}
         </p>
+        <div className="pt-3 border-t border-surface-variant flex justify-between items-center">
+          <span className="font-mono-label text-mono-label text-outline flex items-center gap-1">
+            Atraccion presente en {ranking} recorrido/s.
+          </span>
+        </div>
       </div>
     </div>
   );
