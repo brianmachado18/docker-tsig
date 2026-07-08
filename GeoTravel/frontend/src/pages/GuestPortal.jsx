@@ -14,6 +14,7 @@ import MapCanvas from '@/features/map/MapCanvas';
 import useHeatmapStore from '@/features/map/heatmapStore';
 import useMapStore from '@/features/map/mapStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
+import { routesService } from '@/features/routes/routesService';
 import useRoutesStore from '@/features/routes/routesStore';
 import useZonesStore from '@/features/zones/zonesStore';
 import ZoneRoutesChart from '@/features/zones/ZoneRoutesChart';
@@ -37,13 +38,13 @@ const CATEGORY_ICONS = {
 };
 
 const CATEGORIES = [
-  { value: 'MUSEO',      label: 'Museos',      icon: 'museum' },
-  { value: 'PLAYA',      label: 'Playas',      icon: 'beach_access' },
-  { value: 'PARQUE',     label: 'Parques',     icon: 'nature' },
-  { value: 'PLAZA',      label: 'Plazas',      icon: 'park' },
-  { value: 'MONUMENTO',  label: 'Monumentos',  icon: 'account_balance' },
-  { value: 'GASTRONOMIA',label: 'Gastronomía', icon: 'restaurant' },
-  { value: 'TEATRO',     label: 'Teatros',     icon: 'theater_comedy' },
+  { value: 'MUSEO', label: 'Museos', icon: 'museum' },
+  { value: 'PLAYA', label: 'Playas', icon: 'beach_access' },
+  { value: 'PARQUE', label: 'Parques', icon: 'nature' },
+  { value: 'PLAZA', label: 'Plazas', icon: 'park' },
+  { value: 'MONUMENTO', label: 'Monumentos', icon: 'account_balance' },
+  { value: 'GASTRONOMIA', label: 'Gastronomía', icon: 'restaurant' },
+  { value: 'TEATRO', label: 'Teatros', icon: 'theater_comedy' },
 ];
 const NAV_COLORS = { driving: '#1a73e8', cycling: '#2e7d32', walking: '#e65100' };
 
@@ -185,119 +186,13 @@ const getAttractionsForZone = (zone, attractions = []) => {
   ));
 };
 
-const getRouteGeometry = (route) => {
-  if (!route) {
-    return null;
-  }
+const toComparableId = (id) => String(id ?? '').replace(/^[^.]+\./, '');
 
-  try {
-    if (route.geometry) {
-      return geojsonFmt.readGeometry(route.geometry, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:4326',
-      });
-    }
+const getRoutesForZone = (zone, routesByZoneId = {}, filteredRoutes = []) => {
+  const zoneRoutes = routesByZoneId[String(zone?.id)] || [];
+  const filteredRouteIds = new Set(filteredRoutes.map((route) => toComparableId(route.id)));
 
-    if (route.geomWkt) {
-      return wktFmt.readGeometry(route.geomWkt, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:4326',
-      });
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-};
-
-const getPolygonRings = (geometry) => {
-  if (!geometry) {
-    return [];
-  }
-
-  const type = geometry.getType?.();
-  if (type === 'Polygon') {
-    return geometry.getCoordinates();
-  }
-
-  if (type === 'MultiPolygon') {
-    return geometry.getCoordinates().flat();
-  }
-
-  return [];
-};
-
-const isPointOnSegment = ([px, py], [ax, ay], [bx, by]) => {
-  const cross = (px - ax) * (by - ay) - (py - ay) * (bx - ax);
-  if (Math.abs(cross) > 1e-9) {
-    return false;
-  }
-
-  const dot = (px - ax) * (bx - ax) + (py - ay) * (by - ay);
-  if (dot < 0) {
-    return false;
-  }
-
-  const squaredLength = (bx - ax) ** 2 + (by - ay) ** 2;
-  return dot <= squaredLength;
-};
-
-const orientation = ([ax, ay], [bx, by], [cx, cy]) => (
-  (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
-);
-
-const segmentsIntersect = (a, b, c, d) => {
-  const o1 = orientation(a, b, c);
-  const o2 = orientation(a, b, d);
-  const o3 = orientation(c, d, a);
-  const o4 = orientation(c, d, b);
-
-  if (Math.abs(o1) < 1e-9 && isPointOnSegment(c, a, b)) return true;
-  if (Math.abs(o2) < 1e-9 && isPointOnSegment(d, a, b)) return true;
-  if (Math.abs(o3) < 1e-9 && isPointOnSegment(a, c, d)) return true;
-  if (Math.abs(o4) < 1e-9 && isPointOnSegment(b, c, d)) return true;
-
-  return (o1 > 0) !== (o2 > 0) && (o3 > 0) !== (o4 > 0);
-};
-
-const lineIntersectsPolygon = (lineGeometry, polygonGeometry) => {
-  const lineCoordinates = lineGeometry?.getCoordinates?.() || [];
-  if (lineCoordinates.length < 2 || !polygonGeometry) {
-    return false;
-  }
-
-  if (lineCoordinates.some((coordinate) => polygonGeometry.intersectsCoordinate(coordinate))) {
-    return true;
-  }
-
-  const rings = getPolygonRings(polygonGeometry);
-  return lineCoordinates.slice(0, -1).some((start, index) => {
-    const end = lineCoordinates[index + 1];
-    return rings.some((ring) => (
-      ring.slice(0, -1).some((ringStart, ringIndex) => (
-        segmentsIntersect(start, end, ringStart, ring[ringIndex + 1])
-      ))
-    ));
-  });
-};
-
-const getRoutesForZone = (zone, routes = []) => {
-  const ids = zone?.routeIds;
-  if (Array.isArray(ids) && ids.length) {
-    const strIds = ids.map(String);
-    return routes.filter((route) => strIds.includes(String(route.id)));
-  }
-
-  const zoneGeometry = getZoneGeometry(zone);
-  if (!zoneGeometry) {
-    return [];
-  }
-
-  return routes.filter((route) => {
-    const routeGeometry = getRouteGeometry(route);
-    return lineIntersectsPolygon(routeGeometry, zoneGeometry);
-  });
+  return zoneRoutes.filter((route) => filteredRouteIds.has(toComparableId(route.id)));
 };
 
 const getSeasonBounds = (route, startYear) => {
@@ -376,6 +271,8 @@ const GuestPortal = () => {
   const [selectedChartZone, setSelectedChartZone] = useState(null);
   const [chartSort, setChartSort] = useState('routes-desc');
   const [visibleZoneCount, setVisibleZoneCount] = useState(6);
+  const [zoneRoutesByZoneId, setZoneRoutesByZoneId] = useState({});
+  const [isZoneRoutesLoading, setIsZoneRoutesLoading] = useState(false);
 
   const [directionOpen, setDirectionOpen] = useState(false);
   const [directionState, setDirectionState] = useState('idle');
@@ -401,6 +298,39 @@ const GuestPortal = () => {
     fetchRoutes();
     fetchZones();
   }, [fetchAttractions, fetchRoutes, fetchZones]);
+
+  useEffect(() => {
+    if (!zones.length) {
+      setZoneRoutesByZoneId({});
+      return undefined;
+    }
+
+    let isCancelled = false;
+    setIsZoneRoutesLoading(true);
+
+    Promise.all(zones.map(async (zone) => {
+      try {
+        const zoneRoutes = await routesService.listByZone(String(zone.id));
+        return [String(zone.id), zoneRoutes];
+      } catch {
+        return [String(zone.id), []];
+      }
+    }))
+      .then((entries) => {
+        if (!isCancelled) {
+          setZoneRoutesByZoneId(Object.fromEntries(entries));
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsZoneRoutesLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [zones]);
 
   useEffect(() => {
     if (selectedMapItem?.type !== 'attraction' || !selectedMapItem.item?.coordinates) return;
@@ -461,26 +391,26 @@ const GuestPortal = () => {
 
   const chartData = useMemo(() => {
     const rows = zones.map((zone) => {
-      const zoneRoutes = getRoutesForZone(zone, routes);
+      const zoneRoutes = getRoutesForZone(zone, zoneRoutesByZoneId, filteredRoutes);
       const zoneAttractions = getAttractionsForZone(zone, attractions);
       return {
-        id:              zone.id,
-        name:            zone.name || `Zona ${zone.id}`,
-        available:       zoneRoutes.filter((r) => r.status === 'available').length,
-        pending:         zoneRoutes.filter((r) => r.status === 'pending').length,
-        'off-season':    zoneRoutes.filter((r) => r.status === 'off-season').length,
-        cancelled:       zoneRoutes.filter((r) => r.status === 'cancelled').length,
-        total:           zoneRoutes.length,
+        id: zone.id,
+        name: zone.name || `Zona ${zone.id}`,
+        available: zoneRoutes.filter((r) => r.status === 'available').length,
+        pending: zoneRoutes.filter((r) => r.status === 'pending').length,
+        'off-season': zoneRoutes.filter((r) => r.status === 'off-season').length,
+        cancelled: zoneRoutes.filter((r) => r.status === 'cancelled').length,
+        total: zoneRoutes.length,
         attractionCount: zoneAttractions.length,
       };
     });
 
     return [...rows].sort((a, b) => {
-      if (chartSort === 'routes-asc')       return a.total - b.total;
+      if (chartSort === 'routes-asc') return a.total - b.total;
       if (chartSort === 'attractions-desc') return b.attractionCount - a.attractionCount;
       return b.total - a.total;
     });
-  }, [attractions, zones, routes, chartSort]);
+  }, [attractions, zones, zoneRoutesByZoneId, filteredRoutes, chartSort]);
 
   const zoneAttractions = useMemo(() => {
     if (selectedMapItem?.type !== 'zone') return [];
@@ -682,11 +612,10 @@ const GuestPortal = () => {
           type="button"
           onClick={toggleHeatmap}
           aria-pressed={heatmapVisible}
-          className={`absolute bottom-4 left-3 z-40 flex items-center gap-2 rounded-lg border px-3 py-2 font-label-md text-label-md shadow-md backdrop-blur-md transition-colors ${
-            heatmapVisible
-              ? 'border-primary bg-primary text-on-primary'
-              : 'border-outline-variant bg-surface/90 text-on-surface hover:bg-surface-variant'
-          }`}
+          className={`absolute bottom-4 left-3 z-40 flex items-center gap-2 rounded-lg border px-3 py-2 font-label-md text-label-md shadow-md backdrop-blur-md transition-colors ${heatmapVisible
+            ? 'border-primary bg-primary text-on-primary'
+            : 'border-outline-variant bg-surface/90 text-on-surface hover:bg-surface-variant'
+            }`}
         >
           <span className="material-symbols-outlined text-[18px]">whatshot</span>
           {t('guest.heatmap')}
@@ -815,9 +744,8 @@ const GuestPortal = () => {
                 <button
                   type="button"
                   onClick={handleToggleDirection}
-                  className={`w-full flex items-center justify-between text-sm py-1.5 px-0.5 rounded transition-colors ${
-                    directionOpen ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
-                  }`}
+                  className={`w-full flex items-center justify-between text-sm py-1.5 px-0.5 rounded transition-colors ${directionOpen ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'
+                    }`}
                 >
                   <span className="flex items-center gap-2 font-medium">
                     <span className="material-symbols-outlined text-[18px]">directions</span>
@@ -860,11 +788,10 @@ const GuestPortal = () => {
                                 key={mode}
                                 type="button"
                                 onClick={() => handleSelectNavMode(mode)}
-                                className={`flex flex-col items-center gap-1 flex-1 py-2 px-1 rounded-xl border-2 transition-all ${
-                                  selectedNavMode === mode
-                                    ? 'bg-surface-container shadow-sm'
-                                    : 'bg-surface-container hover:bg-surface-container-high border-transparent'
-                                }`}
+                                className={`flex flex-col items-center gap-1 flex-1 py-2 px-1 rounded-xl border-2 transition-all ${selectedNavMode === mode
+                                  ? 'bg-surface-container shadow-sm'
+                                  : 'bg-surface-container hover:bg-surface-container-high border-transparent'
+                                  }`}
                                 style={{ borderColor: selectedNavMode === mode ? color : 'transparent' }}
                               >
                                 <span className="material-symbols-outlined text-[20px]" style={{ color }}>{icon}</span>
@@ -898,19 +825,18 @@ const GuestPortal = () => {
           {/* Tab switcher */}
           <div className="px-3 py-2.5 border-b border-outline-variant/30 bg-surface/30 flex gap-1">
             {[
-              { id: 'routes',      icon: 'route',          label: 'Recorridos' },
+              { id: 'routes', icon: 'route', label: 'Recorridos' },
               { id: 'attractions', icon: 'local_activity', label: 'Lugares' },
-              { id: 'stats',       icon: 'bar_chart',      label: 'Estadística' },
+              { id: 'stats', icon: 'bar_chart', label: 'Estadística' },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => { setSidebarView(tab.id); setSelectedChartZone(null); }}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg text-xs font-medium transition-colors ${
-                  sidebarView === tab.id
-                    ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant hover:bg-surface-container'
-                }`}
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-1 rounded-lg text-xs font-medium transition-colors ${sidebarView === tab.id
+                  ? 'bg-primary text-on-primary'
+                  : 'text-on-surface-variant hover:bg-surface-container'
+                  }`}
               >
                 <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
                 {tab.label}
@@ -1030,9 +956,9 @@ const GuestPortal = () => {
               <div className="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden">
                 <div className="flex items-center justify-around gap-2 py-4 px-2">
                   {[
-                    { value: routes.length,      label: 'recorridos', icon: 'route' },
+                    { value: filteredRoutes.length, label: 'recorridos', icon: 'route' },
                     { value: attractions.length, label: 'atracciones', icon: 'local_activity' },
-                    { value: zones.length,       label: 'zonas', icon: 'map' },
+                    { value: zones.length, label: 'zonas', icon: 'map' },
                   ].map((stat) => (
                     <div key={stat.label} className="flex flex-col items-center gap-1">
                       <span className="material-symbols-outlined text-[20px] text-primary">{stat.icon}</span>
@@ -1086,19 +1012,18 @@ const GuestPortal = () => {
                 <p className="text-[10px] uppercase tracking-wide text-on-surface-variant font-medium">Ordenar por</p>
                 <div className="flex rounded-xl border border-outline-variant bg-surface-container-low p-1 gap-0.5">
                   {[
-                    { id: 'routes-desc',      label: 'Más recorridos',  icon: 'arrow_downward' },
-                    { id: 'routes-asc',       label: 'Menos recorridos', icon: 'arrow_upward' },
+                    { id: 'routes-desc', label: 'Más recorridos', icon: 'arrow_downward' },
+                    { id: 'routes-asc', label: 'Menos recorridos', icon: 'arrow_upward' },
                     { id: 'attractions-desc', label: 'Más atracciones', icon: 'local_activity' },
                   ].map((opt) => (
                     <button
                       key={opt.id}
                       type="button"
                       onClick={() => { setChartSort(opt.id); setVisibleZoneCount(6); }}
-                      className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[10px] font-medium transition-all ${
-                        chartSort === opt.id
-                          ? 'bg-primary text-on-primary shadow-sm'
-                          : 'text-on-surface-variant hover:bg-surface-container'
-                      }`}
+                      className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[10px] font-medium transition-all ${chartSort === opt.id
+                        ? 'bg-primary text-on-primary shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container'
+                        }`}
                     >
                       <span className="material-symbols-outlined text-[15px]">{opt.icon}</span>
                       {opt.label}
@@ -1109,7 +1034,7 @@ const GuestPortal = () => {
 
               <ZoneRoutesChart
                 data={chartData.slice(0, visibleZoneCount)}
-                isLoading={isRoutesLoading || isZonesLoading}
+                isLoading={isRoutesLoading || isZonesLoading || isZoneRoutesLoading}
                 onZoneClick={handleChartZoneClick}
               />
               {chartData.length > 6 && (
@@ -1131,7 +1056,7 @@ const GuestPortal = () => {
           )}
 
           {sidebarView === 'stats' && selectedChartZone && (() => {
-            const zoneRoutes = getRoutesForZone(selectedChartZone, routes);
+            const zoneRoutes = getRoutesForZone(selectedChartZone, zoneRoutesByZoneId, filteredRoutes);
             const zoneAttrs = getAttractionsForZone(selectedChartZone, attractions);
             return (
               <div className="flex flex-col">
@@ -1212,7 +1137,7 @@ const GuestPortal = () => {
                         <div className="flex-1 h-px bg-outline-variant/40" />
                       </div>
                       {zoneAttrs.map((attraction) => {
-                        const cat  = String(attraction.category || '').toUpperCase();
+                        const cat = String(attraction.category || '').toUpperCase();
                         const icon = CATEGORY_ICONS[cat] || 'place';
                         return (
                           <div
@@ -1254,11 +1179,10 @@ const GuestPortal = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedCategory(null)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    selectedCategory === null
-                      ? 'bg-primary text-on-primary border-primary'
-                      : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${selectedCategory === null
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                    }`}
                 >
                   Todas
                 </button>
@@ -1270,11 +1194,10 @@ const GuestPortal = () => {
                       key={cat.value}
                       type="button"
                       onClick={() => setSelectedCategory(selectedCategory === cat.value ? null : cat.value)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                        selectedCategory === cat.value
-                          ? 'bg-primary text-on-primary border-primary'
-                          : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${selectedCategory === cat.value
+                        ? 'bg-primary text-on-primary border-primary'
+                        : 'border-outline-variant text-on-surface-variant hover:bg-surface-container'
+                        }`}
                     >
                       <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
                       {cat.label}

@@ -85,7 +85,7 @@ const normalizeActiveZone = (zone) => ({
 });
 
 const toDto = (zone) => ({
-  idZona: zone.id === undefined ?  null : (zone.id).replace("zona.", ""),
+  idZona: zone.id === undefined ? null : (zone.id).replace("zona.", ""),
   nombre: String(zone.name || '').trim(),
   descripcion: String(zone.description || '').trim(),
   nivelAtractivo: Number(zone.attractionLevel),

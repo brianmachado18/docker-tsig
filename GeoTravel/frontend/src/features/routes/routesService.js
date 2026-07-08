@@ -152,14 +152,14 @@ const normalizeIntersectionQueryResult = (result) => {
     route: result.recorrido ? normalizeRoute(result.recorrido) : null,
     zones: Array.isArray(result.zonas)
       ? result.zonas.map((zone) => ({
-          id: zone.id ?? zone.idZona,
-          name: zone.name ?? zone.nombre ?? '',
-          description: zone.description ?? zone.descripcion ?? '',
-          attractionLevel: zone.attractionLevel ?? zone.nivelAtractivo ?? 1,
-          notes: zone.notes ?? zone.observaciones ?? '',
-          geomWkt: zone.geomWkt ?? '',
-          routeIds: zone.routeIds ?? zone.recorridos ?? [],
-        }))
+        id: zone.id ?? zone.idZona,
+        name: zone.name ?? zone.nombre ?? '',
+        description: zone.description ?? zone.descripcion ?? '',
+        attractionLevel: zone.attractionLevel ?? zone.nivelAtractivo ?? 1,
+        notes: zone.notes ?? zone.observaciones ?? '',
+        geomWkt: zone.geomWkt ?? '',
+        routeIds: zone.routeIds ?? zone.recorridos ?? [],
+      }))
       : [],
     distanceMeters: result.distanciaMetros ?? null,
     totalRoutesEvaluated: result.totalRecorridosEvaluados ?? null,
@@ -215,12 +215,12 @@ export const routesService = {
 
     return Array.isArray(suggestions)
       ? suggestions.map((suggestion) => ({
-          streetId: suggestion.streetId,
-          label: suggestion.label ?? '',
-          streetName: suggestion.streetName ?? '',
-          locality: suggestion.locality ?? '',
-          department: suggestion.department ?? '',
-        }))
+        streetId: suggestion.streetId,
+        label: suggestion.label ?? '',
+        streetName: suggestion.streetName ?? '',
+        locality: suggestion.locality ?? '',
+        department: suggestion.department ?? '',
+      }))
       : [];
   },
 
@@ -235,11 +235,11 @@ export const routesService = {
 
     return Array.isArray(suggestions)
       ? suggestions.map((suggestion) => ({
-          streetLabel: suggestion.streetLabel ?? '',
-          intersectionLabel: suggestion.intersectionLabel ?? '',
-          lon: suggestion.lon,
-          lat: suggestion.lat,
-        }))
+        streetLabel: suggestion.streetLabel ?? '',
+        intersectionLabel: suggestion.intersectionLabel ?? '',
+        lon: suggestion.lon,
+        lat: suggestion.lat,
+      }))
       : [];
   },
 
