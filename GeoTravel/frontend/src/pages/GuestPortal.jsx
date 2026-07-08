@@ -14,6 +14,7 @@ import MapCanvas from '@/features/map/MapCanvas';
 import useHeatmapStore from '@/features/map/heatmapStore';
 import useMapStore from '@/features/map/mapStore';
 import { STATUS_COLORS, STATUS_LABELS } from '@/features/routes/routeStatus';
+import { routesService } from '@/features/routes/routesService';
 import useRoutesStore from '@/features/routes/routesStore';
 import useZonesStore from '@/features/zones/zonesStore';
 import ZoneRoutesChart from '@/features/zones/ZoneRoutesChart';
@@ -185,14 +186,13 @@ const getAttractionsForZone = (zone, attractions = []) => {
   ));
 };
 
-const getRoutesForZone = (zone, routes = []) => {
-  const ids = zone?.routeIds;
-  if (Array.isArray(ids) && ids.length) {
-    const strIds = ids.map(String);
-    return routes.filter((route) => strIds.includes(String(route.id)));
-  }
+const toComparableId = (id) => String(id ?? '').replace(/^[^.]+\./, '');
 
-  return [];
+const getRoutesForZone = (zone, routesByZoneId = {}, filteredRoutes = []) => {
+  const zoneRoutes = routesByZoneId[String(zone?.id)] || [];
+  const filteredRouteIds = new Set(filteredRoutes.map((route) => toComparableId(route.id)));
+
+  return zoneRoutes.filter((route) => filteredRouteIds.has(toComparableId(route.id)));
 };
 
 const getSeasonBounds = (route, startYear) => {
@@ -271,6 +271,8 @@ const GuestPortal = () => {
   const [selectedChartZone, setSelectedChartZone] = useState(null);
   const [chartSort, setChartSort] = useState('routes-desc');
   const [visibleZoneCount, setVisibleZoneCount] = useState(6);
+  const [zoneRoutesByZoneId, setZoneRoutesByZoneId] = useState({});
+  const [isZoneRoutesLoading, setIsZoneRoutesLoading] = useState(false);
 
   const [directionOpen, setDirectionOpen] = useState(false);
   const [directionState, setDirectionState] = useState('idle');
@@ -296,6 +298,39 @@ const GuestPortal = () => {
     fetchRoutes();
     fetchZones();
   }, [fetchAttractions, fetchRoutes, fetchZones]);
+
+  useEffect(() => {
+    if (!zones.length) {
+      setZoneRoutesByZoneId({});
+      return undefined;
+    }
+
+    let isCancelled = false;
+    setIsZoneRoutesLoading(true);
+
+    Promise.all(zones.map(async (zone) => {
+      try {
+        const zoneRoutes = await routesService.listByZone(String(zone.id));
+        return [String(zone.id), zoneRoutes];
+      } catch {
+        return [String(zone.id), []];
+      }
+    }))
+      .then((entries) => {
+        if (!isCancelled) {
+          setZoneRoutesByZoneId(Object.fromEntries(entries));
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsZoneRoutesLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [zones]);
 
   useEffect(() => {
     if (selectedMapItem?.type !== 'attraction' || !selectedMapItem.item?.coordinates) return;
@@ -340,11 +375,6 @@ const GuestPortal = () => {
 
   const featuredRoutes = filteredRoutes;
 
-  const statsRoutes = useMemo(
-    () => routes.filter((route) => route.status !== 'pending' && route.status !== 'cancelled'),
-    [routes],
-  );
-
   const categoryCounts = useMemo(() => {
     const counts = {};
     attractions.forEach((a) => {
@@ -361,7 +391,7 @@ const GuestPortal = () => {
 
   const chartData = useMemo(() => {
     const rows = zones.map((zone) => {
-      const zoneRoutes = getRoutesForZone(zone, statsRoutes);
+      const zoneRoutes = getRoutesForZone(zone, zoneRoutesByZoneId, filteredRoutes);
       const zoneAttractions = getAttractionsForZone(zone, attractions);
       return {
         id: zone.id,
@@ -380,7 +410,7 @@ const GuestPortal = () => {
       if (chartSort === 'attractions-desc') return b.attractionCount - a.attractionCount;
       return b.total - a.total;
     });
-  }, [attractions, zones, statsRoutes, chartSort]);
+  }, [attractions, zones, zoneRoutesByZoneId, filteredRoutes, chartSort]);
 
   const zoneAttractions = useMemo(() => {
     if (selectedMapItem?.type !== 'zone') return [];
@@ -926,7 +956,7 @@ const GuestPortal = () => {
               <div className="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden">
                 <div className="flex items-center justify-around gap-2 py-4 px-2">
                   {[
-                    { value: statsRoutes.length, label: 'recorridos', icon: 'route' },
+                    { value: filteredRoutes.length, label: 'recorridos', icon: 'route' },
                     { value: attractions.length, label: 'atracciones', icon: 'local_activity' },
                     { value: zones.length, label: 'zonas', icon: 'map' },
                   ].map((stat) => (
@@ -1004,7 +1034,7 @@ const GuestPortal = () => {
 
               <ZoneRoutesChart
                 data={chartData.slice(0, visibleZoneCount)}
-                isLoading={isRoutesLoading || isZonesLoading}
+                isLoading={isRoutesLoading || isZonesLoading || isZoneRoutesLoading}
                 onZoneClick={handleChartZoneClick}
               />
               {chartData.length > 6 && (
@@ -1026,7 +1056,7 @@ const GuestPortal = () => {
           )}
 
           {sidebarView === 'stats' && selectedChartZone && (() => {
-            const zoneRoutes = getRoutesForZone(selectedChartZone, statsRoutes);
+            const zoneRoutes = getRoutesForZone(selectedChartZone, zoneRoutesByZoneId, filteredRoutes);
             const zoneAttrs = getAttractionsForZone(selectedChartZone, attractions);
             return (
               <div className="flex flex-col">
