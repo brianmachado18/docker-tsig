@@ -1,5 +1,4 @@
 import { apiClient } from '@/shared/lib/api/apiClient';
-import { fetchWfsFeatureCollection } from '@/features/map/services/geoserver';
 import { parseLineStringWkt, parsePolygonWkt } from '@/shared/lib/geo/wkt';
 
 const statusFromBackend = (status) => {
@@ -39,30 +38,6 @@ const normalizeZone = (zone) => ({
   status: zone.status ?? 'active',
 });
 
-const polygonToWkt = (geometry) => {
-  if (!geometry || geometry.type !== 'Polygon' || !Array.isArray(geometry.coordinates?.[0])) {
-    return '';
-  }
-  const ring = geometry.coordinates[0]
-    .map(([lon, lat]) => `${Number(lon)} ${Number(lat)}`)
-    .join(', ');
-  return `POLYGON((${ring}))`;
-};
-
-const normalizeZoneFeature = (feature) => {
-  const properties = feature?.properties ?? {};
-  const geometry = feature?.geometry?.type === 'Polygon' ? feature.geometry : null;
-  return normalizeZone({
-    idZona: properties.id_zona ?? properties.idZona ?? feature?.id,
-    nombre: properties.nombre,
-    descripcion: properties.descripcion,
-    nivelAtractivo: properties.nivel_atractivo ?? properties.nivelAtractivo,
-    observaciones: properties.observaciones,
-    geomWkt: geometry ? polygonToWkt(geometry) : properties.geom_wkt,
-    geometry,
-  });
-};
-
 const normalizeActiveRoute = (route) => ({
   id: route.id ?? route.idRecorrido,
   name: route.name ?? route.nombre ?? '',
@@ -85,7 +60,7 @@ const normalizeActiveZone = (zone) => ({
 });
 
 const toDto = (zone) => ({
-  idZona: zone.id === undefined ?  null : (zone.id).replace("zona.", ""),
+  idZona: zone.id === undefined ? null : (zone.id).replace("zona.", ""),
   nombre: String(zone.name || '').trim(),
   descripcion: String(zone.description || '').trim(),
   nivelAtractivo: Number(zone.attractionLevel),
@@ -96,9 +71,9 @@ const toDto = (zone) => ({
 
 export const zonesService = {
   async list() {
-    const featureCollection = await fetchWfsFeatureCollection('zones');
-    return Array.isArray(featureCollection.features)
-      ? featureCollection.features.map(normalizeZoneFeature)
+    const zones = await apiClient.get('/zona/buscar/todos');
+    return Array.isArray(zones)
+      ? zones.map(normalizeZone)
       : [];
   },
 
