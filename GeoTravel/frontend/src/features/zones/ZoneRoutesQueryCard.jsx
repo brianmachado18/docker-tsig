@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useMapStore from '@/features/map/mapStore';
-import useAttractionsStore from '@/features/attractions/attractionsStore';
 import { ROUTE_STATUS_LABEL_KEYS, STATUS_LABELS, STATUS_STYLES } from '@/features/routes/routeStatus';
 import { routesService } from '@/features/routes/routesService';
 import useZonesStore from '@/features/zones/zonesStore';
@@ -70,19 +69,6 @@ const ZoneRoutesQueryCard = () => {
   const [isLoadingCrossStreetSuggestions, setIsLoadingCrossStreetSuggestions] = useState(false);
   const [crossStreetSuggestionsError, setCrossStreetSuggestionsError] = useState(null);
   const [selectedCrossStreetSuggestion, setSelectedCrossStreetSuggestion] = useState(null);
-
-  const { attractions, fetchAttractions } = useAttractionsStore();
-
-  useEffect(() => {
-    fetchAttractions();
-  }, [fetchAttractions]);
-
-  const linkedAttractions = useMemo(() => {
-    const ids = selectedZoneForRoutes?.attractionIds;
-    if (!Array.isArray(ids) || !ids.length) return [];
-    const strIds = ids.map(String);
-    return attractions.filter((a) => strIds.includes(String(a.id)));
-  }, [attractions, selectedZoneForRoutes]);
 
   const isQueryMode = activeTool === 'zone-query';
   const routeQueryErrorMessage = getApiErrorMessage(routeQueryError, t('common.error'));
@@ -509,53 +495,6 @@ const ZoneRoutesQueryCard = () => {
           ) : (
             <p className="text-sm text-on-surface-variant">{t('zones.routesQuery.empty')}</p>
           )}
-
-          <div className="rounded-xl border border-outline-variant bg-surface-container-low overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-outline-variant bg-surface-container">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
-                <p className="text-xs uppercase tracking-wide font-medium text-on-surface-variant">Atracciones</p>
-              </div>
-              {linkedAttractions.length > 0 && (
-                <span className="text-xs text-on-surface-variant bg-surface px-2 py-0.5 rounded-full border border-outline-variant">
-                  {linkedAttractions.length}
-                </span>
-              )}
-            </div>
-
-            {linkedAttractions.length === 0 ? (
-              <div className="flex items-center gap-2 px-3 py-3">
-                <span className="material-symbols-outlined text-[16px] text-outline">location_off</span>
-                <p className="text-xs text-on-surface-variant">Sin atracciones en esta zona.</p>
-              </div>
-            ) : (
-              <ul className="max-h-48 overflow-y-auto divide-y divide-outline-variant">
-                {linkedAttractions.map((attraction) => {
-                  const cat = String(attraction.category || '').toUpperCase();
-                  const icon = CATEGORY_ICONS[cat] || 'place';
-                  const label = CATEGORY_LABELS[cat] || attraction.category || 'Atracción';
-                  return (
-                    <li key={attraction.id} className="flex items-start gap-3 px-3 py-2.5 hover:bg-surface-container/60 transition-colors">
-                      <span className="material-symbols-outlined text-[20px] text-primary mt-0.5 shrink-0">{icon}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-label-md text-label-md text-on-surface truncate">
-                            {attraction.title || `Atracción ${attraction.id}`}
-                          </p>
-                          <span className="text-[10px] uppercase tracking-wide text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant shrink-0">
-                            {label}
-                          </span>
-                        </div>
-                        {attraction.description && (
-                          <p className="text-xs text-on-surface-variant line-clamp-1 mt-0.5">{attraction.description}</p>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
 
           <button
             type="button"
